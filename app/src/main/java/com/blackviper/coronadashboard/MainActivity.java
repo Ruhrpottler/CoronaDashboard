@@ -3,6 +3,7 @@ package com.blackviper.coronadashboard;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
@@ -14,6 +15,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
@@ -40,27 +42,50 @@ public class MainActivity extends AppCompatActivity {
         btn_sendRequest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //Toast.makeText(MainActivity.this, "Button wurde gedrückt.", Toast.LENGTH_SHORT).show();
                 RequestQueue queue = Volley.newRequestQueue(MainActivity.this);
-                String url ="https://www.metaweather.com/api/location/search/?query=london"; //TODO hardcoded
 
-                JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
+                //TODO objectId für jeden Landkreis herausfinden können und diese direkt in die URL klatschen, um mit dem Namen der Stadt die aktuellen Daten zu bekommen.
+                //TODO Daten richtig darstellen (ListView etc)
+                int objectId = 95;
+                String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/query?" +
+                        "where=OBJECTID%3D" + objectId + "&outFields=OBJECTID,BEZ,EWZ,death_rate,cases,deaths,cases_per_100k,cases_per_population,county," +
+                        "last_update,cases7_per_100k,recovered,EWZ_BL,cases7_bl_per_100k,cases7_bl,death7_bl,cases7_lk," +
+                        "death7_lk,cases7_per_100k_txt&returnGeometry=false&f=json";
+
+                JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
                     @Override
-                    public void onResponse(JSONArray response) { //Wir erwarten als Antwort vom Server ein JSONArray (aus JSON-Objekten)
-                        String cityId = "";
-                        try {
-                            JSONObject jObject = response.getJSONObject(0);
-                            cityId = jObject.getString("woeid");
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                            showToastTextLong("Error: Keine oder fehlerhafte Daten erhalten.");
+                    public void onResponse(JSONObject response) {
+                        String userOutput = "7-Tage-Inzidenzwert: ";
+                        try
+                        {
+                            //response.getJSONArray("features").getJSONObject(0).getJSONObject("attributes").getString("cases7_per_100k_txt"); //Gesamte Anfrage
+
+                            JSONArray features = response.getJSONArray("features");
+                            if(features == null) throw new JSONException("features is null");
+
+                            JSONObject firstAndOnlyArrayObject = features.getJSONObject(0); //Object without name
+                            if(firstAndOnlyArrayObject == null) throw new JSONException("firstAndOnlyArrayObject is null");
+
+                            JSONObject attributes = firstAndOnlyArrayObject.getJSONObject("attributes");
+                            if(attributes == null) throw new JSONException("attributes is null");
+
+                            userOutput += attributes.getString("cases7_per_100k_txt");
+                            //TODO Zahl abfreifen (welcher Datentyp)
+                            //TODO Wenn ich ganz krass bin: Werte zwischenspeichern, um zu zeigen, wann 5 tage unter und wann 3 Tage über 100.
+                            //TODO Damit kann man z.B. prüfen, wie viele Landkreise nun welche Regelungen (z.B. Ausgangssperren) haben.
+
+                            showToastTextLong(userOutput);
+                        } catch(JSONException e) {
+                            e.printStackTrace(); //TODO Exception-Handling verbessern
+                            Log.d("JSONException", e.toString());
                         }
-                        showToastTextLong("City-ID = " + cityId); //response.toString()
+
                     }
                 }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        showToastTextShort("Es ist ein Fehler aufgetreten.");
+                        Log.d("onErrorResponse", error.toString());
+                        showToastTextShort("Es ist ein Fehler aufgetreten, siehe auf der Konsole nach!");
                     }
                 });
 
