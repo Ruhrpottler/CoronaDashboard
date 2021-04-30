@@ -87,16 +87,69 @@ public class DataService {
                 responseListener.onError(msg);
             }
         });
-        RequestSingleton.getInstance(activityContext).addToRequestQueue(request); //TODO prüfen, ob der ApplicationContext gezogen wird
+        RequestSingleton.getInstance(activityContext).addToRequestQueue(request);
     }
 
-    public void getCoronaData(int cityId)
+    public void getDataForCity(String cityName) //TODO unfertig
     {
+        VolleyResponseListener responseListener = new VolleyResponseListener() {
+            @Override
+            public void onError(String message) {
+                Toast.makeText(activityContext, message, Toast.LENGTH_LONG).show();
+                Log.e("onError", message);
+            }
+
+            @Override
+            public void onResponse(int responsedCityId) {
+                cityId = responsedCityId;
+            }
+        };
+
+        getCityId(cityName, responseListener);
+
+        //TODO Video anschauen: Warten bis die Antwort kommt udn dann nächste Anfrage absenden
+
         String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/query?" +
                 "where=OBJECTID%3D" + cityId + "&outFields=OBJECTID,BEZ,EWZ,death_rate,cases,deaths,cases_per_100k,cases_per_population,county," +
                 "last_update,cases7_per_100k,recovered,EWZ_BL,cases7_bl_per_100k,cases7_bl,death7_bl,cases7_lk," +
                 "death7_lk,cases7_per_100k_txt&returnGeometry=false&f=json";
-        //TODO not implemented
+
+        //double inzidenzwert; //TODO
+
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    JSONArray features = response.getJSONArray("features");
+                    if (features == null) throw new JSONException("'features' is null");
+                    JSONObject firstAndOnlyArrayObject = features.getJSONObject(0); //Object without name
+                    if (firstAndOnlyArrayObject == null) throw new JSONException("'firstAndOnlyArrayObject' is null");
+                    JSONObject attributes = firstAndOnlyArrayObject.getJSONObject("attributes");
+                    if (attributes == null) throw new JSONException("'attributes' is null");
+                    //inzidenzwert = attributes.getDouble("cases7_per_100k");
+
+                    if(cityId == 0)
+                        throw new IllegalArgumentException(String.format("Für '%s' wurde die ungültige Objekt-ID %d gefunden.", cityName, cityId));
+                    responseListener.onResponse(cityId); //ruft die implementierte Methode auf (MainActivity) --> callback
+                } catch (JSONException e) {
+                    e.printStackTrace(); //TODO Exception-Handling verbessern
+                    Log.d("JSONException", e.toString());
+                } catch(IllegalArgumentException userException)
+                {
+                    Toast.makeText(activityContext, userException.getMessage(), Toast.LENGTH_LONG).show();
+                }
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                String msg = "Fehler bei der Verarbeitung der Server-Antwort: " + error.toString();
+                Log.d("onErrorResponse", msg);
+                responseListener.onError(msg);
+            }
+        });
+        RequestSingleton.getInstance(activityContext).addToRequestQueue(request);
+
     }
 
     public void getAllCities()
@@ -104,6 +157,4 @@ public class DataService {
         //TODO Alle Städte/LKs für AutoComplete herausfinden, geeigneten Rückgabe-Datentypen finden (String-Array? Liste?)
         //TODO Performance beachten, vlt sogar mal messen!
     }
-
-    //TODO Refactor: OnClick-Methode etc hier rein packen
 }

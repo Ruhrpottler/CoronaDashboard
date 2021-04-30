@@ -19,7 +19,7 @@ public class MainActivity extends AppCompatActivity {
     Button btn_sendRequest;
     ListView lv;
     AutoCompleteTextView actv_city;
-    final DataService dataService = new DataService(MainActivity.this);
+    final DataService dataService = new DataService(MainActivity.this); //oder doch in die onCreateMethode?
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onError(String message) {
                         showToastTextLong(message);
-                        Log.d("onError", message);
+                        Log.e("onError", message);
                     }
 
                     /**
