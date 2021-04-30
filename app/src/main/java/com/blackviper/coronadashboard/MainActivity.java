@@ -35,7 +35,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 DataService dataService = new DataService(MainActivity.this);
-                dataService.getCityId(getCityInput(), new DataService.VolleyResponseListener() { //der Listener ist ein Interface und muss implementiert werden
+                String userInputCityName = getCityInput();
+                if(userInputCityName.isEmpty())
+                {
+                    showToastTextLong("Bitte geben Sie eine kreisfreie Stadt oder einen Landkreis innerhalb deutschlands ein.");
+                    return;
+                }
+                dataService.getCityId(userInputCityName, new DataService.VolleyResponseListener() { //der Listener ist ein Interface und muss implementiert werden
                     @Override
                     public void onError(String message) {
                         showToastTextLong(message);
@@ -91,18 +97,7 @@ public class MainActivity extends AppCompatActivity {
     private String getCityInput()
     {
         String input = "";
-        try {
-            input = actv_city.getText().toString();
-            if (input.isEmpty()) {
-                throw new IllegalArgumentException("Geben Sie eine kreisfreie Stadt oder einen Landkreis an.");
-                //TODO Exception Handling
-            }
-        } catch (IllegalArgumentException e) //Dem User anzeigen
-        {
-            showToastTextShort(e.getMessage());
-            Log.d("OnClickMethod", e.toString());
-        }
+        input = actv_city.getText().toString();
         return input;
     }
-
 }
