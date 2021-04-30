@@ -19,6 +19,7 @@ public class MainActivity extends AppCompatActivity {
     Button btn_sendRequest;
     ListView lv;
     AutoCompleteTextView actv_city;
+    final DataService dataService = new DataService(MainActivity.this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,6 +28,8 @@ public class MainActivity extends AppCompatActivity {
 
         btn_sendRequest = (Button) findViewById(R.id.btn_sendRequest);
         lv = (ListView) findViewById(R.id.lv_responseView);
+
+        //AutoComplete
         actv_city = (AutoCompleteTextView) findViewById(R.id.actv_Landkreis);
         String[] listOfEntries = new String[] {"Recklinghausen", "Bochum", "Dortmund"}; //TODO
         actv_city.setAdapter(new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_list_item_1, listOfEntries));
@@ -34,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
         btn_sendRequest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DataService dataService = new DataService(MainActivity.this);
+
                 String userInputCityName = getCityInput();
                 if(userInputCityName.isEmpty())
                 {
