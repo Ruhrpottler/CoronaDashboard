@@ -1,11 +1,9 @@
 package com.blackviper.coronadashboard;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
 
 /**
@@ -16,14 +14,15 @@ public class RequestSingleton
 {
     private static RequestSingleton instance; //Typ ist die Instanz der Klasse
     private RequestQueue requestQueue;
-    private static Context ctx;
+    private static Context context;
 
     private RequestSingleton(Context context)
     {
-        ctx = context;
+        RequestSingleton.context = context;
         requestQueue = getRequestQueue();
     }
 
+    //TODO Prüfen wegen Activity vs ApplicationContext (der wird doch schon autom. gezogen, oder?)
     /**
      * @param applicationContext Sollte der ApplicationContext sein, damit die Instanz nicht recreated wird,
      *                wenn die Activity neu erstellt wird (z.B. wenn Smartphone gedreht wird).
@@ -42,7 +41,7 @@ public class RequestSingleton
         {
             // getApplicationContext() is key, it keeps you from leaking the
             // Activity or BroadcastReceiver if someone passes one in.
-            requestQueue = Volley.newRequestQueue(ctx.getApplicationContext());
+            requestQueue = Volley.newRequestQueue(context.getApplicationContext());
         }
         return requestQueue;
     }
@@ -51,6 +50,4 @@ public class RequestSingleton
     {
         getRequestQueue().add(req);
     }
-
-
 }

@@ -1,23 +1,108 @@
 package com.blackviper.coronadashboard;
 
+import android.content.Context;
+import android.util.Log;
+import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.cronet.CronetHttpStack;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 /**
- * Diese Klasse stellt Methoden zur Verfügung, welche den Traffic mit den Anfragen an die API
+ * Diese Klasse stellt asynchrone Methoden zur Verfügung, welche den Traffic mit den Anfragen an die API
  * managed und uns z.B. die ID für eine Stadt, ein Bundesland oder die Strings zurück gibt.
  */
 public class DataService {
 
-    //TODO Eine Klasse erstellen, die ein Objekt realisiert, welches die notwendigen Daten enthält.
-    //TODO (name, objectId, Bundesland, Land, 7-Tage-Inzidenzwert etc). Davon gibt man dann eine
-    //TODO Instanz zurück, womit man easy die ganzen Daten abrufen kann.
+    //Klassenattribute
+    Context activityContext;
+    int cityId;
 
+    //Konstuktoren
+    public DataService(Context activityContext)
+    {
+        this.activityContext = activityContext;
+    }
+
+    /** Callback-Methoden, welche in der Activity implementiert werden müssen
+     */
+    public interface VolleyResponseListener
+    {
+        void onError(String message);
+        //void onResponse(Object response);
+        void onResponse(int cityId);
+    }
+
+    //Methoden
     /**
      *
      * @param cityName Landkreis oder kreisfreie Stadt
      * @return objectId der city
      */
-    public int getCityId(String cityName)
+    public void getCityId(String cityName, VolleyResponseListener responseListener)
     {
-        return 0;
+        String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/" +
+                "RKI_Landkreisdaten/FeatureServer/0/query?where=GEN%20%3D%20'" + cityName + "'" +
+                "&outFields=OBJECTID,GEN&returnGeometry=false&returnIdsOnly=true&outSR=&f=json";
+        //int cityId;
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    JSONArray objectIdsArray = response.getJSONArray("objectIds");
+                    if (objectIdsArray == null)
+                        throw new JSONException("'objectIds' is null");
+                    if(objectIdsArray.length() == 0)
+                        throw new IllegalArgumentException(String.format("'%s' konnte nicht gefunden werden.", cityName));
+                    else if (objectIdsArray.length() > 1)
+                        throw new IllegalArgumentException("Es wurden mehrere Ergebnisse gefunden.");
+
+                    cityId = objectIdsArray.getInt(0); //Richtig??
+
+                    if(cityId == 0)
+                        throw new IllegalArgumentException(String.format("Für '%s' wurde die ungültige Objekt-ID %d gefunden.", cityName, cityId));
+                    responseListener.onResponse(cityId); //ruft die implementierte Methode auf (MainActivity) --> callback
+                } catch (JSONException e) {
+                    e.printStackTrace(); //TODO Exception-Handling verbessern
+                    Log.d("JSONException", e.toString());
+                } catch(IllegalArgumentException userException)
+                {
+                    Toast.makeText(activityContext, userException.getMessage(), Toast.LENGTH_LONG).show();
+                }
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                String msg = "Fehler bei der Verarbeitung der Server-Antwort: " + error.toString();
+                Log.d("onErrorResponse", msg);
+                responseListener.onError(msg);
+            }
+        });
+        RequestSingleton.getInstance(activityContext).addToRequestQueue(request); //TODO prüfen, ob der ApplicationContext gezogen wird
+    }
+
+    public void getCoronaData(int cityId)
+    {
+        String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/query?" +
+                "where=OBJECTID%3D" + cityId + "&outFields=OBJECTID,BEZ,EWZ,death_rate,cases,deaths,cases_per_100k,cases_per_population,county," +
+                "last_update,cases7_per_100k,recovered,EWZ_BL,cases7_bl_per_100k,cases7_bl,death7_bl,cases7_lk," +
+                "death7_lk,cases7_per_100k_txt&returnGeometry=false&f=json";
+        //TODO not implemented
+    }
+
+    public void getAllCities()
+    {
+        //TODO Alle Städte/LKs für AutoComplete herausfinden, geeigneten Rückgabe-Datentypen finden (String-Array? Liste?)
+        //TODO Performance beachten, vlt sogar mal messen!
     }
 
     //TODO Refactor: OnClick-Methode etc hier rein packen
