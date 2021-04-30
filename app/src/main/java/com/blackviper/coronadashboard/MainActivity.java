@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
                 String userInputCityName = getCityInput();
                 if(userInputCityName.isEmpty())
                 {
-                    showToastTextLong("Bitte geben Sie eine kreisfreie Stadt oder einen Landkreis innerhalb deutschlands ein.");
+                    showToastTextLong(getString(R.string.err_actv_cityName_empty));
                     return;
                 }
                 dataService.getCityId(userInputCityName, new DataService.VolleyResponseListener() { //der Listener ist ein Interface und muss implementiert werden
@@ -74,7 +74,10 @@ public class MainActivity extends AppCompatActivity {
     private void showToastText(String str, int length)
     {
         if(length < 0 || length > 1)
-            throw new IllegalArgumentException(String.format("Länge '%d' für Toast.Length ungültig.", length));
+        {
+            length = 1;
+            Log.e("IllegalArgument", String.format("Länge '%d' für Toast.Length ungültig. Wird auf 1 (LONG) gesetzt.", length));
+        }
         Toast.makeText(MainActivity.this, str, length).show();
     }
 
