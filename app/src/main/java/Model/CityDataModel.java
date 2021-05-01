@@ -3,6 +3,9 @@ package Model;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+/**
+ * Landkreisdaten-Model
+ */
 public class CityDataModel {
 
     //Allgemein
@@ -41,7 +44,7 @@ public class CityDataModel {
     /**
      *
      * @param objectId cityId
-     * @param bez
+     * @param bez "Landkreis", "Kreisfreie Stadt" oder "Bezirk" (Berliner Stadtteile)
      * @param gen cityName
      * @param ewz Einwohnerzahl
      * @param bl_id Id des Bundeslandes
