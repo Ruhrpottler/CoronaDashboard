@@ -11,9 +11,6 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-
 import Model.CityDataModel;
 
 public class MainActivity extends AppCompatActivity {
@@ -47,11 +44,11 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
-                dataService.getDataForCity(userInputCityName, new DataService.CityDataModelResponseListener() {
+                dataService.getCityDataByName(userInputCityName, new DataService.CityDataModelResponseListener() {
                     @Override
                     public void onError(String message) {
+                        Log.e("ErrCallbackMainActivity", message);
                         showToastTextLong(message);
-//                       Log.e("onError", message);
                     }
 
                     @Override
@@ -60,25 +57,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-
-
-
-//                dataService.getCityId(userInputCityName, new DataService.VolleyResponseListener() { //der Listener ist ein Interface und muss implementiert werden
-//                    @Override
-//                    public void onError(String message) {
-//                        showToastTextLong(message);
-//                        Log.e("onError", message);
-//                    }
-//
-//                    /**
-//                     * Callback-Methode, welche aufgerufen wird, wenn die Antwort angekommen ist.
-//                     * @param cityId Das ist die Antwort vom Server, die wir weiterverwenden können
-//                     */
-//                    @Override
-//                    public void onResponse(int cityId) { //
-//                        showToastTextLong("Callback-Answer: City-ID = " + cityId);
-//                    }
-//                });
             }
         });
     }

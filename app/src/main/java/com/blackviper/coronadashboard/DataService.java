@@ -41,7 +41,6 @@ public class DataService {
 
     //Methoden
     /**
-     *
      * @param cityName Landkreis oder kreisfreie Stadt
      * @return objectId der city
      */
@@ -94,27 +93,8 @@ public class DataService {
         void onResponse(CityDataModel cityDataModel);
     }
 
-    public void getDataForCity(String cityName, CityDataModelResponseListener responseListener)
+    public void getCityDataByCityId(int cityId, CityDataModelResponseListener responseListener)
     {
-        /*
-        VolleyResponseListener cityIdresponseListener = new VolleyResponseListener() {
-            @Override
-            public void onError(String message) {
-                Toast.makeText(activityContext, message, Toast.LENGTH_LONG).show();
-                Log.e("onError", message);
-            }
-
-            @Override
-            public void onResponse(int responsedCityId) {
-                cityId = responsedCityId;
-            }
-        };
-        getCityId(cityName, cityIdresponseListener);
-        */
-
-        //TODO cityId holen mit getCityId
-        int cityId = 95;
-
         String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/query?" +
                 "where=OBJECTID%3D" + cityId + "&outFields=OBJECTID,BEZ,county,EWZ,BL_ID,BL,last_update,death_rate,cases,deaths,cases_per_100k,cases_per_population," +
                 "cases7_per_100k,cases7_per_100k_txt,cases7_lk,death7_lk,death7_lk,cases7_bl_per_100k,cases7_bl,death7_bl" +
@@ -131,7 +111,6 @@ public class DataService {
                     JSONObject attributes = firstAndOnlyArrayObject.getJSONObject("attributes");
                     if (attributes == null) throw new JSONException("'attributes' is null");
                     //inzidenzwert = attributes.getDouble("cases7_per_100k");
-                    if(cityId == 0) throw new IllegalArgumentException(String.format("Für '%s' wurde die ungültige Objekt-ID %d gefunden.", cityName, cityId));
 
                     CityDataModel cityDataModel = createAndFillCityDataModel(attributes);
                     if(cityDataModel == null) responseListener.onError("cityDataModel ist null");
@@ -155,7 +134,41 @@ public class DataService {
             }
         });
         RequestSingleton.getInstance(activityContext).addToRequestQueue(request);
+    }
 
+    /**
+     * Diese Methode rufe ich später von der MainActivity auf.
+     * Achtung: Verschachtelte callbacks (Callback-Hell)
+     * @param cityName
+     * @param modelResponseListener Wird aufgerufen, wenn die Antwort da ist
+     */
+    public void getCityDataByName(String cityName, CityDataModelResponseListener modelResponseListener)
+    {
+        getCityId(cityName, new CityIdResponseListener() {
+            @Override
+            public void onError(String message) {
+                Toast.makeText(activityContext, message, Toast.LENGTH_LONG).show();
+                Log.e("onErrCityIdListener", message);
+            }
+
+            @Override
+            public void onResponse(int cityId) {
+                //Wenn die cityId da ist, holen wir die Daten für diese city
+                //Verschachtelung von callbacks
+                getCityDataByCityId(cityId, new CityDataModelResponseListener() {
+                    @Override
+                    public void onError(String message) {
+                        Toast.makeText(activityContext, message, Toast.LENGTH_LONG).show();
+                        Log.e("onErrGetCityData", message);
+                    }
+
+                    @Override
+                    public void onResponse(CityDataModel cityDataModel) {
+                        modelResponseListener.onResponse(cityDataModel);
+                    }
+                });
+            }
+        });
     }
 
     /** Achtung: case-sensitive! Felder müssen genau gleich geschrieben werden! Nicht alle sind groß oder alle klein.
