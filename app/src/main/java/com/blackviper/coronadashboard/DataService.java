@@ -13,7 +13,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import Model.CityDataModel;
+import Model.CityStammdatenModel;
 
 /**
  * Diese Klasse stellt asynchrone Methoden (Callbacks) zur Verfügung, welche den Traffic mit den Anfragen an die API
@@ -24,6 +28,12 @@ public class DataService {
     //Klassenattribute
     Context activityContext;
     int cityId;
+
+    private static final String STR_OBJECT_ID = "OBJECTID";
+    private static final String STR_BL_ID = "BL_ID";
+    private static final String STR_BEZ = "BEZ";
+    private static final String STR_GEN = "GEN";
+    private static final String STR_EWZ = "EWZ";
 
     //Konstuktoren
     public DataService(Context activityContext)
@@ -110,19 +120,14 @@ public class DataService {
                     if (firstAndOnlyArrayObject == null) throw new JSONException("'firstAndOnlyArrayObject' is null");
                     JSONObject attributes = firstAndOnlyArrayObject.getJSONObject("attributes");
                     if (attributes == null) throw new JSONException("'attributes' is null");
-                    //inzidenzwert = attributes.getDouble("cases7_per_100k");
 
                     CityDataModel cityDataModel = createAndFillCityDataModel(attributes);
                     if(cityDataModel == null) responseListener.onError("cityDataModel ist null");
 
                     responseListener.onResponse(cityDataModel); //ruft die implementierte Methode auf (MainActivity) --> callback
-                } catch (JSONException e) {
+                } catch (Exception e) {
                     responseListener.onError(e.getMessage());
-                    Log.d("JSONException", e.toString());
-                } catch(IllegalArgumentException e)
-                {
-                    responseListener.onError(e.getMessage());
-                    Log.d("JSONException", e.toString());
+                    Log.d("errGetCityDataById", e.toString());
                 }
 
             }
@@ -181,11 +186,11 @@ public class DataService {
     private CityDataModel createAndFillCityDataModel(JSONObject attributes) throws JSONException
     {
         CityDataModel model = new CityDataModel(
-                attributes.getInt("OBJECTID"),
-                attributes.getString("BEZ"),
-                attributes.getString("GEN"),
-                attributes.getInt("EWZ"),
-                attributes.getInt("BL_ID"),
+                attributes.getInt(STR_OBJECT_ID),
+                attributes.getString(STR_BEZ),
+                attributes.getString(STR_GEN),
+                attributes.getInt(STR_EWZ),
+                attributes.getInt(STR_BL_ID),
                 attributes.getString("BL"),
                 attributes.getString("last_update"),
                 attributes.getDouble("death_rate"),
@@ -204,4 +209,67 @@ public class DataService {
         return model;
     }
 
+    public interface CityStammdatenResponseListener
+    {
+        void onError(String message);
+        void onResponse(List<CityStammdatenModel> list);
+    }
+
+    /**
+     *
+     * @return Liste mit allen CityStammdatenModels für Deutschland
+     */
+    public void getAllCities(CityStammdatenResponseListener responseListener)
+    {
+
+        String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/" +
+                "query?where=1%3D1&outFields=OBJECTID,BL_ID,GEN,BEZ,EWZ&returnGeometry=false&outSR=&f=json";
+
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    JSONArray features = response.getJSONArray("features");
+                    if (features == null) throw new JSONException("'features' is null");
+
+                    JSONObject iterator;
+                    JSONObject attributes;
+
+                    List<CityStammdatenModel> list = new ArrayList<CityStammdatenModel>();
+                    for(int i = 0; i < features.length(); i++)
+                    {
+                        attributes = features.getJSONObject(i).getJSONObject("attributes");
+                        list.add(fillAndGetCityStammdatenModel(attributes));
+                    }
+
+                    responseListener.onResponse(list); //ruft die implementierte Methode auf (MainActivity) --> callback
+                } catch (Exception e) {
+                    responseListener.onError(e.getMessage());
+                    Log.d("errOnGetAllCities", e.toString());
+                }
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                String msg = "Fehler bei der Verarbeitung der Server-Antwort: " + error.toString();
+                Log.d("onErrorResponse", msg);
+                responseListener.onError(msg);
+            }
+        });
+        RequestSingleton.getInstance(activityContext).addToRequestQueue(request);
+
+    }
+
+    private CityStammdatenModel fillAndGetCityStammdatenModel(JSONObject attributes) throws JSONException
+    {
+        return new CityStammdatenModel(
+                attributes.getInt(STR_OBJECT_ID),
+                attributes.getInt(STR_BL_ID),
+                attributes.getString(STR_BEZ),
+                attributes.getString(STR_GEN),
+                attributes.getInt(STR_EWZ)
+        );
+
+    }
 }

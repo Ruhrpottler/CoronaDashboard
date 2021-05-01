@@ -14,7 +14,12 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import Database.DatabaseHelper;
 import Model.CityDataModel;
+import Model.CityStammdatenModel;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -32,12 +37,28 @@ public class MainActivity extends AppCompatActivity {
         btn_sendRequest = (Button) findViewById(R.id.btn_sendRequest);
         lv = (ListView) findViewById(R.id.lv_responseView);
 
-        //AutoComplete
-        actv_city = (AutoCompleteTextView) findViewById(R.id.actv_Landkreis);
-        String[] listOfEntries = new String[] {"Recklinghausen", "Bochum", "Dortmund", "Herne", "Mülheim an der Ruhr"}; //TODO
-        actv_city.setAdapter(new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_list_item_1, listOfEntries));
-
         tvErgebnisse = (TextView) findViewById(R.id.tvErgebnisse);
+
+        actv_city = (AutoCompleteTextView) findViewById(R.id.actv_Landkreis);
+        List<String> listOfEntries= new ArrayList<String>();
+
+        dataService.getAllCities(new DataService.CityStammdatenResponseListener() {
+            @Override
+            public void onError(String message) {
+                Log.e("ErrGetAllCities", message);
+                showToastTextLong(message);
+            }
+
+            @Override
+            public void onResponse(List<CityStammdatenModel> list) {
+                for(int i = 0; i < list.size(); i++)
+                {
+                    listOfEntries.add(list.get(i).getGen());
+                }
+                actv_city.setAdapter(new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_list_item_1, listOfEntries));
+                showToastTextShort("AutoComplete done.");
+            }
+        });
 
         btn_sendRequest.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -55,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
                 dataService.getCityDataByName(userInputCityName, new DataService.CityDataModelResponseListener() {
                     @Override
                     public void onError(String message) {
-                        Log.e("ErrCallbackMainActivity", message);
+                        Log.e("ErrGetCityDataByName", message);
                         showToastTextLong(message);
                     }
 

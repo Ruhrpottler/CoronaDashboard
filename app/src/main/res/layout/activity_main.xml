@@ -21,10 +21,10 @@
 
     <ListView
         android:id="@+id/lv_responseView"
-        android:layout_width="339dp"
+        android:layout_width="0dp"
         android:layout_height="43dp"
-        android:layout_marginStart="5dp"
-        android:layout_marginEnd="5dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
         android:layout_marginBottom="72dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -45,7 +45,7 @@
 
     <TextView
         android:id="@+id/tvErgebnisse"
-        android:layout_width="305dp"
+        android:layout_width="0dp"
         android:layout_height="122dp"
         android:layout_marginStart="50dp"
         android:layout_marginTop="65dp"

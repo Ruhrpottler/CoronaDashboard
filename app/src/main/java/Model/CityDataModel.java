@@ -131,6 +131,19 @@ public class CityDataModel {
      * Alle setter müssen final sein, damit sie nicht überschrieben werden können!
      */
 
+    /** BEZ + GEN
+     *  z.B. "Kreisfreie Stadt Dortmund", "Landkreis Recklinghausen"...
+     *  Achtung: "Kreis Oberbergischer Kreis" klingt unschön, muss man rausfiltern.
+     * @return
+     */
+    public String getCityName()
+    {
+        if(getGen().toLowerCase().contains("kreis"))
+            return getGen();
+
+        return getBez() + " " + getGen();
+    }
+
     public int getObjectId() {
         return objectId;
     }
