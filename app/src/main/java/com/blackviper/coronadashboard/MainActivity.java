@@ -2,13 +2,16 @@ package com.blackviper.coronadashboard;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import Model.CityDataModel;
@@ -17,8 +20,9 @@ public class MainActivity extends AppCompatActivity {
 
     Button btn_sendRequest;
     ListView lv;
+    TextView tvErgebnisse;
     AutoCompleteTextView actv_city;
-    final DataService dataService = new DataService(MainActivity.this); //oder doch in die onCreateMethode?
+    final DataService dataService = new DataService(MainActivity.this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,8 +34,11 @@ public class MainActivity extends AppCompatActivity {
 
         //AutoComplete
         actv_city = (AutoCompleteTextView) findViewById(R.id.actv_Landkreis);
-        String[] listOfEntries = new String[] {"Recklinghausen", "Bochum", "Dortmund"}; //TODO
+        String[] listOfEntries = new String[] {"Recklinghausen", "Bochum", "Dortmund", "Herne", "Mülheim an der Ruhr"}; //TODO
         actv_city.setAdapter(new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_list_item_1, listOfEntries));
+
+        tvErgebnisse = (TextView) findViewById(R.id.tvErgebnisse);
+
 
         btn_sendRequest.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -44,6 +51,8 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
+                closeKeyboard();
+
                 dataService.getCityDataByName(userInputCityName, new DataService.CityDataModelResponseListener() {
                     @Override
                     public void onError(String message) {
@@ -54,11 +63,24 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(CityDataModel cityDataModel) {
                         showToastTextShort("7-Tage-Inzidenzwert: " + cityDataModel.getCases7_per_100k_txt());
+                        tvErgebnisse.setText(cityDataModel.toString());
                     }
                 });
 
             }
         });
+    }
+
+    public void closeKeyboard()
+    {
+        View view = this.getCurrentFocus();
+        //If no view currently has focus, create a new one, just so we can grab a window token from it
+        if (view == null) {
+            view = new View(this);
+            //oder man returned direkt
+        }
+        InputMethodManager imm = (InputMethodManager) this.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
     private void showToastTextShort(String str)
@@ -76,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
         if(length < 0 || length > 1)
         {
             length = 1;
-            Log.e("IllegalArgument", String.format("Länge '%d' für Toast.Length ungültig. Wird auf 1 (LONG) gesetzt.", length));
+            Log.w("IllegalArgument", String.format("Länge '%d' für Toast.Length ungültig. Wird auf 1 (LONG) gesetzt.", length));
         }
         Toast.makeText(MainActivity.this, str, length).show();
     }
@@ -84,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
     private String getCityInput()
     {
         String input = "";
-        input = actv_city.getText().toString();
+        input = actv_city.getText().toString().trim();
         return input;
     }
 }

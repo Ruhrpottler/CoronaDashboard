@@ -16,7 +16,7 @@ import org.json.JSONObject;
 import Model.CityDataModel;
 
 /**
- * Diese Klasse stellt asynchrone Methoden zur Verfügung, welche den Traffic mit den Anfragen an die API
+ * Diese Klasse stellt asynchrone Methoden (Callbacks) zur Verfügung, welche den Traffic mit den Anfragen an die API
  * managed und uns z.B. die ID für eine Stadt, ein Bundesland oder die Strings zurück gibt.
  */
 public class DataService {
@@ -62,11 +62,11 @@ public class DataService {
                     else if (objectIdsArray.length() > 1)
                         throw new IllegalArgumentException("Es wurden mehrere Ergebnisse gefunden.");
 
-                    cityId = objectIdsArray.getInt(0); //Richtig??
+                    cityId = objectIdsArray.getInt(0);
 
                     if(cityId == 0)
                         throw new IllegalArgumentException(String.format("Für '%s' wurde die ungültige Objekt-ID %d gefunden.", cityName, cityId));
-                    responseListener.onResponse(cityId); //ruft die implementierte Methode auf (MainActivity) --> callback
+                    responseListener.onResponse(cityId); //ruft den Listener in der Activity auf --> callback
                 } catch (JSONException e) {
                     e.printStackTrace(); //TODO Exception-Handling verbessern
                     Log.d("JSONException", e.toString());

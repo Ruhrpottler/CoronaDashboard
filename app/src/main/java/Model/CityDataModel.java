@@ -47,10 +47,10 @@ public class CityDataModel {
      * @param bl Name des Bundeslandes
      * @param last_update Stand (Datum und Uhrzeit)
      * @param death_rate Sterberate
-     * @param cases
-     * @param deaths
-     * @param cases_per_100k
-     * @param cases_per_population
+     * @param cases Bestätigte Infektionen (gesamt)
+     * @param deaths Todesfälle (gesamt)
+     * @param cases_per_100k Fälle pro 100k Einwohner
+     * @param cases_per_population Fälle pro Person? Pro 1 Mio? pro LK?
      * @param cases7_per_100k 7-Tage-Inzidenzwert pro 100k Einwohner
      * @param cases7_per_100k_txt
      * @param cases7_lk
@@ -98,10 +98,12 @@ public class CityDataModel {
 
     @Override
     public String toString() {
-        return "CityDataModel{" +
-                ", county='" + county + '\'' +
-                ", 7-Tage-Inzidenzwert=" + cases7_per_100k +
-                '}';
+        return String.format("Daten für %s, Stand %s:\n" +
+                "7-Tage-Inzidenzwert: %s\n" +
+                "Bestätigte Fälle: %d\n" +
+                "Todesfälle: %d",
+                county, last_update, cases7_per_100k_txt, cases, deaths
+        );
     }
 
     /** Rundet "normal (ab 5 auf, vorher ab)
