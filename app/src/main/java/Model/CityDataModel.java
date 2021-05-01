@@ -8,7 +8,7 @@ public class CityDataModel {
     //Allgemein
     int objectId;
     String bez;
-    String county;
+    String gen;
     int ewz;
     int bl_id;
     String bl;
@@ -35,13 +35,14 @@ public class CityDataModel {
      * 2. Setter- (final!!!) und Getter hinzufügen
      * 3. Zum Konstruktor hinzufügen
      * 4. zur fillMethod im DataService hinzufügen (nicht vergessen!!)
+     * 5. Zur URL/Query hinzufügen
      */
 
     /**
      *
      * @param objectId cityId
      * @param bez
-     * @param county "LK Recklinghausen"
+     * @param gen cityName
      * @param ewz Einwohnerzahl
      * @param bl_id Id des Bundeslandes
      * @param bl Name des Bundeslandes
@@ -69,14 +70,14 @@ public class CityDataModel {
      * Es darf keinen (leeren) Standardkonstruktor geben, damit der Entwickler gezwungen ist alle Werte zu setzen.
      *
      */
-    public CityDataModel(int objectId, String bez, String county, int ewz, int bl_id, String bl, String last_update,
+    public CityDataModel(int objectId, String bez, String gen, int ewz, int bl_id, String bl, String last_update,
                          double death_rate, int cases, int deaths, double cases_per_100k, double cases_per_population,
                          double cases7_per_100k, String cases7_per_100k_txt, int cases7_lk, int death7_lk,
                          double cases7_bl_per_100k, int cases7_bl, int death7_bl)
     {
         setObjectId(objectId);
         setBez(bez);
-        setCounty(county);
+        setGen(gen);
         setEwz(ewz);
         setBl_id(bl_id);
         setBl(bl);
@@ -99,11 +100,11 @@ public class CityDataModel {
     @Override
     public String toString() {
         return String.format("Daten für %s, Stand %s:\n" +
-                "Bundesland: %s" +
+                "Bundesland: %s\n" +
                 "7-Tage-Inzidenzwert: %s\n" +
                 "Bestätigte Fälle: %d\n" +
                 "Todesfälle: %d\n",
-                county, last_update, bl, cases7_per_100k_txt, cases, deaths
+                gen, last_update, bl, cases7_per_100k_txt, cases, deaths
         );
     }
 
@@ -143,12 +144,12 @@ public class CityDataModel {
         this.bez = bez;
     }
 
-    public String getCounty() {
-        return county;
+    public String getGen() {
+        return gen;
     }
 
-    public final void setCounty(String county) {
-        this.county = county;
+    public final void setGen(String gen) {
+        this.gen = gen;
     }
 
     public int getEwz() {

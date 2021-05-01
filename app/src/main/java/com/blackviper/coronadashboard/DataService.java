@@ -96,7 +96,7 @@ public class DataService {
     public void getCityDataByCityId(int cityId, CityDataModelResponseListener responseListener)
     {
         String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/query?" +
-                "where=OBJECTID%3D" + cityId + "&outFields=OBJECTID,BEZ,county,EWZ,BL_ID,BL,last_update,death_rate,cases,deaths,cases_per_100k,cases_per_population," +
+                "where=OBJECTID%3D" + cityId + "&outFields=OBJECTID,BEZ,GEN,EWZ,BL_ID,BL,last_update,death_rate,cases,deaths,cases_per_100k,cases_per_population," +
                 "cases7_per_100k,cases7_per_100k_txt,cases7_lk,death7_lk,death7_lk,cases7_bl_per_100k,cases7_bl,death7_bl" +
                 "&returnGeometry=false&f=json";
 
@@ -117,11 +117,12 @@ public class DataService {
 
                     responseListener.onResponse(cityDataModel); //ruft die implementierte Methode auf (MainActivity) --> callback
                 } catch (JSONException e) {
-                    e.printStackTrace(); //TODO Exception-Handling verbessern
+                    responseListener.onError(e.getMessage());
                     Log.d("JSONException", e.toString());
-                } catch(IllegalArgumentException userException)
+                } catch(IllegalArgumentException e)
                 {
-                    Toast.makeText(activityContext, userException.getMessage(), Toast.LENGTH_LONG).show();
+                    responseListener.onError(e.getMessage());
+                    Log.d("JSONException", e.toString());
                 }
 
             }
@@ -182,7 +183,7 @@ public class DataService {
         CityDataModel model = new CityDataModel(
                 attributes.getInt("OBJECTID"),
                 attributes.getString("BEZ"),
-                attributes.getString("county"),
+                attributes.getString("GEN"),
                 attributes.getInt("EWZ"),
                 attributes.getInt("BL_ID"),
                 attributes.getString("BL"),
