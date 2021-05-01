@@ -5,16 +5,15 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.android.volley.Request;
-import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.cronet.CronetHttpStack;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import Model.CityDataModel;
 
 /**
  * Diese Klasse stellt asynchrone Methoden zur Verfügung, welche den Traffic mit den Anfragen an die API
@@ -34,10 +33,9 @@ public class DataService {
 
     /** Callback-Methoden, welche in der Activity implementiert werden müssen
      */
-    public interface VolleyResponseListener
+    public interface CityIdResponseListener
     {
         void onError(String message);
-        //void onResponse(Object response);
         void onResponse(int cityId);
     }
 
@@ -47,7 +45,7 @@ public class DataService {
      * @param cityName Landkreis oder kreisfreie Stadt
      * @return objectId der city
      */
-    public void getCityId(String cityName, VolleyResponseListener responseListener)
+    public void getCityId(String cityName, CityIdResponseListener responseListener)
     {
         String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/" +
                 "RKI_Landkreisdaten/FeatureServer/0/query?where=GEN%20%3D%20'" + cityName + "'" +
@@ -90,9 +88,16 @@ public class DataService {
         RequestSingleton.getInstance(activityContext).addToRequestQueue(request);
     }
 
-    public void getDataForCity(String cityName) //TODO unfertig
+    public interface CityDataModelResponseListener
     {
-        VolleyResponseListener responseListener = new VolleyResponseListener() {
+        void onError(String message);
+        void onResponse(CityDataModel cityDataModel);
+    }
+
+    public void getDataForCity(String cityName, CityDataModelResponseListener responseListener)
+    {
+        /*
+        VolleyResponseListener cityIdresponseListener = new VolleyResponseListener() {
             @Override
             public void onError(String message) {
                 Toast.makeText(activityContext, message, Toast.LENGTH_LONG).show();
@@ -104,17 +109,16 @@ public class DataService {
                 cityId = responsedCityId;
             }
         };
+        getCityId(cityName, cityIdresponseListener);
+        */
 
-        getCityId(cityName, responseListener);
-
-        //TODO Video anschauen: Warten bis die Antwort kommt udn dann nächste Anfrage absenden
+        //TODO cityId holen mit getCityId
+        int cityId = 95;
 
         String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/query?" +
-                "where=OBJECTID%3D" + cityId + "&outFields=OBJECTID,BEZ,EWZ,death_rate,cases,deaths,cases_per_100k,cases_per_population,county," +
-                "last_update,cases7_per_100k,recovered,EWZ_BL,cases7_bl_per_100k,cases7_bl,death7_bl,cases7_lk," +
-                "death7_lk,cases7_per_100k_txt&returnGeometry=false&f=json";
-
-        //double inzidenzwert; //TODO
+                "where=OBJECTID%3D" + cityId + "&outFields=OBJECTID,BEZ,county,EWZ,BL_ID,BL,last_update,death_rate,cases,deaths,cases_per_100k,cases_per_population," +
+                "cases7_per_100k,cases7_per_100k_txt,cases7_lk,death7_lk,death7_lk,cases7_bl_per_100k,cases7_bl,death7_bl" +
+                "&returnGeometry=false&f=json";
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
             @Override
@@ -127,10 +131,12 @@ public class DataService {
                     JSONObject attributes = firstAndOnlyArrayObject.getJSONObject("attributes");
                     if (attributes == null) throw new JSONException("'attributes' is null");
                     //inzidenzwert = attributes.getDouble("cases7_per_100k");
+                    if(cityId == 0) throw new IllegalArgumentException(String.format("Für '%s' wurde die ungültige Objekt-ID %d gefunden.", cityName, cityId));
 
-                    if(cityId == 0)
-                        throw new IllegalArgumentException(String.format("Für '%s' wurde die ungültige Objekt-ID %d gefunden.", cityName, cityId));
-                    responseListener.onResponse(cityId); //ruft die implementierte Methode auf (MainActivity) --> callback
+                    CityDataModel cityDataModel = createAndFillCityDataModel(attributes);
+                    if(cityDataModel == null) responseListener.onError("cityDataModel ist null");
+
+                    responseListener.onResponse(cityDataModel); //ruft die implementierte Methode auf (MainActivity) --> callback
                 } catch (JSONException e) {
                     e.printStackTrace(); //TODO Exception-Handling verbessern
                     Log.d("JSONException", e.toString());
@@ -152,9 +158,36 @@ public class DataService {
 
     }
 
-    public void getAllCities()
+    /** Achtung: case-sensitive! Felder müssen genau gleich geschrieben werden! Nicht alle sind groß oder alle klein.
+     *
+     * @param attributes features --> firstObject of the Array --> attributes
+     * @return CityDataModel, für das alle setter ausgeführt wurden
+     * @throws JSONException Möglicherweise liefert der Server für die Felder keine Antwort, dann fliegt die Exception
+     */
+    private CityDataModel createAndFillCityDataModel(JSONObject attributes) throws JSONException
     {
-        //TODO Alle Städte/LKs für AutoComplete herausfinden, geeigneten Rückgabe-Datentypen finden (String-Array? Liste?)
-        //TODO Performance beachten, vlt sogar mal messen!
+        CityDataModel model = new CityDataModel(
+                attributes.getInt("OBJECTID"),
+                attributes.getString("BEZ"),
+                attributes.getString("county"),
+                attributes.getInt("EWZ"),
+                attributes.getInt("BL_ID"),
+                attributes.getString("BL"),
+                attributes.getString("last_update"),
+                attributes.getDouble("death_rate"),
+                attributes.getInt("cases"),
+                attributes.getInt("deaths"),
+                attributes.getDouble("cases_per_100k"),
+                attributes.getDouble("cases_per_population"),
+                attributes.getDouble("cases7_per_100k"),
+                attributes.getString("cases7_per_100k_txt"),
+                attributes.getInt("cases7_lk"),
+                attributes.getInt("death7_lk"),
+                attributes.getDouble("cases7_bl_per_100k"),
+                attributes.getInt("cases7_bl"),
+                attributes.getInt("death7_bl")
+        );
+        return model;
     }
+
 }

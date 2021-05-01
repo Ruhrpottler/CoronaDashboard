@@ -14,6 +14,8 @@ import android.widget.Toast;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+import Model.CityDataModel;
+
 public class MainActivity extends AppCompatActivity {
 
     Button btn_sendRequest;
@@ -44,22 +46,39 @@ public class MainActivity extends AppCompatActivity {
                     showToastTextLong(getString(R.string.err_actv_cityName_empty));
                     return;
                 }
-                dataService.getCityId(userInputCityName, new DataService.VolleyResponseListener() { //der Listener ist ein Interface und muss implementiert werden
+
+                dataService.getDataForCity(userInputCityName, new DataService.CityDataModelResponseListener() {
                     @Override
                     public void onError(String message) {
                         showToastTextLong(message);
-                        Log.e("onError", message);
+//                       Log.e("onError", message);
                     }
 
-                    /**
-                     * Callback-Methode, welche aufgerufen wird, wenn die Antwort angekommen ist.
-                     * @param cityId Das ist die Antwort vom Server, die wir weiterverwenden können
-                     */
                     @Override
-                    public void onResponse(int cityId) { //
-                        showToastTextLong("Callback-Answer: City-ID = " + cityId);
+                    public void onResponse(CityDataModel cityDataModel) {
+                        showToastTextShort("7-Tage-Inzidenzwert: " + cityDataModel.getCases7_per_100k_txt());
                     }
                 });
+
+
+
+
+//                dataService.getCityId(userInputCityName, new DataService.VolleyResponseListener() { //der Listener ist ein Interface und muss implementiert werden
+//                    @Override
+//                    public void onError(String message) {
+//                        showToastTextLong(message);
+//                        Log.e("onError", message);
+//                    }
+//
+//                    /**
+//                     * Callback-Methode, welche aufgerufen wird, wenn die Antwort angekommen ist.
+//                     * @param cityId Das ist die Antwort vom Server, die wir weiterverwenden können
+//                     */
+//                    @Override
+//                    public void onResponse(int cityId) { //
+//                        showToastTextLong("Callback-Answer: City-ID = " + cityId);
+//                    }
+//                });
             }
         });
     }
@@ -82,22 +101,6 @@ public class MainActivity extends AppCompatActivity {
             Log.e("IllegalArgument", String.format("Länge '%d' für Toast.Length ungültig. Wird auf 1 (LONG) gesetzt.", length));
         }
         Toast.makeText(MainActivity.this, str, length).show();
-    }
-
-    /** Rundet "normal (ab 5 auf, vorher ab)
-     * BigDecimal Round Modus Doku: https://docs.oracle.com/javase/7/docs/api/java/math/RoundingMode.html
-     * @param value
-     * @param stelle Diese Zahl gibt an, wie viele Zahlen (abgesehen von 0) hinter dem Komma stehen bleiben.
-     *               Stelle 2 heißt also, es wird auf die 3. Stelle geschaut und anhand dessen entschieden.
-     *               Bsp: 3.4537 wird zu 3.45
-     */
-    private double roundDouble(double value, int stelle) //TODO static oder nicht? In Eclipse eig schon
-    {
-        if (stelle < 0) throw new IllegalArgumentException(String.format("Runden auf die Stelle '%d' ist nicht möglich.", stelle));
-
-        BigDecimal bd = BigDecimal.valueOf(value);
-        bd = bd.setScale(stelle, RoundingMode.HALF_UP);
-        return bd.doubleValue();
     }
 
     private String getCityInput()
