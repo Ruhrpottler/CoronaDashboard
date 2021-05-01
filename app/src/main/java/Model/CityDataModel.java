@@ -53,11 +53,11 @@ public class CityDataModel {
      * @param cases_per_population Fälle pro Person? Pro 1 Mio? pro LK?
      * @param cases7_per_100k 7-Tage-Inzidenzwert pro 100k Einwohner
      * @param cases7_per_100k_txt
-     * @param cases7_lk
-     * @param death7_lk
+     * @param cases7_lk Bestätigte Fälle in den letzten 7 Tagen
+     * @param death7_lk Todesfälle in den letzten 7 Tagen
      * @param cases7_bl_per_100k
-     * @param cases7_bl
-     * @param death7_bl
+     * @param cases7_bl Bestätigte Fälle im Bundesland
+     * @param death7_bl Todesfälle im Bundesland
      *
      * Im Konstruktor werden die setter verwendet (statt this.doubleValue=value), damit das,
      * was in den settern implementiert wird (Zahlen entsprechend runden) auch korrekt
@@ -99,10 +99,11 @@ public class CityDataModel {
     @Override
     public String toString() {
         return String.format("Daten für %s, Stand %s:\n" +
+                "Bundesland: %s" +
                 "7-Tage-Inzidenzwert: %s\n" +
                 "Bestätigte Fälle: %d\n" +
-                "Todesfälle: %d",
-                county, last_update, cases7_per_100k_txt, cases, deaths
+                "Todesfälle: %d\n",
+                county, last_update, bl, cases7_per_100k_txt, cases, deaths
         );
     }
 

@@ -39,7 +39,6 @@ public class MainActivity extends AppCompatActivity {
 
         tvErgebnisse = (TextView) findViewById(R.id.tvErgebnisse);
 
-
         btn_sendRequest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
