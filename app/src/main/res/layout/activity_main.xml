@@ -10,7 +10,7 @@
         android:id="@+id/btn_sendRequest"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="50dp"
+        android:layout_marginStart="60dp"
         android:layout_marginTop="32dp"
         android:layout_marginEnd="205dp"
         android:backgroundTint="@color/dark_blue"
@@ -33,12 +33,12 @@
 
     <AutoCompleteTextView
         android:id="@+id/actv_Landkreis"
-        android:layout_width="256dp"
-        android:layout_height="56dp"
+        android:layout_width="302dp"
+        android:layout_height="67dp"
         android:layout_marginStart="50dp"
         android:layout_marginTop="49dp"
-        android:layout_marginEnd="105dp"
-        android:hint="Stadt oder Kreis"
+        android:layout_marginEnd="50dp"
+        android:hint="Kreis oder kreisfreie Stadt"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
