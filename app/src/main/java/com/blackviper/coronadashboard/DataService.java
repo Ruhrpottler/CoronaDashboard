@@ -2,6 +2,7 @@ package com.blackviper.coronadashboard;
 
 import android.content.Context;
 import android.util.Log;
+import android.widget.AutoCompleteTextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -16,6 +17,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import Database.DatabaseHelper;
 import Model.CityDataModel;
 import Model.CityStammdatenModel;
 
@@ -54,12 +56,22 @@ public class DataService {
      * @param cityName Landkreis oder kreisfreie Stadt
      * @return objectId der city
      */
-    public void getCityId(String cityName, CityIdResponseListener responseListener)
+    public void getCityIdByName(String cityName, CityIdResponseListener responseListener)
     {
+        String[] inputArray = seperateBezAndGen(cityName);
+        String bez = inputArray[0];
+        String gen = inputArray[1];
+
+        String whereKlausel;
+        if(bez.isEmpty())
+            whereKlausel = "GEN%20%3D%20'" + gen + "'";
+        else
+            whereKlausel = "BEZ%20%3D%20'"+ bez + "'%20AND%20GEN%20%3D%20'" + gen + "'";
+
         String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/" +
-                "RKI_Landkreisdaten/FeatureServer/0/query?where=GEN%20%3D%20'" + cityName + "'" +
-                "&outFields=OBJECTID,GEN&returnGeometry=false&returnIdsOnly=true&outSR=&f=json";
-        //int cityId;
+                "RKI_Landkreisdaten/FeatureServer/0/query?where=" + whereKlausel +
+                "&outFields=OBJECTID&returnGeometry=false&returnIdsOnly=true&outSR=&f=json";
+
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
@@ -70,7 +82,7 @@ public class DataService {
                     if(objectIdsArray.length() == 0)
                         throw new IllegalArgumentException(String.format("'%s' konnte nicht gefunden werden.", cityName));
                     else if (objectIdsArray.length() > 1)
-                        throw new IllegalArgumentException("Es wurden mehrere Ergebnisse gefunden.");
+                        throw new IllegalArgumentException(String.format("Es wurden mehrere Ergebnisse für '%s' gefunden.", cityName));
 
                     cityId = objectIdsArray.getInt(0);
 
@@ -148,7 +160,7 @@ public class DataService {
      */
     public void getCityDataByName(String cityName, CityDataModelResponseListener modelResponseListener)
     {
-        getCityId(cityName, new CityIdResponseListener() {
+        getCityIdByName(cityName, new CityIdResponseListener() {
             @Override
             public void onError(String message) {
                 Toast.makeText(activityContext, message, Toast.LENGTH_LONG).show();
@@ -203,6 +215,31 @@ public class DataService {
                 attributes.getInt("death7_bl")
         );
         return model;
+    }
+
+    private String[] seperateBezAndGen(String cityName)
+    {
+        cityName = cityName.toLowerCase();
+        String[] cityNameArray;// = new String[2];
+        if(cityName.startsWith("kreisfreie stadt"))
+            cityNameArray = seperateString("kreisfreie stadt", cityName);
+        else if(cityName.startsWith("landkreis"))
+            cityNameArray = seperateString("landkreis", cityName);
+        else if(cityName.startsWith("stadtkreis"))
+            cityNameArray = seperateString("stadtkreis", cityName);
+        else if(cityName.startsWith("kreis"))
+            cityNameArray = seperateString("kreis", cityName);
+        else if(cityName.startsWith("bezirk"))
+            cityNameArray = seperateString("bezirk", cityName);
+        else
+            cityNameArray = new String[]{"", cityName};
+
+        return cityNameArray;
+    }
+
+    private String[] seperateString(String firstPart, String fullString)
+    {
+        return new String[]{firstPart, fullString.replace(firstPart, "").trim()};
     }
 
     public interface CityStammdatenResponseListener
@@ -265,6 +302,38 @@ public class DataService {
                 attributes.getString(STR_GEN),
                 attributes.getInt(STR_EWZ)
         );
+    }
 
+    public interface ActvSetupResponseListener
+    {
+        void onError(String message);
+        void onResponse(List<String> listOfEntries);
+    }
+
+    public void fillActvCity(AutoCompleteTextView actv_city, Context activityContext, ActvSetupResponseListener responseListener)
+    {
+        DatabaseHelper dbHelper = new DatabaseHelper(activityContext); //Können sich zwei DbHelper in die Quere kommen? Kann man ein Singleton aus dem Helper machen?
+        List<String> listOfEntries= new ArrayList<String>();
+
+        getAllCities(new DataService.CityStammdatenResponseListener() {
+            @Override
+            public void onError(String message) {
+                Log.e("ErrGetAllCities", message);
+                responseListener.onError(message);
+            }
+
+            @Override
+            public void onResponse(List<CityStammdatenModel> list) {
+                boolean success;
+                for(int i = 0; i < list.size(); i++)
+                {
+                    listOfEntries.add(list.get(i).getCityName());
+                    success = dbHelper.insertOrUpdateCityStammdatenRow(list.get(i));
+                    if(!success)
+                        Log.e("ErrWhileInsertOrUpdate", String.format("Fehler beim Insert/Update des Tupels '%s'. No success.", list.get(i).toString()));
+                }
+                responseListener.onResponse(listOfEntries);
+            }
+        });
     }
 }

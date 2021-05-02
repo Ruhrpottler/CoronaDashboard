@@ -107,7 +107,7 @@ public class CityDataModel {
                 "7-Tage-Inzidenzwert: %s\n" +
                 "Bestätigte Fälle: %d\n" +
                 "Todesfälle: %d\n",
-                gen, last_update, bl, cases7_per_100k_txt, cases, deaths
+                getCityName(), last_update, bl, cases7_per_100k_txt, cases, deaths
         );
     }
 

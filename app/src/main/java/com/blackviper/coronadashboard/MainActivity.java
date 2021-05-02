@@ -15,12 +15,10 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import Database.DatabaseHelper;
 import Model.CityDataModel;
-import Model.CityStammdatenModel;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -40,12 +38,28 @@ public class MainActivity extends AppCompatActivity {
         btn_sendRequest = (Button) findViewById(R.id.btn_sendRequest);
         lv = (ListView) findViewById(R.id.lv_responseView);
         tvErgebnisse = (TextView) findViewById(R.id.tvErgebnisse);
+        actv_city = (AutoCompleteTextView) findViewById(R.id.actv_Landkreis);
+
         setupActv_city();
+        //TODO Die App hängt hierbei trotzdem, wenn die ganze Schleife durchlaufen wird. Hier muss man background-services nutzen (Intent oder was es ist)
+        dataService.fillActvCity(actv_city, MainActivity.this, new DataService.ActvSetupResponseListener() {
+            @Override
+            public void onError(String message) {
+                message = "Fehler beim initialisieren der Städte-Listeneinträge. " + message;
+                showToastTextLong(message);
+                Log.e("actvSetupFailed", message);
+            }
+
+            @Override
+            public void onResponse(List<String> listOfEntries) {
+                actv_city.setAdapter(new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_list_item_1, listOfEntries));
+                showToastTextShort("AutoComplete done.");
+            }
+        });
 
         btn_sendRequest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 String userInputCityName = getCityInput();
                 if(userInputCityName.isEmpty())
                 {
@@ -74,34 +88,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupActv_city()
     {
-        actv_city = (AutoCompleteTextView) findViewById(R.id.actv_Landkreis);
-        List<String> listOfEntries= new ArrayList<String>();
-
         actv_city.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                keyboardDown();
-            }
-        });
-
-        dataService.getAllCities(new DataService.CityStammdatenResponseListener() {
-            @Override
-            public void onError(String message) {
-                Log.e("ErrGetAllCities", message);
-            }
-
-            @Override
-            public void onResponse(List<CityStammdatenModel> list) {
-                for(int i = 0; i < list.size(); i++)
-                {
-                    listOfEntries.add(list.get(i).getCityName()); //TODO getGen
-                    boolean success = dbHelper.insertOrUpdateCityStammdatenRow(list.get(i));
-                    if(!success)
-                        onError(String.format("Fehler beim Insert des Tupels '%s'.", list.get(i).toString()));
-                }
-                actv_city.setAdapter(new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_list_item_1, listOfEntries));
-
-                showToastTextShort("AutoComplete done.");
+                keyboardDown(); //Methode onKeyboardDownListener dingen machen
             }
         });
     }
@@ -141,5 +131,29 @@ public class MainActivity extends AppCompatActivity {
         String input = "";
         input = actv_city.getText().toString().trim();
         return input;
+    }
+
+    /**
+     *
+     * @param cityName
+     * @return
+     */
+    private String filterPrefix(String cityName)
+    {
+        if(cityName.contains("München")) //Man könnte einmal die DB fragen ob es mehr als 1 Ergebnis gibt
+            return cityName;
+
+        if(cityName.startsWith("Kreisfreie Stadt"))
+            cityName = cityName.replace("Kreisfreie Stadt", "");
+        else if(cityName.startsWith("Landkreis"))
+            cityName = cityName.replace("Landkreis", "");
+        else if(cityName.startsWith("Stadtkreis"))
+            cityName = cityName.replace("Landkreis", "");
+        else if(cityName.startsWith("Kreis"))
+            cityName = cityName.replace("Kreis", "");
+        else if(cityName.startsWith("Bezirk"))
+            cityName = cityName.replace("Bezirk", "");
+
+        return cityName.trim();
     }
 }
