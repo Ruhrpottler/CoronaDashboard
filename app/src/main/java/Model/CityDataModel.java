@@ -2,10 +2,9 @@ package Model;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.NumberFormat;
+import java.util.Locale;
 
-/**
- * Landkreisdaten-Model
- */
 public class CityDataModel {
 
     //Allgemein
@@ -54,14 +53,14 @@ public class CityDataModel {
      * @param cases Bestätigte Infektionen (gesamt)
      * @param deaths Todesfälle (gesamt)
      * @param cases_per_100k Fälle pro 100k Einwohner
-     * @param cases_per_population Fälle pro Person? Pro 1 Mio? pro LK?
+     * @param cases_per_population Betroffenenrate %
      * @param cases7_per_100k 7-Tage-Inzidenzwert pro 100k Einwohner
      * @param cases7_per_100k_txt
      * @param cases7_lk Bestätigte Fälle in den letzten 7 Tagen
      * @param death7_lk Todesfälle in den letzten 7 Tagen
      * @param cases7_bl_per_100k
-     * @param cases7_bl Bestätigte Fälle im Bundesland
-     * @param death7_bl Todesfälle im Bundesland
+     * @param cases7_bl Bestätigte Fälle der letzten 7 Tage im Bundesland
+     * @param death7_bl Todesfälle in den letzten 7 Tagen im Bundesland
      *
      * Im Konstruktor werden die setter verwendet (statt this.doubleValue=value), damit das,
      * was in den settern implementiert wird (Zahlen entsprechend runden) auch korrekt
@@ -102,12 +101,18 @@ public class CityDataModel {
 
     @Override
     public String toString() {
-        return String.format("Daten für %s, Stand %s:\n" +
+        return String.format("Daten für %s,\n" +
+                        "Stand %s:\n" +
                 "Bundesland: %s\n" +
-                "7-Tage-Inzidenzwert: %s\n" +
-                "Bestätigte Fälle: %d\n" +
-                "Todesfälle: %d\n",
-                getCityName(), last_update, bl, cases7_per_100k_txt, cases, deaths
+                "7-Tage-Inzidenz: %s\n" +
+                "Einwohnerzahl: %s\n" +
+                "Bestätigte Fälle: %s\n" +
+                "Bestätigte Fälle/100k EW: %s\n" +
+                "Betroffenenrate: %.2f%%\n" +
+                "Todesfälle: %s\n" +
+                "Sterberate: %.2f%%",
+                getCityName(), last_update, bl, cases7_per_100k_txt, intToString(ewz), intToString(cases),
+                doubleToString(cases_per_100k), cases_per_population , intToString(deaths), death_rate
         );
     }
 
@@ -125,6 +130,16 @@ public class CityDataModel {
         BigDecimal bd = BigDecimal.valueOf(value);
         bd = bd.setScale(stelle, RoundingMode.HALF_UP);
         return bd.doubleValue();
+    }
+
+    private String intToString(int value)
+    {
+        return NumberFormat.getNumberInstance(Locale.GERMANY).format(value);
+    }
+
+    private String doubleToString(double value)
+    {
+        return String.format("%.2f", value).replace(".", ",");
     }
 
     /*
