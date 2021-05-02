@@ -5,15 +5,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -21,6 +18,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
+import Database.DatabaseHelper;
 import Model.CityDataModel;
 import Model.CityStammdatenModel;
 
@@ -30,7 +28,9 @@ public class MainActivity extends AppCompatActivity {
     ListView lv;
     TextView tvErgebnisse;
     AutoCompleteTextView actv_city;
+
     final DataService dataService = new DataService(MainActivity.this);
+    final DatabaseHelper dbHelper = new DatabaseHelper(MainActivity.this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,7 +41,6 @@ public class MainActivity extends AppCompatActivity {
         lv = (ListView) findViewById(R.id.lv_responseView);
         tvErgebnisse = (TextView) findViewById(R.id.tvErgebnisse);
         setupActv_city();
-        //setupCloseKeyboardOnTouch(findViewById()); //TODO
 
         btn_sendRequest.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -65,7 +64,6 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onResponse(CityDataModel cityDataModel) {
-                        showToastTextShort("7-Tage-Inzidenzwert: " + cityDataModel.getCases7_per_100k_txt());
                         tvErgebnisse.setText(cityDataModel.toString());
                     }
                 });
@@ -90,41 +88,22 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onError(String message) {
                 Log.e("ErrGetAllCities", message);
-                showToastTextLong(message);
             }
 
             @Override
             public void onResponse(List<CityStammdatenModel> list) {
                 for(int i = 0; i < list.size(); i++)
                 {
-                    listOfEntries.add(list.get(i).getGen());
+                    listOfEntries.add(list.get(i).getCityName()); //TODO getGen
+                    boolean success = dbHelper.insertOrUpdateCityStammdatenRow(list.get(i));
+                    if(!success)
+                        onError(String.format("Fehler beim Insert des Tupels '%s'.", list.get(i).toString()));
                 }
                 actv_city.setAdapter(new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_list_item_1, listOfEntries));
+
                 showToastTextShort("AutoComplete done.");
             }
         });
-    }
-
-    //TODO Wenns nicht geht, removen
-    //https://stackoverflow.com/questions/4165414/how-to-hide-soft-keyboard-on-android-after-clicking-outside-edittext/11656129
-    public void setupCloseKeyboardOnTouch(View view) {
-        // Set up touch listener for non-text box views to hide keyboard.
-        if (!(view instanceof EditText)) {
-            view.setOnTouchListener(new View.OnTouchListener() {
-                public boolean onTouch(View v, MotionEvent event) {
-                    keyboardDown();
-                    return false;
-                }
-            });
-        }
-
-        //If a layout container, iterate over children and seed recursion.
-        if (view instanceof ViewGroup) {
-            for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
-                View innerView = ((ViewGroup) view).getChildAt(i);
-                setupCloseKeyboardOnTouch(innerView); //Rekursion
-            }
-        }
     }
 
     public void keyboardDown()

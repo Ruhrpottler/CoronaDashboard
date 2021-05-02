@@ -82,7 +82,7 @@ public class DataService {
                     Log.d("JSONException", e.toString());
                 } catch(IllegalArgumentException userException)
                 {
-                    Toast.makeText(activityContext, userException.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(activityContext, "Fehler: " + userException.getMessage(), Toast.LENGTH_LONG).show();
                 }
 
             }
@@ -124,10 +124,10 @@ public class DataService {
                     CityDataModel cityDataModel = createAndFillCityDataModel(attributes);
                     if(cityDataModel == null) responseListener.onError("cityDataModel ist null");
 
-                    responseListener.onResponse(cityDataModel); //ruft die implementierte Methode auf (MainActivity) --> callback
+                    responseListener.onResponse(cityDataModel);
                 } catch (Exception e) {
                     responseListener.onError(e.getMessage());
-                    Log.d("errGetCityDataById", e.toString());
+                    Log.e("errGetCityDataById", e.toString());
                 }
 
             }
@@ -142,11 +142,9 @@ public class DataService {
         RequestSingleton.getInstance(activityContext).addToRequestQueue(request);
     }
 
-    /**
-     * Diese Methode rufe ich später von der MainActivity auf.
-     * Achtung: Verschachtelte callbacks (Callback-Hell)
-     * @param cityName
-     * @param modelResponseListener Wird aufgerufen, wenn die Antwort da ist
+    /** Callback-Hell
+     * @param cityName ohne Präfix
+     * @param modelResponseListener Wird aufgerufen, wenn Response vom Server da ist
      */
     public void getCityDataByName(String cityName, CityDataModelResponseListener modelResponseListener)
     {
@@ -159,8 +157,6 @@ public class DataService {
 
             @Override
             public void onResponse(int cityId) {
-                //Wenn die cityId da ist, holen wir die Daten für diese city
-                //Verschachtelung von callbacks
                 getCityDataByCityId(cityId, new CityDataModelResponseListener() {
                     @Override
                     public void onError(String message) {
@@ -177,11 +173,11 @@ public class DataService {
         });
     }
 
-    /** Achtung: case-sensitive! Felder müssen genau gleich geschrieben werden! Nicht alle sind groß oder alle klein.
+    /** Achtung: case-sensitive!
      *
-     * @param attributes features --> firstObject of the Array --> attributes
+     * @param attributes features --> first obj of the array --> attributes
      * @return CityDataModel, für das alle setter ausgeführt wurden
-     * @throws JSONException Möglicherweise liefert der Server für die Felder keine Antwort, dann fliegt die Exception
+     * @throws JSONException Evtl. liefert der Server für die Felder keine Antwort, dann fliegt die Exception
      */
     private CityDataModel createAndFillCityDataModel(JSONObject attributes) throws JSONException
     {
@@ -247,7 +243,6 @@ public class DataService {
                     responseListener.onError(e.getMessage());
                     Log.d("errOnGetAllCities", e.toString());
                 }
-
             }
         }, new Response.ErrorListener() {
             @Override

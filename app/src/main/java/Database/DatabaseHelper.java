@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 
@@ -23,15 +24,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_CITY_NAME = "GEN";
     private static final String COLUMN_CITY_EWZ = "EWZ";
 
-    /**
-     *
-     * @param context
-     * @param name
-     * @param factory cursorFactory. Kann null sein, wenn nicht benötigt
-     * @param version
-     */
-    public DatabaseHelper(@Nullable Context context) { //, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version
-        super(context, "coronadata.db", null, 1);
+    public DatabaseHelper(@Nullable Context activityContext) { //, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version
+        super(activityContext, "coronadata.db", null, 1);
     }
 
     /**
@@ -68,7 +62,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @param model
      * @return Gibt an, ob die Ausführung erfolgreich war
      */
-    public boolean addCityStammdatenRow(CityStammdatenModel model)
+    public boolean insertOrUpdateCityStammdatenRow(CityStammdatenModel model)
     {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues(); //Wie Hashmaps, man kann jz paare reinpacken (put)
@@ -77,12 +71,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cv.put(COLUMN_CITY_BL_ID, model.getBl_id());
         cv.put(COLUMN_CITY_PRE, model.getBez());
         cv.put(COLUMN_CITY_NAME, model.getGen());
-        cv.put(COLUMN_CITY_EWZ, model.getGen());
+        cv.put(COLUMN_CITY_EWZ, model.getEwz());
 
-        long doneWithoutIssues = db.insert(TABLE_CITY_STAMMDATEN, null , cv);
-        if(doneWithoutIssues == -1)
-            return false;
-        else
-            return true;
+        long success = -1;
+
+        try {
+
+            success = db.insertWithOnConflict(TABLE_CITY_STAMMDATEN, null, cv, SQLiteDatabase.CONFLICT_IGNORE);
+            if (success == -1)
+                success = db.update(TABLE_CITY_STAMMDATEN, cv, "OBJECTID = ?", new String[]{String.valueOf(model.getObjectId())});
+        } catch(Exception e)
+        {
+            String msg = String.format("Fehler beim InsertOrUpdate von '%s': \n %s ", model.getCityName(), e.toString());
+            Log.e("DbErr", msg);
+        } finally
+        {
+            db.close();
+        }
+        return (success == -1 ? false : true);
     }
 }
