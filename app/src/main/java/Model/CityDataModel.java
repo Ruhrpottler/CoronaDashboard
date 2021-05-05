@@ -111,8 +111,8 @@ public class CityDataModel {
                 "Betroffenenrate: %.2f%%\n" +
                 "Todesfälle: %s\n" +
                 "Sterberate: %.2f%%",
-                getCityName(), last_update, bl, cases7_per_100k_txt, intToString(ewz), intToString(cases),
-                doubleToString(cases_per_100k), cases_per_population , intToString(deaths), death_rate
+                getCityName(), getLast_update(), getBl(), getCases7_per_100k_txt(), intToString(ewz), intToString(cases),
+                doubleToString(cases_per_100k), getCases_per_population() , intToString(deaths), getDeath_rate()
         );
     }
 
@@ -208,7 +208,10 @@ public class CityDataModel {
     }
 
     public String getLast_update() {
-        return last_update;
+        String stand = last_update;
+        if(stand.contains(", 00:00 Uhr"))
+            return stand.replace(", 00:00 Uhr", "").trim();
+        return stand;
     }
 
     public final void setLast_update(String last_update) {

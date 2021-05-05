@@ -132,28 +132,4 @@ public class MainActivity extends AppCompatActivity {
         input = actv_city.getText().toString().trim();
         return input;
     }
-
-    /**
-     *
-     * @param cityName
-     * @return
-     */
-    private String filterPrefix(String cityName)
-    {
-        if(cityName.contains("München")) //Man könnte einmal die DB fragen ob es mehr als 1 Ergebnis gibt
-            return cityName;
-
-        if(cityName.startsWith("Kreisfreie Stadt"))
-            cityName = cityName.replace("Kreisfreie Stadt", "");
-        else if(cityName.startsWith("Landkreis"))
-            cityName = cityName.replace("Landkreis", "");
-        else if(cityName.startsWith("Stadtkreis"))
-            cityName = cityName.replace("Landkreis", "");
-        else if(cityName.startsWith("Kreis"))
-            cityName = cityName.replace("Kreis", "");
-        else if(cityName.startsWith("Bezirk"))
-            cityName = cityName.replace("Bezirk", "");
-
-        return cityName.trim();
-    }
 }
