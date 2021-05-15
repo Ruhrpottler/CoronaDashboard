@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "1028395218537",
+    "firebase_url": "https://mobilecoronadashboard-default-rtdb.europe-west1.firebasedatabase.app",
     "project_id": "mobilecoronadashboard",
     "storage_bucket": "mobilecoronadashboard.appspot.com"
   },
