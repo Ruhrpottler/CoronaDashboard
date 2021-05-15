@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1028395218537",
+    "project_id": "mobilecoronadashboard",
+    "storage_bucket": "mobilecoronadashboard.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1028395218537:android:104e07d4241ff5feec14f8",
+        "android_client_info": {
+          "package_name": "com.blackviper.coronadashboard"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1028395218537-d8pjegksflmd787ve10t1cvik8j2nl53.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDLHlerPue7WtlBSmNB-h-S6tYPAcLXVls"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1028395218537-d8pjegksflmd787ve10t1cvik8j2nl53.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

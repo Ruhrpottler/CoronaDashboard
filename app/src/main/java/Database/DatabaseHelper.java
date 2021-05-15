@@ -44,6 +44,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 ")";
 
         db.execSQL(createTableStatement);
+        //TODO preparedStatemend nutzen (performance)
+        //TODO Tabelle CITY_DATEN erstellen und immer speichern, falls man kein Netz hat
     }
 
     /**
