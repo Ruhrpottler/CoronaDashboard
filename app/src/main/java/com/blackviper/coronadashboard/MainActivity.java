@@ -18,6 +18,7 @@ import android.widget.Toast;
 import java.util.List;
 
 import Database.DatabaseHelper;
+import Database.FirebaseService;
 import Model.CityDataModel;
 
 public class MainActivity extends AppCompatActivity {
@@ -29,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
 
     final DataService dataService = new DataService(MainActivity.this);
     final DatabaseHelper dbHelper = new DatabaseHelper(MainActivity.this);
+    final FirebaseService firebaseService = new FirebaseService();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +59,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
+
         btn_sendRequest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -79,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(CityDataModel cityDataModel) {
                         tvErgebnisse.setText(cityDataModel.toString());
+                        firebaseService.saveCityData(cityDataModel);
                     }
                 });
 

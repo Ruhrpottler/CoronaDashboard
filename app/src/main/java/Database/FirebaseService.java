@@ -11,6 +11,8 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.HashMap;
 
+import Model.CityDataModel;
+
 public class FirebaseService {
 
     private DatabaseReference db;
@@ -20,28 +22,21 @@ public class FirebaseService {
         db = FirebaseDatabase.getInstance().getReference();
     }
 
-    public void writeNewUser(String userId, String name, String email) {
-        User user = new User(name, email);
-        try{
-            db.child("users").child(userId).setValue(user);
-        } catch(Exception ex)
-        {
-            String msg = ex.getMessage();
-        }
-
-    }
-
-    public void addTestData()
+    public void saveCityData(CityDataModel dataModel)
     {
-        FirebaseDatabase.getInstance().getReference("message").setValue("Message vom Studio");
-
-        HashMap<String, Object> map = new HashMap<>();
-        map.put("Vorname", "Jan");
-        map.put("Nachname", "Lappenküper");
-        map.put("Hochschule", "Fachhochschule Dortmund");
-
-        db.child("users").child("abc").updateChildren(map);
-
+        db.child("CityData").child(dataModel.getCityName()).setValue(dataModel);
     }
+
+//TODO remove
+//    public void addTestData()
+//    {
+//        HashMap<String, Object> map = new HashMap<>();
+//        map.put("Vorname", "Jan");
+//        map.put("Nachname", "Lappenküper");
+//        map.put("Hochschule", "Fachhochschule Dortmund");
+//
+//        db.child("Personen").child("me").updateChildren(map);
+//
+//    }
 
 }

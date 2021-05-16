@@ -119,7 +119,7 @@ public class DataService {
     {
         String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/query?" +
                 "where=OBJECTID%3D" + cityId + "&outFields=OBJECTID,BEZ,GEN,EWZ,BL_ID,BL,last_update,death_rate,cases,deaths,cases_per_100k,cases_per_population," +
-                "cases7_per_100k,cases7_per_100k_txt,cases7_lk,death7_lk,death7_lk,cases7_bl_per_100k,cases7_bl,death7_bl" +
+                "cases7_per_100k,cases7_lk,death7_lk,death7_lk,cases7_bl_per_100k,cases7_bl,death7_bl" +
                 "&returnGeometry=false&f=json";
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
@@ -207,7 +207,6 @@ public class DataService {
                 attributes.getDouble("cases_per_100k"),
                 attributes.getDouble("cases_per_population"),
                 attributes.getDouble("cases7_per_100k"),
-                attributes.getString("cases7_per_100k_txt"),
                 attributes.getInt("cases7_lk"),
                 attributes.getInt("death7_lk"),
                 attributes.getDouble("cases7_bl_per_100k"),

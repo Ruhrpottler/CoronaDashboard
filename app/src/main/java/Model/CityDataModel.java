@@ -8,29 +8,28 @@ import java.util.Locale;
 public class CityDataModel {
 
     //Allgemein
-    int objectId;
-    String bez;
-    String gen;
-    int ewz;
-    int bl_id;
-    String bl;
-    String last_update; //Stand
+    private int objectId;
+    private String bez;
+    private String gen;
+    private int ewz;
+    private int bl_id;
+    private String bl;
+    private String last_update;
 
     //Corona-Daten City
-    double death_rate;
-    int cases;
-    int deaths;
-    double cases_per_100k;
-    double cases_per_population;
-    double cases7_per_100k;
-    String cases7_per_100k_txt;
-    int cases7_lk;
-    int death7_lk;
+    private double death_rate;
+    private int cases;
+    private int deaths;
+    private double cases_per_100k;
+    private double cases_per_population;
+    private double cases7_per_100k;
+    private int cases7_lk;
+    private int death7_lk;
 
     //Corona-Daten Bundesland
-    double cases7_bl_per_100k;
-    int cases7_bl;
-    int death7_bl;
+    private double cases7_bl_per_100k;
+    private int cases7_bl;
+    private int death7_bl;
 
     /*Wenn weitere hinzugefügt werden:
      * 1. Attribut hinzufügen
@@ -55,7 +54,6 @@ public class CityDataModel {
      * @param cases_per_100k Fälle pro 100k Einwohner
      * @param cases_per_population Betroffenenrate %
      * @param cases7_per_100k 7-Tage-Inzidenzwert pro 100k Einwohner
-     * @param cases7_per_100k_txt
      * @param cases7_lk Bestätigte Fälle in den letzten 7 Tagen
      * @param death7_lk Todesfälle in den letzten 7 Tagen
      * @param cases7_bl_per_100k
@@ -74,7 +72,7 @@ public class CityDataModel {
      */
     public CityDataModel(int objectId, String bez, String gen, int ewz, int bl_id, String bl, String last_update,
                          double death_rate, int cases, int deaths, double cases_per_100k, double cases_per_population,
-                         double cases7_per_100k, String cases7_per_100k_txt, int cases7_lk, int death7_lk,
+                         double cases7_per_100k, int cases7_lk, int death7_lk,
                          double cases7_bl_per_100k, int cases7_bl, int death7_bl)
     {
         setObjectId(objectId);
@@ -91,7 +89,6 @@ public class CityDataModel {
         setCases_per_population(cases_per_population);
         setCases7_per_100k(cases7_per_100k);
         setCases7_per_100k(cases7_per_100k);
-        setCases7_per_100k_txt(cases7_per_100k_txt);
         setCases7_lk(cases7_lk);
         setDeath7_lk(death7_lk);
         setCases7_bl_per_100k(cases7_bl_per_100k);
@@ -112,7 +109,7 @@ public class CityDataModel {
                 "Todesfälle: %s\n" +
                 "Sterberate: %.2f%%",
                 getCityName(), getLast_update(), getBl(), getCases7_per_100k_txt(), intToString(ewz), intToString(cases),
-                doubleToString(cases_per_100k), getCases_per_population() , intToString(deaths), getDeath_rate()
+                getCases_per_100k(), getCases_per_population() , intToString(deaths), getDeath_rate()
         );
     }
 
@@ -137,18 +134,17 @@ public class CityDataModel {
         return NumberFormat.getNumberInstance(Locale.GERMANY).format(value);
     }
 
-    private String doubleToString(double value)
+    private String doubleToString(double value, int anzahlStellen) //TODO anzStellen automatisch herausfinden, wenn möglich
     {
-        return String.format("%.2f", value).replace(".", ",");
+        return String.format("%." + anzahlStellen + "f", value).replace(".", ",");
     }
 
     /*
-     * Alle setter müssen final sein, damit sie nicht überschrieben werden können!
+     * Achtung: Alle setter müssen final sein (!), damit sie nicht überschrieben werden können!
      */
 
     /** BEZ + GEN
-     *  z.B. "Kreisfreie Stadt Dortmund", "Landkreis Recklinghausen"...
-     *  Achtung: "Kreis Oberbergischer Kreis" klingt unschön, muss man rausfiltern.
+     *  z.B. "Kreisfreie Stadt Dortmund", "Landkreis Recklinghausen", "Oberbergischer Kreis"...
      * @return
      */
     public String getCityName()
@@ -262,16 +258,13 @@ public class CityDataModel {
         return cases7_per_100k;
     }
 
+    public String getCases7_per_100k_txt()
+    {
+        return doubleToString(getCases7_per_100k(), 1);
+    }
+
     public final void setCases7_per_100k(double cases7_per_100k) {
         this.cases7_per_100k = roundDouble(cases7_per_100k, 1);
-    }
-
-    public String getCases7_per_100k_txt() {
-        return cases7_per_100k_txt;
-    }
-
-    public final void setCases7_per_100k_txt(String cases7_per_100k_txt) {
-        this.cases7_per_100k_txt = cases7_per_100k_txt;
     }
 
     public int getCases7_lk() {
