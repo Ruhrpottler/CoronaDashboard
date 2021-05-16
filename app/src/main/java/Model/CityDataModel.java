@@ -5,6 +5,8 @@ import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.Locale;
 
+import Tools.FormatTool;
+
 public class CityDataModel {
 
     //Allgemein
@@ -108,35 +110,9 @@ public class CityDataModel {
                 "Betroffenenrate: %.2f%%\n" +
                 "Todesfälle: %s\n" +
                 "Sterberate: %.2f%%",
-                getCityName(), getLast_update(), getBl(), getCases7_per_100k_txt(), intToString(ewz), intToString(cases),
-                getCases_per_100k(), getCases_per_population() , intToString(deaths), getDeath_rate()
+                getCityName(), getLast_update(), getBl(), getCases7_per_100k_txt(), FormatTool.intToString(ewz), FormatTool.intToString(cases),
+                FormatTool.doubleToString(FormatTool.roundDouble(getCases_per_100k(), 2), 2), getCases_per_population() , FormatTool.intToString(deaths), getDeath_rate()
         );
-    }
-
-    /** Rundet "normal (ab 5 auf, vorher ab)
-     * BigDecimal Round Modus Doku: https://docs.oracle.com/javase/7/docs/api/java/math/RoundingMode.html
-     * @param value
-     * @param stelle Diese Zahl gibt an, wie viele Zahlen (abgesehen von 0) hinter dem Komma stehen bleiben.
-     *               Stelle 2 heißt also, es wird auf die 3. Stelle geschaut und anhand dessen entschieden.
-     *               Bsp: 3.4537 wird zu 3.45
-     */
-    public double roundDouble(double value, int stelle) //TODO static oder nicht? In Eclipse eig schon
-    {
-        if (stelle < 0) throw new IllegalArgumentException(String.format("Runden auf die Stelle '%d' ist nicht möglich.", stelle));
-
-        BigDecimal bd = BigDecimal.valueOf(value);
-        bd = bd.setScale(stelle, RoundingMode.HALF_UP);
-        return bd.doubleValue();
-    }
-
-    private String intToString(int value)
-    {
-        return NumberFormat.getNumberInstance(Locale.GERMANY).format(value);
-    }
-
-    private String doubleToString(double value, int anzahlStellen) //TODO anzStellen automatisch herausfinden, wenn möglich
-    {
-        return String.format("%." + anzahlStellen + "f", value).replace(".", ",");
     }
 
     /*
@@ -219,7 +195,7 @@ public class CityDataModel {
     }
 
     public final void setDeath_rate(double death_rate) {
-        this.death_rate = roundDouble(death_rate, 2);
+        this.death_rate = FormatTool.roundDouble(death_rate, 2);
     }
 
     public int getCases() {
@@ -243,7 +219,7 @@ public class CityDataModel {
     }
 
     public final void setCases_per_100k(double cases_per_100k) {
-        this.cases_per_100k = roundDouble(cases_per_100k, 2);
+        this.cases_per_100k = FormatTool.roundDouble(cases_per_100k, 2);
     }
 
     public double getCases_per_population() {
@@ -251,7 +227,7 @@ public class CityDataModel {
     }
 
     public final void setCases_per_population(double cases_per_population) {
-        this.cases_per_population = roundDouble(cases_per_population, 2);
+        this.cases_per_population = FormatTool.roundDouble(cases_per_population, 2);
     }
 
     public double getCases7_per_100k() {
@@ -260,11 +236,11 @@ public class CityDataModel {
 
     public String getCases7_per_100k_txt()
     {
-        return doubleToString(getCases7_per_100k(), 1);
+        return FormatTool.doubleToString(getCases7_per_100k(), 1);
     }
 
     public final void setCases7_per_100k(double cases7_per_100k) {
-        this.cases7_per_100k = roundDouble(cases7_per_100k, 1);
+        this.cases7_per_100k = FormatTool.roundDouble(cases7_per_100k, 1);
     }
 
     public int getCases7_lk() {
@@ -288,7 +264,7 @@ public class CityDataModel {
     }
 
     public final void setCases7_bl_per_100k(double cases7_bl_per_100k) {
-        this.cases7_bl_per_100k = roundDouble(cases7_bl_per_100k, 1);
+        this.cases7_bl_per_100k = FormatTool.roundDouble(cases7_bl_per_100k, 1);
     }
 
     public int getCases7_bl() {

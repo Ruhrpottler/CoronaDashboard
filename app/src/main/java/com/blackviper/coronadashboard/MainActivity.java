@@ -59,8 +59,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
-
         btn_sendRequest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -100,6 +98,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    //TODO In Tools auslagern
 
     public void keyboardDown()
     {
