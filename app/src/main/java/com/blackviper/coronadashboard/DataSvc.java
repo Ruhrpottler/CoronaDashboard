@@ -25,7 +25,7 @@ import Model.CityStammdatenModel;
  * Diese Klasse stellt asynchrone Methoden (Callbacks) zur Verfügung, welche den Traffic mit den Anfragen an die API
  * managed und uns z.B. die ID für eine Stadt, ein Bundesland oder die Strings zurück gibt.
  */
-public class DataService {
+public class DataSvc {
 
     //Klassenattribute
     Context activityContext;
@@ -38,7 +38,7 @@ public class DataService {
     private static final String STR_EWZ = "EWZ";
 
     //Konstuktoren
-    public DataService(Context activityContext)
+    public DataSvc(Context activityContext)
     {
         this.activityContext = activityContext;
     }
@@ -314,7 +314,7 @@ public class DataService {
         DatabaseHelper dbHelper = new DatabaseHelper(activityContext); //Können sich zwei DbHelper in die Quere kommen? Kann man ein Singleton aus dem Helper machen?
         List<String> listOfEntries= new ArrayList<String>();
 
-        getAllCities(new DataService.CityStammdatenResponseListener() {
+        getAllCities(new DataSvc.CityStammdatenResponseListener() {
             @Override
             public void onError(String message) {
                 Log.e("ErrGetAllCities", message);

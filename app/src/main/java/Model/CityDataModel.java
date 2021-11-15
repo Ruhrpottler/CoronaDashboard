@@ -17,6 +17,9 @@ public class CityDataModel {
     private int bl_id;
     private String bl;
     private String last_update;
+    //TODO Datentyp Date nutzen
+    //TODO see https://firebase.google.com/docs/reference/android/com/google/firebase/Timestamp
+    //TODO see eclipse
 
     //Corona-Daten City
     private double death_rate;
@@ -40,6 +43,15 @@ public class CityDataModel {
      * 4. zur fillMethod im DataService hinzufügen (nicht vergessen!!)
      * 5. Zur URL/Query hinzufügen
      */
+
+    /**
+     * Standardkonstruktor. Notwendig für Firebase, um Java-Objekte zu speichern
+     * siehe https://firebase.google.com/docs/database/android/read-and-write
+     */
+    public CityDataModel()
+    {
+
+    }
 
     /**
      *
@@ -119,6 +131,7 @@ public class CityDataModel {
      * Achtung: Alle setter müssen final sein (!), damit sie nicht überschrieben werden können!
      */
 
+    //TODO Bezirk und Stadtkreis ?!
     /** BEZ + GEN
      *  z.B. "Kreisfreie Stadt Dortmund", "Landkreis Recklinghausen", "Oberbergischer Kreis"...
      * @return

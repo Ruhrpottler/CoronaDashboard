@@ -1,6 +1,7 @@
 package com.blackviper.coronadashboard;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -18,7 +19,7 @@ import android.widget.Toast;
 import java.util.List;
 
 import Database.DatabaseHelper;
-import Database.FirebaseService;
+import Database.FirebaseSvc;
 import Model.CityDataModel;
 
 public class MainActivity extends AppCompatActivity {
@@ -28,14 +29,16 @@ public class MainActivity extends AppCompatActivity {
     TextView tvErgebnisse;
     AutoCompleteTextView actv_city;
 
-    final DataService dataService = new DataService(MainActivity.this);
+    final DataSvc dataSvc = new DataSvc(MainActivity.this);
     final DatabaseHelper dbHelper = new DatabaseHelper(MainActivity.this);
-    final FirebaseService firebaseService = new FirebaseService();
+    final FirebaseSvc firebaseSvc = new FirebaseSvc();
+    static NotificationSvc notificationSvc; //TODO
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        notificationSvc = new NotificationSvc(this); //TODO init in try-catch packen, damit die App auch funktioniert, wenn es hierbei Probleme gibt
 
         btn_sendRequest = (Button) findViewById(R.id.btn_sendRequest);
         lv = (ListView) findViewById(R.id.lv_responseView);
@@ -44,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
 
         setupActv_city();
         //TODO Die App hängt hierbei trotzdem, wenn die ganze Schleife durchlaufen wird. Hier muss man background-services nutzen (Intent oder was es ist)
-        dataService.fillActvCity(actv_city, MainActivity.this, new DataService.ActvSetupResponseListener() {
+        dataSvc.fillActvCity(actv_city, MainActivity.this, new DataSvc.ActvSetupResponseListener() {
             @Override
             public void onError(String message) {
                 message = "Fehler beim initialisieren der Städte-Listeneinträge. " + message;
@@ -71,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
 
                 keyboardDown();
 
-                dataService.getCityDataByName(userInputCityName, new DataService.CityDataModelResponseListener() {
+                dataSvc.getCityDataByName(userInputCityName, new DataSvc.CityDataModelResponseListener() {
                     @Override
                     public void onError(String message) {
                         Log.e("ErrGetCityDataByName", message);
@@ -81,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(CityDataModel cityDataModel) {
                         tvErgebnisse.setText(cityDataModel.toString());
-                        firebaseService.saveCityData(cityDataModel);
+                        firebaseSvc.saveCityData(cityDataModel);
                     }
                 });
 
