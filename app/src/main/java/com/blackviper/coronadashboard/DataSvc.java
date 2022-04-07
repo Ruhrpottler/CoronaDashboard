@@ -232,12 +232,26 @@ public class DataSvc
      */
     private CityDataModel createAndFillCityDataModel(JSONObject attributes) throws JSONException
     {
-        CityDataModel model = new CityDataModel(
+        CityBaseDataModel cityBaseData = new CityBaseDataModel(
                 attributes.getInt(STR_OBJECT_ID),
+                attributes.getInt(STR_BL_ID),
                 attributes.getString(STR_BEZ),
                 attributes.getString(STR_GEN),
-                attributes.getInt(STR_EWZ),
-                attributes.getInt(STR_BL_ID),
+                attributes.getInt(STR_EWZ)
+        );
+
+        if(cityBaseData == null)
+        {
+            return null; //TODO Error Handling
+        }
+
+        CityDataModel cityData = new CityDataModel(
+//                attributes.getInt(STR_OBJECT_ID),
+//                attributes.getString(STR_BEZ),
+//                attributes.getString(STR_GEN),
+//                attributes.getInt(STR_EWZ),
+//                attributes.getInt(STR_BL_ID),
+                cityBaseData,
                 attributes.getString("BL"),
                 attributes.getString("last_update"),
                 attributes.getDouble("death_rate"),
@@ -252,7 +266,7 @@ public class DataSvc
                 attributes.getInt("cases7_bl"),
                 attributes.getInt("death7_bl")
         );
-        return model;
+        return cityData;
     }
 
     private String[] seperateBezAndGen(String cityName)
@@ -287,7 +301,7 @@ public class DataSvc
     }
 
     /**
-     * Get list with all Cities for Germany
+     * Get list with all Cities in Germany
      */
     public void getAllCities(CityBaseDataResponseListener responseListener)
     {

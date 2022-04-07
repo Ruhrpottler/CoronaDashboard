@@ -11,11 +11,7 @@ public class CityDataModel
 {
 
     //Allgemein
-    private int objectId;
-    private String bez;
-    private String gen;
-    private int ewz;
-    private int bl_id;
+    private CityBaseDataModel baseData;
     private String bl;
     private String last_update;
     //TODO Datentyp Date nutzen
@@ -32,7 +28,7 @@ public class CityDataModel
     private int cases7_lk;
     private int death7_lk;
 
-    //Corona-Daten Bundesland
+    //Corona-Daten Bundesland //TODO auslagern in eigenes Model?
     private double cases7_bl_per_100k;
     private int cases7_bl;
     private int death7_bl;
@@ -55,12 +51,7 @@ public class CityDataModel
     }
 
     /**
-     *
-     * @param objectId cityId
-     * @param bez "Landkreis", "Kreisfreie Stadt" oder "Bezirk" (Berliner Stadtteile)
-     * @param gen cityName
-     * @param ewz Einwohnerzahl
-     * @param bl_id Id des Bundeslandes
+     * @param baseData CityBaseDataModel / Stammdaten
      * @param bl Name des Bundeslandes
      * @param last_update Stand (Datum und Uhrzeit)
      * @param death_rate Sterberate
@@ -82,19 +73,20 @@ public class CityDataModel
      * überschreiben kann und diese dann ggf. aufgerufen wird (nur diese).
      * --> Deswegen alle setter auf final setzen, damit können sie nicht überschrieben werden.
      *
-     * Es darf keinen (leeren) Standardkonstruktor geben, damit der Entwickler gezwungen ist alle Werte zu setzen.
-     *
      */
-    public CityDataModel(int objectId, String bez, String gen, int ewz, int bl_id, String bl, String last_update,
+    public CityDataModel(CityBaseDataModel baseData,
+            //int objectId, String bez, String gen, int ewz, int bl_id,
+                         String bl, String last_update,
                          double death_rate, int cases, int deaths, double cases_per_100k, double cases_per_population,
                          double cases7_per_100k, int cases7_lk, int death7_lk,
                          double cases7_bl_per_100k, int cases7_bl, int death7_bl)
     {
-        setObjectId(objectId);
-        setBez(bez);
-        setGen(gen);
-        setEwz(ewz);
-        setBl_id(bl_id);
+        setBaseData(baseData); //TODO HIER weitermachen! passt hier alles wegen der Integration vom baseDataModel?
+//        setObjectId(objectId);
+//        setBez(bez);
+//        setGen(gen);
+//        setEwz(ewz);
+//        setBl_id(bl_id);
         setBl(bl);
         setLast_update(last_update);
         setDeath_rate(death_rate);
@@ -124,7 +116,7 @@ public class CityDataModel
                 "Betroffenenrate: %.2f%%\n" +
                 "Todesfälle: %s\n" +
                 "Sterberate: %.2f%%",
-                getCityName(), getLast_update(), getBl(), getCases7_per_100k_txt(), FormatTool.intToString(ewz), FormatTool.intToString(cases),
+                getCityName(), getLast_update(), getBl(), getCases7_per_100k_txt(), FormatTool.intToString(baseData.getEwz()), FormatTool.intToString(cases),
                 FormatTool.doubleToString(FormatTool.roundDouble(getCases_per_100k(), 2), 2), getCases_per_population() , FormatTool.intToString(deaths), getDeath_rate()
         );
     }
@@ -138,7 +130,7 @@ public class CityDataModel
      *  z.B. "Kreisfreie Stadt Dortmund", "Landkreis Recklinghausen", "Oberbergischer Kreis"...
      * @return
      */
-    public String getCityName()
+    public String getCityName() //TODO getter/setter sollten nicht doppelt sein
     {
         if(getGen().toLowerCase().contains("kreis"))
             return getGen();
@@ -146,54 +138,68 @@ public class CityDataModel
         return getBez() + " " + getGen();
     }
 
-    public int getObjectId()
+    public CityBaseDataModel getBaseData()
     {
-        return objectId;
+        return this.baseData; //TODO nullcheck?
+    }
+
+    public final void setBaseData(CityBaseDataModel baseData)
+    {
+        this.baseData = baseData;
+    }
+
+    public int getObjectId() //TODO getter/setter sollten nicht doppelt sein
+    {
+        if(baseData == null)
+        {
+            return -1;
+        }
+        return baseData.getObjectId();
     }
 
     public final void setObjectId(int objectId)
     {
-        this.objectId = objectId;
+        this.baseData.setObjectId(objectId);
     }
 
     public String getBez()
     {
-        return bez;
+        return baseData.getBez();
     }
 
     public final void setBez(String bez)
     {
-        this.bez = bez;
+        this.baseData.setBez(bez);
     }
 
     public String getGen()
     {
-        return gen;
+        return baseData.getGen();
     }
 
     public final void setGen(String gen)
     {
-        this.gen = gen;
+        this.baseData.setGen(gen);
     }
 
     public int getEwz()
     {
-        return ewz;
+        return baseData.getEwz();
     }
 
     public final void setEwz(int ewz)
     {
-        this.ewz = ewz;
+        this.baseData.setEwz(ewz);
     }
 
     public int getBl_id()
     {
-        return bl_id;
+        return baseData.getBl_id();
     }
 
     public final void setBl_id(int bl_id)
     {
-        this.bl_id = bl_id;
+        this.baseData.setBl_id(bl_id);
     }
 
     public String getBl()

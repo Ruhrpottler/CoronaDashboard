@@ -2,6 +2,7 @@ package Model;
 
 public class CityBaseDataModel
 {
+    //TODO Reihenfolge anpassen wie (vorher) im CityDataModel
     int objectId;
     int bl_id;
     String bez; //TODO Könnte man theoretisch auch als Ids übersetzen und speichern, damit es schneller geht

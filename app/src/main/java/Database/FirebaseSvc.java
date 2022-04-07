@@ -33,10 +33,13 @@ public class FirebaseSvc {
         db.child("CityData").child(dataModel.getCityName()).setValue(dataModel);
     }
 
-    private static CityDataModel encodeModel(CityDataModel model) //TODO model clonen ?
+    private static CityDataModel encodeModel(CityDataModel cityData) //TODO model clonen ?
     {
-        model.setGen(encode(model.getGen()));
-        return model;
+        if(cityData.getGen().contains("_") || cityData.getGen().contains("."))
+        {
+            cityData.setGen(encode(cityData.getGen()));
+        }
+        return cityData;
     }
 
     private static String encode(String str)
@@ -44,6 +47,15 @@ public class FirebaseSvc {
         return str
                 .replace("_", "__")
                 .replace(".", "_P");
+    }
+
+    private static CityDataModel decodeModel(CityDataModel cityData)
+    {
+        if(cityData.getGen().contains("__") || cityData.getGen().contains("_P"))
+        {
+            cityData.setGen(decode(cityData.getGen()));
+        }
+        return cityData;
     }
 
     private static String decode(String str)
