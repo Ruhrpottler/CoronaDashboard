@@ -13,7 +13,8 @@ import Model.CityStammdatenModel;
 /**
  * Dokumentation: https://developer.android.com/reference/android/database/sqlite/SQLiteOpenHelper#onCreate(android.database.sqlite.SQLiteDatabase)
  */
-public class DatabaseHelper extends SQLiteOpenHelper {
+public class DatabaseHelper extends SQLiteOpenHelper
+{
 
     //Tabellen
     private static final String TABLE_CITY_STAMMDATEN = "CITY_STAMMDATEN";
@@ -24,7 +25,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_CITY_NAME = "GEN";
     private static final String COLUMN_CITY_EWZ = "EWZ";
 
-    public DatabaseHelper(@Nullable Context activityContext) { //, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version
+    public DatabaseHelper(@Nullable Context activityContext) //, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version
+    {
         super(activityContext, "coronadata.db", null, 1);
     }
 
@@ -34,7 +36,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @param db
      */
     @Override
-    public void onCreate(SQLiteDatabase db) {
+    public void onCreate(SQLiteDatabase db)
+    {
         String createTableStatement = "CREATE TABLE " + TABLE_CITY_STAMMDATEN + " (" +
                 "OBJECTID INTEGER NOT NULL PRIMARY KEY, " +
                 "BL_ID INTEGER NOT NULL, " +
@@ -55,8 +58,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @param newVersion
      */
     @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion)
+    {
+        //TODO
     }
 
     /**
@@ -77,8 +81,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         long success = -1;
 
-        try {
-
+        try
+        {
             success = db.insertWithOnConflict(TABLE_CITY_STAMMDATEN, null, cv, SQLiteDatabase.CONFLICT_IGNORE);
             if (success == -1)
                 success = db.update(TABLE_CITY_STAMMDATEN, cv, "OBJECTID = ?", new String[]{String.valueOf(model.getObjectId())});

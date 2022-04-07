@@ -29,7 +29,28 @@ public class FirebaseSvc {
      */
     public void saveCityData(CityDataModel dataModel)
     {
+        dataModel = encodeModel(dataModel);
         db.child("CityData").child(dataModel.getCityName()).setValue(dataModel);
+    }
+
+    private static CityDataModel encodeModel(CityDataModel model) //TODO model clonen ?
+    {
+        model.setGen(encode(model.getGen()));
+        return model;
+    }
+
+    private static String encode(String str)
+    {
+        return str
+                .replace("_", "__")
+                .replace(".", "_P");
+    }
+
+    private static String decode(String str)
+    {
+        return str
+                .replace("_P", ".")
+                .replace("_", "__");
     }
 
 //TODO remove

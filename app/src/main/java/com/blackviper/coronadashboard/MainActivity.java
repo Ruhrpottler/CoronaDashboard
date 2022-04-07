@@ -62,9 +62,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        btn_sendRequest.setOnClickListener(new View.OnClickListener() {
+        btn_sendRequest.setOnClickListener(new View.OnClickListener()
+        {
             @Override
-            public void onClick(View v) {
+            public void onClick(View v)
+            {
                 String userInputCityName = getCityInput();
                 if(userInputCityName.isEmpty())
                 {
@@ -74,15 +76,18 @@ public class MainActivity extends AppCompatActivity {
 
                 keyboardDown();
 
-                dataSvc.getCityDataByName(userInputCityName, new DataSvc.CityDataModelResponseListener() {
+                dataSvc.getCityDataByName(userInputCityName, new DataSvc.CityDataModelResponseListener()
+                {
                     @Override
-                    public void onError(String message) {
+                    public void onError(String message)
+                    {
                         Log.e("ErrGetCityDataByName", message);
                         showToastTextLong(message);
                     }
 
                     @Override
-                    public void onResponse(CityDataModel cityDataModel) {
+                    public void onResponse(CityDataModel cityDataModel)
+                    {
                         tvErgebnisse.setText(cityDataModel.toString());
                         firebaseSvc.saveCityData(cityDataModel);
                     }
@@ -94,9 +99,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupActv_city()
     {
-        actv_city.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        actv_city.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id)
+            {
                 keyboardDown(); //Methode onKeyboardDownListener dingen machen
             }
         });
@@ -107,7 +114,8 @@ public class MainActivity extends AppCompatActivity {
     public void keyboardDown()
     {
         View view = this.getCurrentFocus();
-        if (view == null) {
+        if (view == null)
+        {
             view = new View(this);
         }
         InputMethodManager imm = (InputMethodManager) this.getSystemService(Activity.INPUT_METHOD_SERVICE);
@@ -126,10 +134,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void showToastText(String str, int length)
     {
-        if(length < 0 || length > 1)
+        if(length == Toast.LENGTH_SHORT || length == Toast.LENGTH_LONG)
         {
-            length = 1;
-            Log.w("IllegalArgument", String.format("Länge '%d' für Toast.Length ungültig. Wird auf 1 (LONG) gesetzt.", length));
+            length = Toast.LENGTH_LONG;
+            Log.i("IllegalArgument", String.format("'%d' is an illegal length for the toast display time.", length));
         }
         Toast.makeText(MainActivity.this, str, length).show();
     }

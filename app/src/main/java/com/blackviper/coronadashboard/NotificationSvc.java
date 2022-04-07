@@ -13,7 +13,8 @@ import androidx.core.app.NotificationManagerCompat;
 /** @apiNote API Level 26 or higher required
  *
  */
-public class NotificationSvc {
+public class NotificationSvc
+{
 
     private int notificationId = 1;
     private static String defaultChannelId = "defaultChannel";

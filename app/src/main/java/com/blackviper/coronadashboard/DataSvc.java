@@ -23,7 +23,7 @@ import Model.CityStammdatenModel;
 
 /**
  * Diese Klasse stellt asynchrone Methoden (Callbacks) zur Verfügung, welche den Traffic mit den Anfragen an die API
- * managed und uns z.B. die ID für eine Stadt, ein Bundesland oder die Strings zurück gibt.
+ * verwaltet und z.B. die ID für eine Stadt, ein Bundesland oder die Strings zurück gibt.
  */
 public class DataSvc {
 

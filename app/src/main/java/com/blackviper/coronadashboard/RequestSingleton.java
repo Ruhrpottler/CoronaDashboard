@@ -7,7 +7,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
 
 /**
- * Documentation: https://developer.android.com/training/volley/requestqueue#singleton
+ * Documentation: https://google.github.io/volley/requestqueue#singleton
  * Aufruf wie folgt: RequestSingleton.getInstance(MainActivity.this).addToRequestQueue(request); request ist ein JSONObjectRequest
  */
 public class RequestSingleton
@@ -28,7 +28,8 @@ public class RequestSingleton
      *                wenn die Activity neu erstellt wird (z.B. wenn Smartphone gedreht wird).
      * @return Wenn die Instanz existiert, wird diese zurückgegeben. Wenn nicht, wird sie erstellt.
      */
-    public static synchronized RequestSingleton getInstance(Context applicationContext) {
+    public static synchronized RequestSingleton getInstance(Context applicationContext)
+    {
         if (instance == null)
         {
             instance = new RequestSingleton(applicationContext);
@@ -36,7 +37,8 @@ public class RequestSingleton
         return instance;
     }
 
-    public RequestQueue getRequestQueue() {
+    public RequestQueue getRequestQueue()
+    {
         if (requestQueue == null)
         {
             // getApplicationContext() is key, it keeps you from leaking the

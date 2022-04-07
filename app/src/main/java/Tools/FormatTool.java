@@ -23,7 +23,9 @@ public class FormatTool {
             str = cutLastString(str);
         }
         if(str.endsWith(","))
+        {
             str = cutLastString(str);
+        }
 
         return str;
     }
@@ -42,7 +44,10 @@ public class FormatTool {
      */
     public static double roundDouble(double value, int stelle)
     {
-        if (stelle < 0) throw new IllegalArgumentException(String.format("Runden auf die Stelle '%d' ist nicht möglich.", stelle));
+        if (stelle < 0)
+        {
+            throw new IllegalArgumentException(String.format("Runden auf die Stelle '%d' ist nicht möglich.", stelle));
+        }
 
         BigDecimal bd = BigDecimal.valueOf(value);
         bd = bd.setScale(stelle, RoundingMode.HALF_UP);

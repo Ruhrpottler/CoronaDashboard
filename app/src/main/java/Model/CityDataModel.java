@@ -7,7 +7,8 @@ import java.util.Locale;
 
 import Tools.FormatTool;
 
-public class CityDataModel {
+public class CityDataModel
+{
 
     //Allgemein
     private int objectId;
@@ -45,8 +46,8 @@ public class CityDataModel {
      */
 
     /**
-     * Standardkonstruktor. Notwendig für Firebase, um Java-Objekte zu speichern
-     * siehe https://firebase.google.com/docs/database/android/read-and-write
+     * Default constructor for firebase to save Java objects
+     * see: https://firebase.google.com/docs/database/android/read-and-write
      */
     public CityDataModel()
     {
@@ -111,7 +112,8 @@ public class CityDataModel {
     }
 
     @Override
-    public String toString() {
+    public String toString()
+    {
         return String.format("Daten für %s,\n" +
                         "Stand %s:\n" +
                 "Bundesland: %s\n" +
@@ -144,106 +146,131 @@ public class CityDataModel {
         return getBez() + " " + getGen();
     }
 
-    public int getObjectId() {
+    public int getObjectId()
+    {
         return objectId;
     }
 
-    public final void setObjectId(int objectId) {
+    public final void setObjectId(int objectId)
+    {
         this.objectId = objectId;
     }
 
-    public String getBez() {
+    public String getBez()
+    {
         return bez;
     }
 
-    public final void setBez(String bez) {
+    public final void setBez(String bez)
+    {
         this.bez = bez;
     }
 
-    public String getGen() {
+    public String getGen()
+    {
         return gen;
     }
 
-    public final void setGen(String gen) {
+    public final void setGen(String gen)
+    {
         this.gen = gen;
     }
 
-    public int getEwz() {
+    public int getEwz()
+    {
         return ewz;
     }
 
-    public final void setEwz(int ewz) {
+    public final void setEwz(int ewz)
+    {
         this.ewz = ewz;
     }
 
-    public int getBl_id() {
+    public int getBl_id()
+    {
         return bl_id;
     }
 
-    public final void setBl_id(int bl_id) {
+    public final void setBl_id(int bl_id)
+    {
         this.bl_id = bl_id;
     }
 
-    public String getBl() {
+    public String getBl()
+    {
         return bl;
     }
 
-    public final void setBl(String bl) {
+    public final void setBl(String bl)
+    {
         this.bl = bl;
     }
 
-    public String getLast_update() {
+    public String getLast_update()
+    {
         String stand = last_update;
         if(stand.contains(", 00:00 Uhr"))
             return stand.replace(", 00:00 Uhr", "").trim();
         return stand;
     }
 
-    public final void setLast_update(String last_update) {
+    public final void setLast_update(String last_update)
+    {
         this.last_update = last_update;
     }
 
-    public double getDeath_rate() {
+    public double getDeath_rate()
+    {
         return death_rate;
     }
 
-    public final void setDeath_rate(double death_rate) {
+    public final void setDeath_rate(double death_rate)
+    {
         this.death_rate = FormatTool.roundDouble(death_rate, 2);
     }
 
-    public int getCases() {
+    public int getCases()
+    {
         return cases;
     }
 
-    public final void setCases(int cases) {
+    public final void setCases(int cases)
+    {
         this.cases = cases;
     }
 
-    public int getDeaths() {
+    public int getDeaths()
+    {
         return deaths;
     }
 
-    public final void setDeaths(int deaths) {
+    public final void setDeaths(int deaths)
+    {
         this.deaths = deaths;
     }
 
-    public double getCases_per_100k() {
+    public double getCases_per_100k()
+    {
         return cases_per_100k;
     }
 
-    public final void setCases_per_100k(double cases_per_100k) {
+    public final void setCases_per_100k(double cases_per_100k)
+    {
         this.cases_per_100k = FormatTool.roundDouble(cases_per_100k, 2);
     }
 
-    public double getCases_per_population() {
+    public double getCases_per_population()
+    {
         return cases_per_population;
     }
 
-    public final void setCases_per_population(double cases_per_population) {
+    public final void setCases_per_population(double cases_per_population)
+    {
         this.cases_per_population = FormatTool.roundDouble(cases_per_population, 2);
     }
 
-    public double getCases7_per_100k() {
+    public double getCases7_per_100k()
+    {
         return cases7_per_100k;
     }
 
@@ -252,47 +279,58 @@ public class CityDataModel {
         return FormatTool.doubleToString(getCases7_per_100k(), 1);
     }
 
-    public final void setCases7_per_100k(double cases7_per_100k) {
+    public final void setCases7_per_100k(double cases7_per_100k)
+    {
         this.cases7_per_100k = FormatTool.roundDouble(cases7_per_100k, 1);
     }
 
-    public int getCases7_lk() {
+    public int getCases7_lk()
+    {
         return cases7_lk;
     }
 
-    public final void setCases7_lk(int cases7_lk) {
+    public final void setCases7_lk(int cases7_lk)
+    {
         this.cases7_lk = cases7_lk;
     }
 
-    public int getDeath7_lk() {
+    public int getDeath7_lk()
+    {
         return death7_lk;
     }
 
-    public final void setDeath7_lk(int death7_lk) {
+    public final void setDeath7_lk(int death7_lk)
+    {
         this.death7_lk = death7_lk;
     }
 
-    public double getCases7_bl_per_100k() {
+    public double getCases7_bl_per_100k()
+    {
         return cases7_bl_per_100k;
     }
 
-    public final void setCases7_bl_per_100k(double cases7_bl_per_100k) {
+    public final void setCases7_bl_per_100k(double cases7_bl_per_100k)
+    {
         this.cases7_bl_per_100k = FormatTool.roundDouble(cases7_bl_per_100k, 1);
     }
 
-    public int getCases7_bl() {
+    public int getCases7_bl()
+    {
         return cases7_bl;
     }
 
-    public final void setCases7_bl(int cases7_bl) {
+    public final void setCases7_bl(int cases7_bl)
+    {
         this.cases7_bl = cases7_bl;
     }
 
-    public int getDeath7_bl() {
+    public int getDeath7_bl()
+    {
         return death7_bl;
     }
 
-    public final void setDeath7_bl(int death7_bl) {
+    public final void setDeath7_bl(int death7_bl)
+    {
         this.death7_bl = death7_bl;
     }
 }
