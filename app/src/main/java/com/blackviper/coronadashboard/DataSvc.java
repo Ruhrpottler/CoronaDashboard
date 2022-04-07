@@ -19,13 +19,14 @@ import java.util.List;
 
 import Database.DatabaseHelper;
 import Model.CityDataModel;
-import Model.CityStammdatenModel;
+import Model.CityBaseDataModel;
 
 /**
  * Diese Klasse stellt asynchrone Methoden (Callbacks) zur Verfügung, welche den Traffic mit den Anfragen an die API
  * verwaltet und z.B. die ID für eine Stadt, ein Bundesland oder die Strings zurück gibt.
  */
-public class DataSvc {
+public class DataSvc
+{
 
     //Klassenattribute
     Context activityContext;
@@ -63,33 +64,43 @@ public class DataSvc {
         String gen = inputArray[1];
 
         String whereKlausel;
-        if(bez.isEmpty())
+        if(bez.isEmpty()) {
             whereKlausel = "GEN%20%3D%20'" + gen + "'";
-        else
-            whereKlausel = "BEZ%20%3D%20'"+ bez + "'%20AND%20GEN%20%3D%20'" + gen + "'";
+        }
+        else {
+            whereKlausel = "BEZ%20%3D%20'" + bez + "'%20AND%20GEN%20%3D%20'" + gen + "'";
+        }
 
         String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/" +
                 "RKI_Landkreisdaten/FeatureServer/0/query?where=" + whereKlausel +
                 "&outFields=OBJECTID&returnGeometry=false&returnIdsOnly=true&outSR=&f=json";
 
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>()
+        {
             @Override
-            public void onResponse(JSONObject response) {
-                try {
+            public void onResponse(JSONObject response)
+            {
+                try
+                {
                     JSONArray objectIdsArray = response.getJSONArray("objectIds");
-                    if (objectIdsArray == null)
+                    if (objectIdsArray == null) {
                         throw new JSONException("'objectIds' is null");
-                    if(objectIdsArray.length() == 0)
+                    }
+                    if(objectIdsArray.length() == 0) {
                         throw new IllegalArgumentException(String.format("'%s' konnte nicht gefunden werden.", cityName));
-                    else if (objectIdsArray.length() > 1)
+                    }
+                    else if (objectIdsArray.length() > 1) {
                         throw new IllegalArgumentException(String.format("Es wurden mehrere Ergebnisse für '%s' gefunden.", cityName));
+                    }
 
                     cityId = objectIdsArray.getInt(0);
 
-                    if(cityId == 0)
+                    if(cityId == 0) {
                         throw new IllegalArgumentException(String.format("Für '%s' wurde die ungültige Objekt-ID %d gefunden.", cityName, cityId));
+                    }
                     responseListener.onResponse(cityId); //ruft den Listener in der Activity auf --> callback
-                } catch (JSONException e) {
+                } catch (JSONException e)
+                {
                     e.printStackTrace(); //TODO Exception-Handling verbessern
                     Log.d("JSONException", e.toString());
                 } catch(IllegalArgumentException userException)
@@ -98,9 +109,11 @@ public class DataSvc {
                 }
 
             }
-        }, new Response.ErrorListener() {
+        }, new Response.ErrorListener()
+        {
             @Override
-            public void onErrorResponse(VolleyError error) {
+            public void onErrorResponse(VolleyError error)
+            {
                 String msg = "Fehler bei der Verarbeitung der Server-Antwort: " + error.toString();
                 Log.d("onErrorResponse", msg);
                 responseListener.onError(msg);
@@ -122,30 +135,50 @@ public class DataSvc {
                 "cases7_per_100k,cases7_lk,death7_lk,death7_lk,cases7_bl_per_100k,cases7_bl,death7_bl" +
                 "&returnGeometry=false&f=json";
 
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>()
+        {
             @Override
-            public void onResponse(JSONObject response) {
-                try {
+            public void onResponse(JSONObject response)
+            {
+                try
+                {
                     JSONArray features = response.getJSONArray("features");
-                    if (features == null) throw new JSONException("'features' is null");
+                    if (features == null)
+                    {
+                        throw new JSONException("'features' is null");
+                    }
+
                     JSONObject firstAndOnlyArrayObject = features.getJSONObject(0); //Object without name
-                    if (firstAndOnlyArrayObject == null) throw new JSONException("'firstAndOnlyArrayObject' is null");
+                    if (firstAndOnlyArrayObject == null)
+                    {
+                        throw new JSONException("'firstAndOnlyArrayObject' is null");
+                    }
+
                     JSONObject attributes = firstAndOnlyArrayObject.getJSONObject("attributes");
-                    if (attributes == null) throw new JSONException("'attributes' is null");
+                    if (attributes == null)
+                    {
+                        throw new JSONException("'attributes' is null");
+                    }
 
                     CityDataModel cityDataModel = createAndFillCityDataModel(attributes);
-                    if(cityDataModel == null) responseListener.onError("cityDataModel ist null");
+                    if(cityDataModel == null)
+                    {
+                        responseListener.onError("cityDataModel ist null");
+                    }
 
                     responseListener.onResponse(cityDataModel);
-                } catch (Exception e) {
+                } catch (Exception e)
+                {
                     responseListener.onError(e.getMessage());
                     Log.e("errGetCityDataById", e.toString());
                 }
 
             }
-        }, new Response.ErrorListener() {
+        }, new Response.ErrorListener()
+        {
             @Override
-            public void onErrorResponse(VolleyError error) {
+            public void onErrorResponse(VolleyError error)
+            {
                 String msg = "Fehler bei der Verarbeitung der Server-Antwort: " + error.toString();
                 Log.d("onErrorResponse", msg);
                 responseListener.onError(msg);
@@ -160,24 +193,30 @@ public class DataSvc {
      */
     public void getCityDataByName(String cityName, CityDataModelResponseListener modelResponseListener)
     {
-        getCityIdByName(cityName, new CityIdResponseListener() {
+        getCityIdByName(cityName, new CityIdResponseListener()
+        {
             @Override
-            public void onError(String message) {
+            public void onError(String message)
+            {
                 Toast.makeText(activityContext, message, Toast.LENGTH_LONG).show();
                 Log.e("onErrCityIdListener", message);
             }
 
             @Override
-            public void onResponse(int cityId) {
-                getCityDataByCityId(cityId, new CityDataModelResponseListener() {
+            public void onResponse(int cityId)
+            {
+                getCityDataByCityId(cityId, new CityDataModelResponseListener()
+                {
                     @Override
-                    public void onError(String message) {
+                    public void onError(String message)
+                    {
                         Toast.makeText(activityContext, message, Toast.LENGTH_LONG).show();
                         Log.e("onErrGetCityData", message);
                     }
 
                     @Override
-                    public void onResponse(CityDataModel cityDataModel) {
+                    public void onResponse(CityDataModel cityDataModel)
+                    {
                         modelResponseListener.onResponse(cityDataModel);
                     }
                 });
@@ -241,48 +280,56 @@ public class DataSvc {
         return new String[]{firstPart, fullString.replace(firstPart, "").trim()};
     }
 
-    public interface CityStammdatenResponseListener
+    public interface CityBaseDataResponseListener
     {
         void onError(String message);
-        void onResponse(List<CityStammdatenModel> list);
+        void onResponse(List<CityBaseDataModel> list);
     }
 
     /**
-     *
-     * @return Liste mit allen CityStammdatenModels für Deutschland
+     * Get list with all Cities for Germany
      */
-    public void getAllCities(CityStammdatenResponseListener responseListener)
+    public void getAllCities(CityBaseDataResponseListener responseListener)
     {
 
         String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/" +
                 "query?where=1%3D1&outFields=OBJECTID,BL_ID,GEN,BEZ,EWZ&returnGeometry=false&outSR=&f=json";
 
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>()
+        {
             @Override
-            public void onResponse(JSONObject response) {
-                try {
+            public void onResponse(JSONObject response)
+            {
+                try
+                {
                     JSONArray features = response.getJSONArray("features");
-                    if (features == null) throw new JSONException("'features' is null");
+                    if (features == null)
+                    {
+                        throw new JSONException("'features' is null");
+                    }
 
                     JSONObject iterator;
                     JSONObject attributes;
 
-                    List<CityStammdatenModel> list = new ArrayList<CityStammdatenModel>();
+                    List<CityBaseDataModel> list = new ArrayList<CityBaseDataModel>();
                     for(int i = 0; i < features.length(); i++)
                     {
                         attributes = features.getJSONObject(i).getJSONObject("attributes");
-                        list.add(fillAndGetCityStammdatenModel(attributes));
+                        list.add(fillAndGetCityBaseDataModel(attributes));
                     }
 
                     responseListener.onResponse(list); //ruft die implementierte Methode auf (MainActivity) --> callback
-                } catch (Exception e) {
+                } catch (Exception e)
+                {
                     responseListener.onError(e.getMessage());
                     Log.d("errOnGetAllCities", e.toString());
                 }
             }
-        }, new Response.ErrorListener() {
+        }, new Response.ErrorListener()
+        {
             @Override
-            public void onErrorResponse(VolleyError error) {
+            public void onErrorResponse(VolleyError error)
+            {
                 String msg = "Fehler bei der Verarbeitung der Server-Antwort: " + error.toString();
                 Log.d("onErrorResponse", msg);
                 responseListener.onError(msg);
@@ -292,9 +339,9 @@ public class DataSvc {
 
     }
 
-    private CityStammdatenModel fillAndGetCityStammdatenModel(JSONObject attributes) throws JSONException
+    private CityBaseDataModel fillAndGetCityBaseDataModel(JSONObject attributes) throws JSONException
     {
-        return new CityStammdatenModel(
+        return new CityBaseDataModel(
                 attributes.getInt(STR_OBJECT_ID),
                 attributes.getInt(STR_BL_ID),
                 attributes.getString(STR_BEZ),
@@ -314,20 +361,23 @@ public class DataSvc {
         DatabaseHelper dbHelper = new DatabaseHelper(activityContext); //Können sich zwei DbHelper in die Quere kommen? Kann man ein Singleton aus dem Helper machen?
         List<String> listOfEntries= new ArrayList<String>();
 
-        getAllCities(new DataSvc.CityStammdatenResponseListener() {
+        getAllCities(new CityBaseDataResponseListener()
+        {
             @Override
-            public void onError(String message) {
+            public void onError(String message)
+            {
                 Log.e("ErrGetAllCities", message);
                 responseListener.onError(message);
             }
 
             @Override
-            public void onResponse(List<CityStammdatenModel> list) {
+            public void onResponse(List<CityBaseDataModel> list)
+            {
                 boolean success;
                 for(int i = 0; i < list.size(); i++)
                 {
                     listOfEntries.add(list.get(i).getCityName());
-                    success = dbHelper.insertOrUpdateCityStammdatenRow(list.get(i));
+                    success = dbHelper.insertOrUpdateCityBaseDataRow(list.get(i));
                     if(!success)
                         Log.e("ErrWhileInsertOrUpdate", String.format("Fehler beim Insert/Update des Tupels '%s'. No success.", list.get(i).toString()));
                 }

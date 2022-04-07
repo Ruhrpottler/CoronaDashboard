@@ -1,6 +1,6 @@
 package Model;
 
-public class CityStammdatenModel
+public class CityBaseDataModel
 {
     int objectId;
     int bl_id;
@@ -8,7 +8,7 @@ public class CityStammdatenModel
     String gen;
     int ewz;
 
-    public CityStammdatenModel(int objectId, int bl_id, String bez, String gen, int ewz)
+    public CityBaseDataModel(int objectId, int bl_id, String bez, String gen, int ewz)
     {
         this.objectId = objectId;
         this.bl_id = bl_id;
@@ -26,10 +26,8 @@ public class CityStammdatenModel
                 + "Einwohnerzahl: " + getEwz();
     }
 
-    /** BEZ + GEN
-     *  z.B. "Kreisfreie Stadt Dortmund", "Landkreis Recklinghausen"...
-     *  Achtung: "Kreis Oberbergischer Kreis" klingt unschön, muss man rausfiltern.
-     * @return
+    /** @return BEZ + GEN (z.B. "Kreisfreie Stadt Dortmund", "Landkreis Recklinghausen"...)
+     *          Wenn "kreis" in GEN enthalten, nur GEN zurückgeben (z.B. "Kreis Oberbergischer Kreis" -> "Oberbergischer Kreis")
      */
     public String getCityName() //TODO auslagern als Tool, damit der Code nicht doppelt vorhanden ist (CityDataModel)
     {
