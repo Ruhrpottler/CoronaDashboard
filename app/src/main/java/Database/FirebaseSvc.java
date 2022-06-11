@@ -16,7 +16,7 @@ import Model.CityDataModel;
 public class FirebaseSvc
 {
 
-    private DatabaseReference db;
+    private final DatabaseReference db; //root
 
     public FirebaseSvc()
     {
@@ -28,40 +28,51 @@ public class FirebaseSvc
      * @param dataModel Java-Objekt, welches in der DB gespeichert wird.
      * Für den Zugriff benötigt die Klasse einen Standard-Konstruktor und public getter
      */
-    public void saveCityData(CityDataModel dataModel)
+    public void saveCityData(CityDataModel dataModel) //TODO mehrere Tage speichern
     {
-        dataModel = encodeModel(dataModel);
+        encodeModel(dataModel);
         db.child("CityData").child(dataModel.getCityName()).setValue(dataModel);
+
         //DatabaseReference cityDataRef = db.child("CityData");
         //cityDataRef.child(dataModel.getCityName()).setValue(dataModel); //TODO objectId als primaryKey und die ref von CityData nutzen.
     }
 
-    private static CityDataModel encodeModel(CityDataModel cityData) //TODO model clonen ?
+    //TODO Daten aus DB lesen (zumindest wenn offline)
+
+    /**
+     * @param cityData Model. Wird als Referenz übergeben => Kein return notwendig, da auf der
+     *                 Referenz gearbeitet wird.
+     */
+    private static void encodeModel(@NonNull CityDataModel cityData)
     {
         if(cityData.getBaseData().getGen().contains("_") || cityData.getBaseData().getGen().contains("."))
         {
             cityData.getBaseData().setGen(encode(cityData.getBaseData().getGen()));
         }
-        return cityData;
     }
 
-    private static String encode(String str)
+    @NonNull
+    private static String encode(@NonNull String str)
     {
         return str
                 .replace("_", "__")
                 .replace(".", "_P");
     }
 
-    private static CityDataModel decodeModel(CityDataModel cityData)
+    /**
+     * @param cityData Model. Wird als Referenz übergeben => Kein return notwendig, da auf der
+     *                 Referenz gearbeitet wird.
+     */
+    private static void decodeModel(@NonNull CityDataModel cityData)
     {
         if(cityData.getBaseData().getGen().contains("__") || cityData.getBaseData().getGen().contains("_P"))
         {
             cityData.getBaseData().setGen(decode(cityData.getBaseData().getGen()));
         }
-        return cityData;
     }
 
-    private static String decode(String str)
+    @NonNull
+    private static String decode(@NonNull String str)
     {
         return str
                 .replace("_P", ".")

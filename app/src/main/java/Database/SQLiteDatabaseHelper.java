@@ -11,9 +11,10 @@ import androidx.annotation.Nullable;
 import Model.CityBaseDataModel;
 
 /**
+ * Zum Speichern der City-Stammdaten auf dem Gerät, um die Vorschläge bei Eingabe der City-Namen zu ermöglichen.
  * Dokumentation: https://developer.android.com/reference/android/database/sqlite/SQLiteOpenHelper#onCreate(android.database.sqlite.SQLiteDatabase)
  */
-public class DatabaseHelper extends SQLiteOpenHelper
+public class SQLiteDatabaseHelper extends SQLiteOpenHelper
 {
     //Tabellen
     private static final String TABLE_CITY_BASE_DATA = "CITY_STAMMDATEN";
@@ -25,7 +26,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
     private static final String COLUMN_CITY_NAME = "GEN";
     private static final String COLUMN_CITY_EWZ = "EWZ";
 
-    public DatabaseHelper(@Nullable Context activityContext) //, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version
+    public SQLiteDatabaseHelper(@Nullable Context activityContext) //, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version
     {
         super(activityContext, "coronadata.db", null, 1);
     }
@@ -72,7 +73,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
     public boolean insertOrUpdateCityBaseDataRow(CityBaseDataModel model)
     {
         SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues cv = new ContentValues(); //Wie Hashmaps, man kann jz paare reinpacken (put)
+        ContentValues cv = new ContentValues(); //Wie Hashmaps, man kann jz Paare reinpacken (put)
 
         cv.put(COLUMN_CITY_ID, model.getObjectId());
         cv.put(COLUMN_CITY_BL_ID, model.getBl_id());

@@ -17,7 +17,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import Database.DatabaseHelper;
+import Database.SQLiteDatabaseHelper;
 import Model.CityDataModel;
 import Model.CityBaseDataModel;
 
@@ -345,7 +345,7 @@ public class DataSvc
 
     public void fillActvCity(AutoCompleteTextView actv_city, Context activityContext, ActvSetupResponseListener responseListener)
     {
-        DatabaseHelper dbHelper = new DatabaseHelper(activityContext); //Können sich zwei DbHelper in die Quere kommen? Kann man ein Singleton aus dem Helper machen?
+        SQLiteDatabaseHelper dbHelper = new SQLiteDatabaseHelper(activityContext); //Können sich zwei DbHelper in die Quere kommen? Kann man ein Singleton aus dem Helper machen?
         List<String> listOfEntries= new ArrayList<String>();
 
         getAllCities(new CityBaseDataResponseListener()

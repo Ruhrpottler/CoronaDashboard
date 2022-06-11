@@ -1,5 +1,6 @@
 package com.blackviper.coronadashboard;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
@@ -17,7 +18,7 @@ import android.widget.Toast;
 
 import java.util.List;
 
-import Database.DatabaseHelper;
+import Database.SQLiteDatabaseHelper;
 import Database.FirebaseSvc;
 import Model.CityDataModel;
 
@@ -29,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
     AutoCompleteTextView actv_city;
 
     final DataSvc dataSvc = new DataSvc(MainActivity.this);
-    final DatabaseHelper dbHelper = new DatabaseHelper(MainActivity.this);
+    final SQLiteDatabaseHelper dbHelper = new SQLiteDatabaseHelper(MainActivity.this);
     final FirebaseSvc firebaseSvc = new FirebaseSvc();
     static NotificationSvc notificationSvc; //TODO non static machen?
 
