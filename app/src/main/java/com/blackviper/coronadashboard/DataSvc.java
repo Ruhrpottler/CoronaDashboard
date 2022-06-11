@@ -27,13 +27,13 @@ import Model.CityBaseDataModel;
  */
 public class DataSvc
 {
-
     //Klassenattribute
     Context activityContext;
     int cityId;
 
     private static final String STR_OBJECT_ID = "OBJECTID";
     private static final String STR_BL_ID = "BL_ID";
+    private static final String STR_BL = "BL";
     private static final String STR_BEZ = "BEZ";
     private static final String STR_GEN = "GEN";
     private static final String STR_EWZ = "EWZ";
@@ -63,16 +63,16 @@ public class DataSvc
         String bez = inputArray[0];
         String gen = inputArray[1];
 
-        String whereKlausel;
+        String whereCondition;
         if(bez.isEmpty()) {
-            whereKlausel = "GEN%20%3D%20'" + gen + "'";
+            whereCondition = "GEN%20%3D%20'" + gen + "'";
         }
         else {
-            whereKlausel = "BEZ%20%3D%20'" + bez + "'%20AND%20GEN%20%3D%20'" + gen + "'";
+            whereCondition = "BEZ%20%3D%20'" + bez + "'%20AND%20GEN%20%3D%20'" + gen + "'";
         }
 
         String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/" +
-                "RKI_Landkreisdaten/FeatureServer/0/query?where=" + whereKlausel +
+                "RKI_Landkreisdaten/FeatureServer/0/query?where=" + whereCondition +
                 "&outFields=OBJECTID&returnGeometry=false&returnIdsOnly=true&outSR=&f=json";
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>()
@@ -224,6 +224,18 @@ public class DataSvc
         });
     }
 
+    private CityBaseDataModel createAndFillCityBaseDataModel(JSONObject attributes) throws JSONException
+    {
+        return new CityBaseDataModel(
+                attributes.getInt(STR_OBJECT_ID),
+                attributes.getInt(STR_BL_ID),
+                attributes.getString(STR_BL),
+                attributes.getString(STR_BEZ),
+                attributes.getString(STR_GEN),
+                attributes.getInt(STR_EWZ)
+        );
+    }
+
     /** Achtung: case-sensitive!
      *
      * @param attributes features --> first obj of the array --> attributes
@@ -232,13 +244,7 @@ public class DataSvc
      */
     private CityDataModel createAndFillCityDataModel(JSONObject attributes) throws JSONException
     {
-        CityBaseDataModel cityBaseData = new CityBaseDataModel(
-                attributes.getInt(STR_OBJECT_ID),
-                attributes.getInt(STR_BL_ID),
-                attributes.getString(STR_BEZ),
-                attributes.getString(STR_GEN),
-                attributes.getInt(STR_EWZ)
-        );
+        CityBaseDataModel cityBaseData = createAndFillCityBaseDataModel(attributes);
 
         if(cityBaseData == null)
         {
@@ -252,7 +258,7 @@ public class DataSvc
 //                attributes.getInt(STR_EWZ),
 //                attributes.getInt(STR_BL_ID),
                 cityBaseData,
-                attributes.getString("BL"),
+//                attributes.getString("BL"),
                 attributes.getString("last_update"),
                 attributes.getDouble("death_rate"),
                 attributes.getInt("cases"),
@@ -307,7 +313,7 @@ public class DataSvc
     {
 
         String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/" +
-                "query?where=1%3D1&outFields=OBJECTID,BL_ID,GEN,BEZ,EWZ&returnGeometry=false&outSR=&f=json";
+                "query?where=1%3D1&outFields=OBJECTID,BL_ID, BL, GEN,BEZ,EWZ&returnGeometry=false&outSR=&f=json";
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>()
         {
@@ -329,7 +335,7 @@ public class DataSvc
                     for(int i = 0; i < features.length(); i++)
                     {
                         attributes = features.getJSONObject(i).getJSONObject("attributes");
-                        list.add(fillAndGetCityBaseDataModel(attributes));
+                        list.add(createAndFillCityBaseDataModel(attributes));
                     }
 
                     responseListener.onResponse(list); //ruft die implementierte Methode auf (MainActivity) --> callback
@@ -351,17 +357,6 @@ public class DataSvc
         });
         RequestSingleton.getInstance(activityContext).addToRequestQueue(request);
 
-    }
-
-    private CityBaseDataModel fillAndGetCityBaseDataModel(JSONObject attributes) throws JSONException
-    {
-        return new CityBaseDataModel(
-                attributes.getInt(STR_OBJECT_ID),
-                attributes.getInt(STR_BL_ID),
-                attributes.getString(STR_BEZ),
-                attributes.getString(STR_GEN),
-                attributes.getInt(STR_EWZ)
-        );
     }
 
     public interface ActvSetupResponseListener

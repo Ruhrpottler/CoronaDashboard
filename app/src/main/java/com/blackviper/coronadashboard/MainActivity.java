@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
         dataSvc.fillActvCity(actv_city, MainActivity.this, new DataSvc.ActvSetupResponseListener() {
             @Override
             public void onError(String message) {
-                message = "Fehler beim initialisieren der Städte-Listeneinträge. " + message;
+                message = "Fehler beim Initialisieren der Städte-Listeneinträge. " + message;
                 showToastTextLong(message);
                 Log.e("actvSetupFailed", message);
             }

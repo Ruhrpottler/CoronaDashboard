@@ -9,10 +9,8 @@ import Tools.FormatTool;
 
 public class CityDataModel
 {
-
     //Allgemein
-    private CityBaseDataModel baseData;
-    private String bl;
+    private CityBaseDataModel baseData; //Stammdaten
     private String last_update;
     //TODO Datentyp Date nutzen
     //TODO see https://firebase.google.com/docs/reference/android/com/google/firebase/Timestamp
@@ -52,7 +50,6 @@ public class CityDataModel
 
     /**
      * @param baseData CityBaseDataModel / Stammdaten
-     * @param bl Name des Bundeslandes
      * @param last_update Stand (Datum und Uhrzeit)
      * @param death_rate Sterberate
      * @param cases Bestätigte Infektionen (gesamt)
@@ -75,8 +72,8 @@ public class CityDataModel
      *
      */
     public CityDataModel(CityBaseDataModel baseData,
-            //int objectId, String bez, String gen, int ewz, int bl_id,
-                         String bl, String last_update,
+            //int objectId, String bez, String gen, int ewz, int bl_id, String bl,
+                         String last_update,
                          double death_rate, int cases, int deaths, double cases_per_100k, double cases_per_population,
                          double cases7_per_100k, int cases7_lk, int death7_lk,
                          double cases7_bl_per_100k, int cases7_bl, int death7_bl)
@@ -87,7 +84,7 @@ public class CityDataModel
 //        setGen(gen);
 //        setEwz(ewz);
 //        setBl_id(bl_id);
-        setBl(bl);
+//        setBl(bl);
         setLast_update(last_update);
         setDeath_rate(death_rate);
         setCases(cases);
@@ -116,7 +113,7 @@ public class CityDataModel
                 "Betroffenenrate: %.2f%%\n" +
                 "Todesfälle: %s\n" +
                 "Sterberate: %.2f%%",
-                getCityName(), getLast_update(), getBl(), getCases7_per_100k_txt(), FormatTool.intToString(baseData.getEwz()), FormatTool.intToString(cases),
+                baseData.getCityName(), getLast_update(), baseData.getBl(), getCases7_per_100k_txt(), FormatTool.intToString(baseData.getEwz()), FormatTool.intToString(cases),
                 FormatTool.doubleToString(FormatTool.roundDouble(getCases_per_100k(), 2), 2), getCases_per_population() , FormatTool.intToString(deaths), getDeath_rate()
         );
     }
@@ -125,91 +122,19 @@ public class CityDataModel
      * Achtung: Alle setter müssen final sein (!), damit sie nicht überschrieben werden können!
      */
 
-    //TODO Bezirk und Stadtkreis ?!
-    /** BEZ + GEN
-     *  z.B. "Kreisfreie Stadt Dortmund", "Landkreis Recklinghausen", "Oberbergischer Kreis"...
-     * @return
-     */
-    public String getCityName() //TODO getter/setter sollten nicht doppelt sein
+    public String getCityName()
     {
-        if(getGen().toLowerCase().contains("kreis"))
-            return getGen();
-
-        return getBez() + " " + getGen();
+        return baseData != null ? baseData.getCityName() : ""; //TODO ggf. Fehlermeldung statt empty String
     }
 
     public CityBaseDataModel getBaseData()
     {
-        return this.baseData; //TODO nullcheck?
+        return baseData; //TODO nullcheck?
     }
 
     public final void setBaseData(CityBaseDataModel baseData)
     {
         this.baseData = baseData;
-    }
-
-    public int getObjectId() //TODO getter/setter sollten nicht doppelt sein
-    {
-        if(baseData == null)
-        {
-            return -1;
-        }
-        return baseData.getObjectId();
-    }
-
-    public final void setObjectId(int objectId)
-    {
-        this.baseData.setObjectId(objectId);
-    }
-
-    public String getBez()
-    {
-        return baseData.getBez();
-    }
-
-    public final void setBez(String bez)
-    {
-        this.baseData.setBez(bez);
-    }
-
-    public String getGen()
-    {
-        return baseData.getGen();
-    }
-
-    public final void setGen(String gen)
-    {
-        this.baseData.setGen(gen);
-    }
-
-    public int getEwz()
-    {
-        return baseData.getEwz();
-    }
-
-    public final void setEwz(int ewz)
-    {
-        this.baseData.setEwz(ewz);
-    }
-
-    public int getBl_id()
-    {
-        return baseData.getBl_id();
-    }
-
-    public final void setBl_id(int bl_id)
-    {
-        this.baseData.setBl_id(bl_id);
-    }
-
-    public String getBl()
-    {
-        return bl;
-    }
-
-    public final void setBl(String bl)
-    {
-        this.bl = bl;
     }
 
     public String getLast_update()

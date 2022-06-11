@@ -13,7 +13,8 @@ import java.util.HashMap;
 
 import Model.CityDataModel;
 
-public class FirebaseSvc {
+public class FirebaseSvc
+{
 
     private DatabaseReference db;
 
@@ -31,13 +32,15 @@ public class FirebaseSvc {
     {
         dataModel = encodeModel(dataModel);
         db.child("CityData").child(dataModel.getCityName()).setValue(dataModel);
+        //DatabaseReference cityDataRef = db.child("CityData");
+        //cityDataRef.child(dataModel.getCityName()).setValue(dataModel); //TODO objectId als primaryKey und die ref von CityData nutzen.
     }
 
     private static CityDataModel encodeModel(CityDataModel cityData) //TODO model clonen ?
     {
-        if(cityData.getGen().contains("_") || cityData.getGen().contains("."))
+        if(cityData.getBaseData().getGen().contains("_") || cityData.getBaseData().getGen().contains("."))
         {
-            cityData.setGen(encode(cityData.getGen()));
+            cityData.getBaseData().setGen(encode(cityData.getBaseData().getGen()));
         }
         return cityData;
     }
@@ -51,9 +54,9 @@ public class FirebaseSvc {
 
     private static CityDataModel decodeModel(CityDataModel cityData)
     {
-        if(cityData.getGen().contains("__") || cityData.getGen().contains("_P"))
+        if(cityData.getBaseData().getGen().contains("__") || cityData.getBaseData().getGen().contains("_P"))
         {
-            cityData.setGen(decode(cityData.getGen()));
+            cityData.getBaseData().setGen(decode(cityData.getBaseData().getGen()));
         }
         return cityData;
     }
