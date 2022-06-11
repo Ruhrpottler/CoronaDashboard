@@ -10,6 +10,8 @@ public class CityBaseDataModel
     private String gen;
     private int ewz;
 
+    private static final String STR_KREIS = "kreis";
+
     public CityBaseDataModel() //TODO nicht unbedingt notwendig, aber vmtl. will Firebase den auch hier haben
     {
 
@@ -40,7 +42,7 @@ public class CityBaseDataModel
      */
     public String getCityName()
     {
-        if(getGen().toLowerCase().contains("kreis")) {
+        if(getGen().toLowerCase().contains(STR_KREIS)) {
             return getGen();
         }
         return getBez() + " " + getGen();

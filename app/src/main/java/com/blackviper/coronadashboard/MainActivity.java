@@ -1,7 +1,6 @@
 package com.blackviper.coronadashboard;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.NotificationCompat;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -74,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
-                keyboardDown();
+                pushKeyboardDown();
 
                 dataSvc.getCityDataByName(userInputCityName, new DataSvc.CityDataModelResponseListener()
                 {
@@ -104,14 +103,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id)
             {
-                keyboardDown(); //Methode onKeyboardDownListener dingen machen
+                pushKeyboardDown(); //Methode onKeyboardDownListener dingen machen
             }
         });
     }
 
     //TODO In Tools auslagern
 
-    public void keyboardDown()
+    public void pushKeyboardDown()
     {
         View view = this.getCurrentFocus();
         if (view == null)

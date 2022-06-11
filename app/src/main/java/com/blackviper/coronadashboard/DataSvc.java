@@ -31,12 +31,20 @@ public class DataSvc
     Context activityContext;
     int cityId;
 
+    //TODO ggf. auslagern (wie bei GC_Konstanten)
     private static final String STR_OBJECT_ID = "OBJECTID";
     private static final String STR_BL_ID = "BL_ID";
     private static final String STR_BL = "BL";
     private static final String STR_BEZ = "BEZ";
     private static final String STR_GEN = "GEN";
     private static final String STR_EWZ = "EWZ";
+
+    private static final String STR_KREISFREIE_STADT = "kreisfreie Stadt";
+    private static final String STR_KREIS = "kreis";
+    private static final String STR_STADTKREIS = "stadtkreis";
+    private static final String STR_LANDKREIS = "landkreis";
+    private static final String STR_BEZIRK = "bezirk";
+
 
     //Konstuktoren
     public DataSvc(Context activityContext)
@@ -252,13 +260,7 @@ public class DataSvc
         }
 
         CityDataModel cityData = new CityDataModel(
-//                attributes.getInt(STR_OBJECT_ID),
-//                attributes.getString(STR_BEZ),
-//                attributes.getString(STR_GEN),
-//                attributes.getInt(STR_EWZ),
-//                attributes.getInt(STR_BL_ID),
                 cityBaseData,
-//                attributes.getString("BL"),
                 attributes.getString("last_update"),
                 attributes.getDouble("death_rate"),
                 attributes.getInt("cases"),
@@ -279,16 +281,16 @@ public class DataSvc
     {
         cityName = cityName.toLowerCase();
         String[] cityNameArray;// = new String[2];
-        if(cityName.startsWith("kreisfreie stadt"))
-            cityNameArray = seperateString("kreisfreie stadt", cityName);
-        else if(cityName.startsWith("landkreis"))
-            cityNameArray = seperateString("landkreis", cityName);
-        else if(cityName.startsWith("stadtkreis"))
-            cityNameArray = seperateString("stadtkreis", cityName);
-        else if(cityName.startsWith("kreis"))
-            cityNameArray = seperateString("kreis", cityName);
-        else if(cityName.startsWith("bezirk"))
-            cityNameArray = seperateString("bezirk", cityName);
+        if(cityName.startsWith(STR_KREISFREIE_STADT))
+            cityNameArray = seperateString(STR_KREISFREIE_STADT, cityName);
+        else if(cityName.startsWith(STR_LANDKREIS))
+            cityNameArray = seperateString(STR_LANDKREIS, cityName);
+        else if(cityName.startsWith(STR_STADTKREIS))
+            cityNameArray = seperateString(STR_STADTKREIS, cityName);
+        else if(cityName.startsWith(STR_KREIS))
+            cityNameArray = seperateString(STR_KREIS, cityName);
+        else if(cityName.startsWith(STR_BEZIRK))
+            cityNameArray = seperateString(STR_BEZIRK, cityName);
         else
             cityNameArray = new String[]{"", cityName};
 

@@ -9,8 +9,10 @@ import Tools.FormatTool;
 
 public class CityDataModel
 {
+    //Stammdaten
+    private CityBaseDataModel baseData;
+
     //Allgemein
-    private CityBaseDataModel baseData; //Stammdaten
     private String last_update;
     //TODO Datentyp Date nutzen
     //TODO see https://firebase.google.com/docs/reference/android/com/google/firebase/Timestamp
@@ -26,7 +28,7 @@ public class CityDataModel
     private int cases7_lk;
     private int death7_lk;
 
-    //Corona-Daten Bundesland //TODO auslagern in eigenes Model?
+    //Corona-Daten Bundesland
     private double cases7_bl_per_100k;
     private int cases7_bl;
     private int death7_bl;
@@ -71,20 +73,12 @@ public class CityDataModel
      * --> Deswegen alle setter auf final setzen, damit können sie nicht überschrieben werden.
      *
      */
-    public CityDataModel(CityBaseDataModel baseData,
-            //int objectId, String bez, String gen, int ewz, int bl_id, String bl,
-                         String last_update,
-                         double death_rate, int cases, int deaths, double cases_per_100k, double cases_per_population,
+    public CityDataModel(CityBaseDataModel baseData, String last_update, double death_rate, int cases,
+                         int deaths, double cases_per_100k, double cases_per_population,
                          double cases7_per_100k, int cases7_lk, int death7_lk,
                          double cases7_bl_per_100k, int cases7_bl, int death7_bl)
     {
-        setBaseData(baseData); //TODO HIER weitermachen! passt hier alles wegen der Integration vom baseDataModel?
-//        setObjectId(objectId);
-//        setBez(bez);
-//        setGen(gen);
-//        setEwz(ewz);
-//        setBl_id(bl_id);
-//        setBl(bl);
+        setBaseData(baseData);
         setLast_update(last_update);
         setDeath_rate(death_rate);
         setCases(cases);
@@ -113,8 +107,10 @@ public class CityDataModel
                 "Betroffenenrate: %.2f%%\n" +
                 "Todesfälle: %s\n" +
                 "Sterberate: %.2f%%",
-                baseData.getCityName(), getLast_update(), baseData.getBl(), getCases7_per_100k_txt(), FormatTool.intToString(baseData.getEwz()), FormatTool.intToString(cases),
-                FormatTool.doubleToString(FormatTool.roundDouble(getCases_per_100k(), 2), 2), getCases_per_population() , FormatTool.intToString(deaths), getDeath_rate()
+                getBaseData().getCityName(), getLast_update(), getBaseData().getBl(), getCases7_per_100k_txt(),
+                FormatTool.intToString(getBaseData().getEwz()), FormatTool.intToString(getCases()),
+                FormatTool.doubleToString(FormatTool.roundDouble(getCases_per_100k(), 2), 2),
+                getCases_per_population() , FormatTool.intToString(getDeaths()), getDeath_rate()
         );
     }
 
@@ -129,7 +125,7 @@ public class CityDataModel
 
     public CityBaseDataModel getBaseData()
     {
-        return baseData; //TODO nullcheck?
+        return baseData; //TODO nullcheck und ExceptionHandling?
     }
 
     public final void setBaseData(CityBaseDataModel baseData)
@@ -205,14 +201,14 @@ public class CityDataModel
         return cases7_per_100k;
     }
 
-    public String getCases7_per_100k_txt()
-    {
-        return FormatTool.doubleToString(getCases7_per_100k(), 1);
-    }
-
     public final void setCases7_per_100k(double cases7_per_100k)
     {
         this.cases7_per_100k = FormatTool.roundDouble(cases7_per_100k, 1);
+    }
+
+    public String getCases7_per_100k_txt()
+    {
+        return FormatTool.doubleToString(getCases7_per_100k(), 1);
     }
 
     public int getCases7_lk()
