@@ -12,7 +12,7 @@ import com.android.volley.toolbox.Volley;
  */
 public class RequestSingleton
 {
-    private static RequestSingleton instance; //Typ ist die Instanz der Klasse
+    private static RequestSingleton instance; //Typ ist die Instanz der Klasse //TODO non static machen lt. Warning?!
     private RequestQueue requestQueue;
     private static Context context;
 

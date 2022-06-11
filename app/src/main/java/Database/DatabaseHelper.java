@@ -96,6 +96,6 @@ public class DatabaseHelper extends SQLiteOpenHelper
         {
             db.close();
         }
-        return (success == -1 ? false : true);
+        return (success != -1);
     }
 }

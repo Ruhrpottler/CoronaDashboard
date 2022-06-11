@@ -1,9 +1,6 @@
 package Model;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.text.NumberFormat;
-import java.util.Locale;
+import androidx.annotation.NonNull;
 
 import Tools.FormatTool;
 
@@ -61,7 +58,7 @@ public class CityDataModel
      * @param cases7_per_100k 7-Tage-Inzidenzwert pro 100k Einwohner
      * @param cases7_lk Bestätigte Fälle in den letzten 7 Tagen
      * @param death7_lk Todesfälle in den letzten 7 Tagen
-     * @param cases7_bl_per_100k
+     * @param cases7_bl_per_100k Bestätigte Fälle der letzten 7 Tage im Bundesland pro 100k Einwohner
      * @param cases7_bl Bestätigte Fälle der letzten 7 Tage im Bundesland
      * @param death7_bl Todesfälle in den letzten 7 Tagen im Bundesland
      *
@@ -94,6 +91,7 @@ public class CityDataModel
         setDeath7_bl(death7_bl);
     }
 
+    @NonNull
     @Override
     public String toString()
     {

@@ -28,10 +28,10 @@ import Model.CityBaseDataModel;
 public class DataSvc
 {
     //Klassenattribute
-    Context activityContext;
-    int cityId;
+    private final Context activityContext;
+    private int cityId;
 
-    //TODO ggf. auslagern (wie bei GC_Konstanten)
+    //TODO ggf. auslagern (wie bei GC_Konstanten): Gibts dazu auch eine extra Datei bei Android wie für Sprachen?
     private static final String STR_OBJECT_ID = "OBJECTID";
     private static final String STR_BL_ID = "BL_ID";
     private static final String STR_BL = "BL";
@@ -39,7 +39,7 @@ public class DataSvc
     private static final String STR_GEN = "GEN";
     private static final String STR_EWZ = "EWZ";
 
-    private static final String STR_KREISFREIE_STADT = "kreisfreie Stadt";
+    private static final String STR_KREISFREIE_STADT = "kreisfreie stadt";
     private static final String STR_KREIS = "kreis";
     private static final String STR_STADTKREIS = "stadtkreis";
     private static final String STR_LANDKREIS = "landkreis";
@@ -62,10 +62,10 @@ public class DataSvc
 
     //Methoden
     /**
+     * Fragt die objectId der City über die API ab und speichert sie im Attribut
      * @param cityName Landkreis oder kreisfreie Stadt
-     * @return objectId der city
      */
-    public void getCityIdByName(String cityName, CityIdResponseListener responseListener)
+    public void findAndSetCityIdByName(String cityName, CityIdResponseListener responseListener)
     {
         String[] inputArray = seperateBezAndGen(cityName);
         String bez = inputArray[0];
@@ -91,9 +91,7 @@ public class DataSvc
                 try
                 {
                     JSONArray objectIdsArray = response.getJSONArray("objectIds");
-                    if (objectIdsArray == null) {
-                        throw new JSONException("'objectIds' is null");
-                    }
+
                     if(objectIdsArray.length() == 0) {
                         throw new IllegalArgumentException(String.format("'%s' konnte nicht gefunden werden.", cityName));
                     }
@@ -151,10 +149,6 @@ public class DataSvc
                 try
                 {
                     JSONArray features = response.getJSONArray("features");
-                    if (features == null)
-                    {
-                        throw new JSONException("'features' is null");
-                    }
 
                     JSONObject firstAndOnlyArrayObject = features.getJSONObject(0); //Object without name
                     if (firstAndOnlyArrayObject == null)
@@ -163,16 +157,8 @@ public class DataSvc
                     }
 
                     JSONObject attributes = firstAndOnlyArrayObject.getJSONObject("attributes");
-                    if (attributes == null)
-                    {
-                        throw new JSONException("'attributes' is null");
-                    }
 
                     CityDataModel cityDataModel = createAndFillCityDataModel(attributes);
-                    if(cityDataModel == null)
-                    {
-                        responseListener.onError("cityDataModel ist null");
-                    }
 
                     responseListener.onResponse(cityDataModel);
                 } catch (Exception e)
@@ -201,7 +187,7 @@ public class DataSvc
      */
     public void getCityDataByName(String cityName, CityDataModelResponseListener modelResponseListener)
     {
-        getCityIdByName(cityName, new CityIdResponseListener()
+        findAndSetCityIdByName(cityName, new CityIdResponseListener()
         {
             @Override
             public void onError(String message)
@@ -254,12 +240,7 @@ public class DataSvc
     {
         CityBaseDataModel cityBaseData = createAndFillCityBaseDataModel(attributes);
 
-        if(cityBaseData == null)
-        {
-            return null; //TODO Error Handling
-        }
-
-        CityDataModel cityData = new CityDataModel(
+        return new CityDataModel(
                 cityBaseData,
                 attributes.getString("last_update"),
                 attributes.getDouble("death_rate"),
@@ -274,23 +255,22 @@ public class DataSvc
                 attributes.getInt("cases7_bl"),
                 attributes.getInt("death7_bl")
         );
-        return cityData;
     }
 
     private String[] seperateBezAndGen(String cityName)
     {
         cityName = cityName.toLowerCase();
         String[] cityNameArray;// = new String[2];
-        if(cityName.startsWith(STR_KREISFREIE_STADT))
-            cityNameArray = seperateString(STR_KREISFREIE_STADT, cityName);
-        else if(cityName.startsWith(STR_LANDKREIS))
-            cityNameArray = seperateString(STR_LANDKREIS, cityName);
-        else if(cityName.startsWith(STR_STADTKREIS))
-            cityNameArray = seperateString(STR_STADTKREIS, cityName);
-        else if(cityName.startsWith(STR_KREIS))
-            cityNameArray = seperateString(STR_KREIS, cityName);
-        else if(cityName.startsWith(STR_BEZIRK))
-            cityNameArray = seperateString(STR_BEZIRK, cityName);
+        if(cityName.startsWith(STR_KREISFREIE_STADT.toLowerCase()))
+            cityNameArray = seperateString(STR_KREISFREIE_STADT.toLowerCase(), cityName);
+        else if(cityName.startsWith(STR_LANDKREIS.toLowerCase()))
+            cityNameArray = seperateString(STR_LANDKREIS.toLowerCase(), cityName);
+        else if(cityName.startsWith(STR_STADTKREIS.toLowerCase()))
+            cityNameArray = seperateString(STR_STADTKREIS.toLowerCase(), cityName);
+        else if(cityName.startsWith(STR_KREIS.toLowerCase()))
+            cityNameArray = seperateString(STR_KREIS.toLowerCase(), cityName);
+        else if(cityName.startsWith(STR_BEZIRK.toLowerCase()))
+            cityNameArray = seperateString(STR_BEZIRK.toLowerCase(), cityName);
         else
             cityNameArray = new String[]{"", cityName};
 
@@ -325,10 +305,6 @@ public class DataSvc
                 try
                 {
                     JSONArray features = response.getJSONArray("features");
-                    if (features == null)
-                    {
-                        throw new JSONException("'features' is null");
-                    }
 
                     JSONObject iterator;
                     JSONObject attributes;

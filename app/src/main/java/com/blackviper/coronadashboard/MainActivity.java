@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
     final DataSvc dataSvc = new DataSvc(MainActivity.this);
     final DatabaseHelper dbHelper = new DatabaseHelper(MainActivity.this);
     final FirebaseSvc firebaseSvc = new FirebaseSvc();
-    static NotificationSvc notificationSvc; //TODO
+    static NotificationSvc notificationSvc; //TODO non static machen?
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -143,8 +143,6 @@ public class MainActivity extends AppCompatActivity {
 
     private String getCityInput()
     {
-        String input = "";
-        input = actv_city.getText().toString().trim();
-        return input;
+        return actv_city.getText().toString().trim();
     }
 }

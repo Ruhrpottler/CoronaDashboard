@@ -1,5 +1,7 @@
 package Model;
 
+import androidx.annotation.NonNull;
+
 public class CityBaseDataModel
 {
     //TODO Reihenfolge anpassen wie (vorher) im CityDataModel
@@ -27,6 +29,7 @@ public class CityBaseDataModel
         this.ewz = ewz;
     }
 
+    @NonNull
     @Override
     public String toString()
     {
