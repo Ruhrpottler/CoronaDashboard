@@ -7,7 +7,7 @@ import java.util.Locale;
 
 public class FormatTool {
 
-    public static String intToString(int value)
+    public static String intToString(int value) //TODO rename. Keine Aussagekraft //TODO "use Locale" Meldung im CityDataModel
     {
         return NumberFormat.getNumberInstance(Locale.GERMANY).format(value);
     }

@@ -1,22 +1,15 @@
 package Model;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.text.NumberFormat;
-import java.util.Locale;
+import androidx.annotation.NonNull;
 
 import Tools.FormatTool;
 
 public class CityDataModel
 {
+    //Stammdaten
+    private CityBaseDataModel baseData;
 
     //Allgemein
-    private int objectId;
-    private String bez;
-    private String gen;
-    private int ewz;
-    private int bl_id;
-    private String bl;
     private String last_update;
     //TODO Datentyp Date nutzen
     //TODO see https://firebase.google.com/docs/reference/android/com/google/firebase/Timestamp
@@ -55,13 +48,7 @@ public class CityDataModel
     }
 
     /**
-     *
-     * @param objectId cityId
-     * @param bez "Landkreis", "Kreisfreie Stadt" oder "Bezirk" (Berliner Stadtteile)
-     * @param gen cityName
-     * @param ewz Einwohnerzahl
-     * @param bl_id Id des Bundeslandes
-     * @param bl Name des Bundeslandes
+     * @param baseData CityBaseDataModel / Stammdaten
      * @param last_update Stand (Datum und Uhrzeit)
      * @param death_rate Sterberate
      * @param cases Bestätigte Infektionen (gesamt)
@@ -71,7 +58,7 @@ public class CityDataModel
      * @param cases7_per_100k 7-Tage-Inzidenzwert pro 100k Einwohner
      * @param cases7_lk Bestätigte Fälle in den letzten 7 Tagen
      * @param death7_lk Todesfälle in den letzten 7 Tagen
-     * @param cases7_bl_per_100k
+     * @param cases7_bl_per_100k Bestätigte Fälle der letzten 7 Tage im Bundesland pro 100k Einwohner
      * @param cases7_bl Bestätigte Fälle der letzten 7 Tage im Bundesland
      * @param death7_bl Todesfälle in den letzten 7 Tagen im Bundesland
      *
@@ -82,20 +69,13 @@ public class CityDataModel
      * überschreiben kann und diese dann ggf. aufgerufen wird (nur diese).
      * --> Deswegen alle setter auf final setzen, damit können sie nicht überschrieben werden.
      *
-     * Es darf keinen (leeren) Standardkonstruktor geben, damit der Entwickler gezwungen ist alle Werte zu setzen.
-     *
      */
-    public CityDataModel(int objectId, String bez, String gen, int ewz, int bl_id, String bl, String last_update,
-                         double death_rate, int cases, int deaths, double cases_per_100k, double cases_per_population,
+    public CityDataModel(CityBaseDataModel baseData, String last_update, double death_rate, int cases,
+                         int deaths, double cases_per_100k, double cases_per_population,
                          double cases7_per_100k, int cases7_lk, int death7_lk,
                          double cases7_bl_per_100k, int cases7_bl, int death7_bl)
     {
-        setObjectId(objectId);
-        setBez(bez);
-        setGen(gen);
-        setEwz(ewz);
-        setBl_id(bl_id);
-        setBl(bl);
+        setBaseData(baseData);
         setLast_update(last_update);
         setDeath_rate(death_rate);
         setCases(cases);
@@ -111,6 +91,7 @@ public class CityDataModel
         setDeath7_bl(death7_bl);
     }
 
+    @NonNull
     @Override
     public String toString()
     {
@@ -124,8 +105,10 @@ public class CityDataModel
                 "Betroffenenrate: %.2f%%\n" +
                 "Todesfälle: %s\n" +
                 "Sterberate: %.2f%%",
-                getCityName(), getLast_update(), getBl(), getCases7_per_100k_txt(), FormatTool.intToString(ewz), FormatTool.intToString(cases),
-                FormatTool.doubleToString(FormatTool.roundDouble(getCases_per_100k(), 2), 2), getCases_per_population() , FormatTool.intToString(deaths), getDeath_rate()
+                getBaseData().getCityName(), getLast_update(), getBaseData().getBl(), getCases7_per_100k_txt(),
+                FormatTool.intToString(getBaseData().getEwz()), FormatTool.intToString(getCases()),
+                FormatTool.doubleToString(FormatTool.roundDouble(getCases_per_100k(), 2), 2),
+                getCases_per_population() , FormatTool.intToString(getDeaths()), getDeath_rate()
         );
     }
 
@@ -133,77 +116,19 @@ public class CityDataModel
      * Achtung: Alle setter müssen final sein (!), damit sie nicht überschrieben werden können!
      */
 
-    //TODO Bezirk und Stadtkreis ?!
-    /** BEZ + GEN
-     *  z.B. "Kreisfreie Stadt Dortmund", "Landkreis Recklinghausen", "Oberbergischer Kreis"...
-     * @return
-     */
     public String getCityName()
     {
-        if(getGen().toLowerCase().contains("kreis"))
-            return getGen();
-
-        return getBez() + " " + getGen();
+        return baseData != null ? baseData.getCityName() : ""; //TODO ggf. Fehlermeldung statt empty String
     }
 
-    public int getObjectId()
+    public CityBaseDataModel getBaseData()
     {
-        return objectId;
+        return baseData; //TODO nullcheck und ExceptionHandling?
     }
 
-    public final void setObjectId(int objectId)
+    public final void setBaseData(CityBaseDataModel baseData)
     {
-        this.objectId = objectId;
-    }
-
-    public String getBez()
-    {
-        return bez;
-    }
-
-    public final void setBez(String bez)
-    {
-        this.bez = bez;
-    }
-
-    public String getGen()
-    {
-        return gen;
-    }
-
-    public final void setGen(String gen)
-    {
-        this.gen = gen;
-    }
-
-    public int getEwz()
-    {
-        return ewz;
-    }
-
-    public final void setEwz(int ewz)
-    {
-        this.ewz = ewz;
-    }
-
-    public int getBl_id()
-    {
-        return bl_id;
-    }
-
-    public final void setBl_id(int bl_id)
-    {
-        this.bl_id = bl_id;
-    }
-
-    public String getBl()
-    {
-        return bl;
-    }
-
-    public final void setBl(String bl)
-    {
-        this.bl = bl;
+        this.baseData = baseData;
     }
 
     public String getLast_update()
@@ -274,14 +199,14 @@ public class CityDataModel
         return cases7_per_100k;
     }
 
-    public String getCases7_per_100k_txt()
-    {
-        return FormatTool.doubleToString(getCases7_per_100k(), 1);
-    }
-
     public final void setCases7_per_100k(double cases7_per_100k)
     {
         this.cases7_per_100k = FormatTool.roundDouble(cases7_per_100k, 1);
+    }
+
+    public String getCases7_per_100k_txt()
+    {
+        return FormatTool.doubleToString(getCases7_per_100k(), 1);
     }
 
     public int getCases7_lk()

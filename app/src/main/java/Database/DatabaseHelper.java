@@ -15,12 +15,12 @@ import Model.CityBaseDataModel;
  */
 public class DatabaseHelper extends SQLiteOpenHelper
 {
-
     //Tabellen
     private static final String TABLE_CITY_BASE_DATA = "CITY_STAMMDATEN";
     //Spalten
     private static final String COLUMN_CITY_ID = "OBJECTID";
     private static final String COLUMN_CITY_BL_ID = "bl_id";
+    private static final String COLUMN_CITY_BL = "bl";
     private static final String COLUMN_CITY_PRE = "BEZ";
     private static final String COLUMN_CITY_NAME = "GEN";
     private static final String COLUMN_CITY_EWZ = "EWZ";
@@ -41,6 +41,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
         String createTableStatement = "CREATE TABLE " + TABLE_CITY_BASE_DATA + " (" +
                 "OBJECTID INTEGER NOT NULL PRIMARY KEY, " +
                 "BL_ID INTEGER NOT NULL, " +
+                "BL TEXT NOT NULL, " +
                 "BEZ TEXT NOT NULL, " +
                 "GEN TEXT NOT NULL, " +
                 "EWZ INTEGER " +
@@ -75,6 +76,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
         cv.put(COLUMN_CITY_ID, model.getObjectId());
         cv.put(COLUMN_CITY_BL_ID, model.getBl_id());
+        cv.put(COLUMN_CITY_BL, model.getBl());
         cv.put(COLUMN_CITY_PRE, model.getBez());
         cv.put(COLUMN_CITY_NAME, model.getGen());
         cv.put(COLUMN_CITY_EWZ, model.getEwz());
@@ -94,6 +96,6 @@ public class DatabaseHelper extends SQLiteOpenHelper
         {
             db.close();
         }
-        return (success == -1 ? false : true);
+        return (success != -1);
     }
 }

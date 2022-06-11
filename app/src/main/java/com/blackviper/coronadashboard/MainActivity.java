@@ -1,7 +1,6 @@
 package com.blackviper.coronadashboard;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.NotificationCompat;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -32,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
     final DataSvc dataSvc = new DataSvc(MainActivity.this);
     final DatabaseHelper dbHelper = new DatabaseHelper(MainActivity.this);
     final FirebaseSvc firebaseSvc = new FirebaseSvc();
-    static NotificationSvc notificationSvc; //TODO
+    static NotificationSvc notificationSvc; //TODO non static machen?
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
         dataSvc.fillActvCity(actv_city, MainActivity.this, new DataSvc.ActvSetupResponseListener() {
             @Override
             public void onError(String message) {
-                message = "Fehler beim initialisieren der Städte-Listeneinträge. " + message;
+                message = "Fehler beim Initialisieren der Städte-Listeneinträge. " + message;
                 showToastTextLong(message);
                 Log.e("actvSetupFailed", message);
             }
@@ -74,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
-                keyboardDown();
+                pushKeyboardDown();
 
                 dataSvc.getCityDataByName(userInputCityName, new DataSvc.CityDataModelResponseListener()
                 {
@@ -104,14 +103,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id)
             {
-                keyboardDown(); //Methode onKeyboardDownListener dingen machen
+                pushKeyboardDown(); //Methode onKeyboardDownListener dingen machen
             }
         });
     }
 
     //TODO In Tools auslagern
 
-    public void keyboardDown()
+    public void pushKeyboardDown()
     {
         View view = this.getCurrentFocus();
         if (view == null)
@@ -144,8 +143,6 @@ public class MainActivity extends AppCompatActivity {
 
     private String getCityInput()
     {
-        String input = "";
-        input = actv_city.getText().toString().trim();
-        return input;
+        return actv_city.getText().toString().trim();
     }
 }

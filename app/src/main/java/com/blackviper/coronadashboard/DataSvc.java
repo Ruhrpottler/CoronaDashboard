@@ -27,16 +27,24 @@ import Model.CityBaseDataModel;
  */
 public class DataSvc
 {
-
     //Klassenattribute
-    Context activityContext;
-    int cityId;
+    private final Context activityContext;
+    private int cityId;
 
+    //TODO ggf. auslagern (wie bei GC_Konstanten): Gibts dazu auch eine extra Datei bei Android wie für Sprachen?
     private static final String STR_OBJECT_ID = "OBJECTID";
     private static final String STR_BL_ID = "BL_ID";
+    private static final String STR_BL = "BL";
     private static final String STR_BEZ = "BEZ";
     private static final String STR_GEN = "GEN";
     private static final String STR_EWZ = "EWZ";
+
+    private static final String STR_KREISFREIE_STADT = "kreisfreie stadt";
+    private static final String STR_KREIS = "kreis";
+    private static final String STR_STADTKREIS = "stadtkreis";
+    private static final String STR_LANDKREIS = "landkreis";
+    private static final String STR_BEZIRK = "bezirk";
+
 
     //Konstuktoren
     public DataSvc(Context activityContext)
@@ -54,25 +62,25 @@ public class DataSvc
 
     //Methoden
     /**
+     * Fragt die objectId der City über die API ab und speichert sie im Attribut
      * @param cityName Landkreis oder kreisfreie Stadt
-     * @return objectId der city
      */
-    public void getCityIdByName(String cityName, CityIdResponseListener responseListener)
+    public void findAndSetCityIdByName(String cityName, CityIdResponseListener responseListener)
     {
         String[] inputArray = seperateBezAndGen(cityName);
         String bez = inputArray[0];
         String gen = inputArray[1];
 
-        String whereKlausel;
+        String whereCondition;
         if(bez.isEmpty()) {
-            whereKlausel = "GEN%20%3D%20'" + gen + "'";
+            whereCondition = "GEN%20%3D%20'" + gen + "'";
         }
         else {
-            whereKlausel = "BEZ%20%3D%20'" + bez + "'%20AND%20GEN%20%3D%20'" + gen + "'";
+            whereCondition = "BEZ%20%3D%20'" + bez + "'%20AND%20GEN%20%3D%20'" + gen + "'";
         }
 
         String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/" +
-                "RKI_Landkreisdaten/FeatureServer/0/query?where=" + whereKlausel +
+                "RKI_Landkreisdaten/FeatureServer/0/query?where=" + whereCondition +
                 "&outFields=OBJECTID&returnGeometry=false&returnIdsOnly=true&outSR=&f=json";
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>()
@@ -83,9 +91,7 @@ public class DataSvc
                 try
                 {
                     JSONArray objectIdsArray = response.getJSONArray("objectIds");
-                    if (objectIdsArray == null) {
-                        throw new JSONException("'objectIds' is null");
-                    }
+
                     if(objectIdsArray.length() == 0) {
                         throw new IllegalArgumentException(String.format("'%s' konnte nicht gefunden werden.", cityName));
                     }
@@ -143,10 +149,6 @@ public class DataSvc
                 try
                 {
                     JSONArray features = response.getJSONArray("features");
-                    if (features == null)
-                    {
-                        throw new JSONException("'features' is null");
-                    }
 
                     JSONObject firstAndOnlyArrayObject = features.getJSONObject(0); //Object without name
                     if (firstAndOnlyArrayObject == null)
@@ -155,16 +157,8 @@ public class DataSvc
                     }
 
                     JSONObject attributes = firstAndOnlyArrayObject.getJSONObject("attributes");
-                    if (attributes == null)
-                    {
-                        throw new JSONException("'attributes' is null");
-                    }
 
                     CityDataModel cityDataModel = createAndFillCityDataModel(attributes);
-                    if(cityDataModel == null)
-                    {
-                        responseListener.onError("cityDataModel ist null");
-                    }
 
                     responseListener.onResponse(cityDataModel);
                 } catch (Exception e)
@@ -193,7 +187,7 @@ public class DataSvc
      */
     public void getCityDataByName(String cityName, CityDataModelResponseListener modelResponseListener)
     {
-        getCityIdByName(cityName, new CityIdResponseListener()
+        findAndSetCityIdByName(cityName, new CityIdResponseListener()
         {
             @Override
             public void onError(String message)
@@ -224,6 +218,18 @@ public class DataSvc
         });
     }
 
+    private CityBaseDataModel createAndFillCityBaseDataModel(JSONObject attributes) throws JSONException
+    {
+        return new CityBaseDataModel(
+                attributes.getInt(STR_OBJECT_ID),
+                attributes.getInt(STR_BL_ID),
+                attributes.getString(STR_BL),
+                attributes.getString(STR_BEZ),
+                attributes.getString(STR_GEN),
+                attributes.getInt(STR_EWZ)
+        );
+    }
+
     /** Achtung: case-sensitive!
      *
      * @param attributes features --> first obj of the array --> attributes
@@ -232,13 +238,10 @@ public class DataSvc
      */
     private CityDataModel createAndFillCityDataModel(JSONObject attributes) throws JSONException
     {
-        CityDataModel model = new CityDataModel(
-                attributes.getInt(STR_OBJECT_ID),
-                attributes.getString(STR_BEZ),
-                attributes.getString(STR_GEN),
-                attributes.getInt(STR_EWZ),
-                attributes.getInt(STR_BL_ID),
-                attributes.getString("BL"),
+        CityBaseDataModel cityBaseData = createAndFillCityBaseDataModel(attributes);
+
+        return new CityDataModel(
+                cityBaseData,
                 attributes.getString("last_update"),
                 attributes.getDouble("death_rate"),
                 attributes.getInt("cases"),
@@ -252,23 +255,22 @@ public class DataSvc
                 attributes.getInt("cases7_bl"),
                 attributes.getInt("death7_bl")
         );
-        return model;
     }
 
     private String[] seperateBezAndGen(String cityName)
     {
         cityName = cityName.toLowerCase();
         String[] cityNameArray;// = new String[2];
-        if(cityName.startsWith("kreisfreie stadt"))
-            cityNameArray = seperateString("kreisfreie stadt", cityName);
-        else if(cityName.startsWith("landkreis"))
-            cityNameArray = seperateString("landkreis", cityName);
-        else if(cityName.startsWith("stadtkreis"))
-            cityNameArray = seperateString("stadtkreis", cityName);
-        else if(cityName.startsWith("kreis"))
-            cityNameArray = seperateString("kreis", cityName);
-        else if(cityName.startsWith("bezirk"))
-            cityNameArray = seperateString("bezirk", cityName);
+        if(cityName.startsWith(STR_KREISFREIE_STADT.toLowerCase()))
+            cityNameArray = seperateString(STR_KREISFREIE_STADT.toLowerCase(), cityName);
+        else if(cityName.startsWith(STR_LANDKREIS.toLowerCase()))
+            cityNameArray = seperateString(STR_LANDKREIS.toLowerCase(), cityName);
+        else if(cityName.startsWith(STR_STADTKREIS.toLowerCase()))
+            cityNameArray = seperateString(STR_STADTKREIS.toLowerCase(), cityName);
+        else if(cityName.startsWith(STR_KREIS.toLowerCase()))
+            cityNameArray = seperateString(STR_KREIS.toLowerCase(), cityName);
+        else if(cityName.startsWith(STR_BEZIRK.toLowerCase()))
+            cityNameArray = seperateString(STR_BEZIRK.toLowerCase(), cityName);
         else
             cityNameArray = new String[]{"", cityName};
 
@@ -287,13 +289,13 @@ public class DataSvc
     }
 
     /**
-     * Get list with all Cities for Germany
+     * Get list with all Cities in Germany
      */
     public void getAllCities(CityBaseDataResponseListener responseListener)
     {
 
         String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/" +
-                "query?where=1%3D1&outFields=OBJECTID,BL_ID,GEN,BEZ,EWZ&returnGeometry=false&outSR=&f=json";
+                "query?where=1%3D1&outFields=OBJECTID,BL_ID, BL, GEN,BEZ,EWZ&returnGeometry=false&outSR=&f=json";
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>()
         {
@@ -303,10 +305,6 @@ public class DataSvc
                 try
                 {
                     JSONArray features = response.getJSONArray("features");
-                    if (features == null)
-                    {
-                        throw new JSONException("'features' is null");
-                    }
 
                     JSONObject iterator;
                     JSONObject attributes;
@@ -315,7 +313,7 @@ public class DataSvc
                     for(int i = 0; i < features.length(); i++)
                     {
                         attributes = features.getJSONObject(i).getJSONObject("attributes");
-                        list.add(fillAndGetCityBaseDataModel(attributes));
+                        list.add(createAndFillCityBaseDataModel(attributes));
                     }
 
                     responseListener.onResponse(list); //ruft die implementierte Methode auf (MainActivity) --> callback
@@ -337,17 +335,6 @@ public class DataSvc
         });
         RequestSingleton.getInstance(activityContext).addToRequestQueue(request);
 
-    }
-
-    private CityBaseDataModel fillAndGetCityBaseDataModel(JSONObject attributes) throws JSONException
-    {
-        return new CityBaseDataModel(
-                attributes.getInt(STR_OBJECT_ID),
-                attributes.getInt(STR_BL_ID),
-                attributes.getString(STR_BEZ),
-                attributes.getString(STR_GEN),
-                attributes.getInt(STR_EWZ)
-        );
     }
 
     public interface ActvSetupResponseListener
