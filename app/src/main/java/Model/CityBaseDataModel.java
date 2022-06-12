@@ -28,7 +28,6 @@ public class CityBaseDataModel
         this.gen = gen;
         this.ewz = ewz;
     }
-
     @NonNull
     @Override
     public String toString()
@@ -40,8 +39,10 @@ public class CityBaseDataModel
                 + "Einwohnerzahl: " + getEwz();
     }
 
+
     /** @return BEZ + GEN (z.B. "Kreisfreie Stadt Dortmund", "Landkreis Recklinghausen"...)
-     *          Wenn "kreis" in GEN enthalten, nur GEN zurückgeben (z.B. "Kreis Oberbergischer Kreis" -> "Oberbergischer Kreis")
+     *          Wenn "kreis" in GEN enthalten, nur GEN zurückgeben
+     *          (z.B. "Kreis Oberbergischer Kreis" -> "Oberbergischer Kreis")
      */
     public String getCityName()
     {
