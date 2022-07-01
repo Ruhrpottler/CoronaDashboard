@@ -13,6 +13,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 
+import java.util.Objects;
+
 import Model.City;
 
 public class FirebaseSvc
@@ -49,7 +51,7 @@ public class FirebaseSvc
                 {
                     Log.e("firebase", "Error getting data", task.getException());
                 }
-                result[0] =  (City) task.getResult().getValue();
+                result[0] =  (City) Objects.requireNonNull(task.getResult()).getValue(); //TODO 'Objects.requireNonNull' kann ggf. weg, wenn Ex-Handling gemacht wurde.
             }
         });
         return result[0];

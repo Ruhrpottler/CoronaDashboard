@@ -1,7 +1,5 @@
 package Model;
 
-import androidx.annotation.NonNull;
-
 import Tools.FormatTool;
 
 public class CoronaData

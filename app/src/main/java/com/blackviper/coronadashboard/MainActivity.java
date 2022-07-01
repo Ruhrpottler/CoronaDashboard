@@ -1,7 +1,5 @@
 package com.blackviper.coronadashboard;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,12 +13,13 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import java.util.List;
 
-import Database.SQLiteDatabaseHelper;
 import Database.FirebaseSvc;
+import Database.SQLiteDatabaseHelper;
 import Model.City;
-import Model.CoronaData;
 
 public class MainActivity extends AppCompatActivity {
 
