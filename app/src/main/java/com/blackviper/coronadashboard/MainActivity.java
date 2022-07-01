@@ -1,6 +1,5 @@
 package com.blackviper.coronadashboard;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
@@ -20,7 +19,8 @@ import java.util.List;
 
 import Database.SQLiteDatabaseHelper;
 import Database.FirebaseSvc;
-import Model.CityDataModel;
+import Model.City;
+import Model.CoronaData;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
 
                 pushKeyboardDown();
 
-                dataSvc.getCityDataByName(userInputCityName, new DataSvc.CityDataModelResponseListener()
+                dataSvc.getCityDataByName(userInputCityName, new DataSvc.CityResponseListener()
                 {
                     @Override
                     public void onError(String message)
@@ -86,10 +86,10 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onResponse(CityDataModel cityDataModel)
+                    public void onResponse(City city)
                     {
-                        tvErgebnisse.setText(cityDataModel.toString());
-                        firebaseSvc.saveCityData(cityDataModel);
+                        tvErgebnisse.setText(city.toString());
+                        firebaseSvc.saveCityData(city);
                     }
                 });
 

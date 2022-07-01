@@ -8,7 +8,7 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
-import Model.CityBaseDataModel;
+import Model.BaseData;
 
 /**
  * Zum Speichern der City-Stammdaten auf dem Gerät, um die Vorschläge bei Eingabe der City-Namen zu ermöglichen.
@@ -70,7 +70,7 @@ public class SQLiteDatabaseHelper extends SQLiteOpenHelper
      * @param model
      * @return Gibt an, ob die Ausführung erfolgreich war
      */
-    public boolean insertOrUpdateCityBaseDataRow(CityBaseDataModel model)
+    public boolean insertOrUpdateCityBaseDataRow(BaseData model)
     {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues(); //Wie Hashmaps, man kann jz Paare reinpacken (put)
@@ -91,7 +91,7 @@ public class SQLiteDatabaseHelper extends SQLiteOpenHelper
                 success = db.update(TABLE_CITY_BASE_DATA, cv, "OBJECTID = ?", new String[]{String.valueOf(model.getObjectId())});
         } catch(Exception e)
         {
-            String msg = String.format("Fehler beim InsertOrUpdate von '%s': \n %s ", model.getCityName(), e.toString());
+            String msg = String.format("Fehler beim InsertOrUpdate (SQLite) von '%s': \n %s ", model.getCityName(), e.toString());
             Log.e("DbErr", msg);
         } finally
         {

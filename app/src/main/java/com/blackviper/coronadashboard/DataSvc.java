@@ -18,8 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import Database.SQLiteDatabaseHelper;
-import Model.CityDataModel;
-import Model.CityBaseDataModel;
+import Model.City;
+import Model.CoronaData;
+import Model.BaseData;
 
 /**
  * Diese Klasse stellt asynchrone Methoden (Callbacks) zur Verfügung, welche den Traffic mit den Anfragen an die API
@@ -128,13 +129,19 @@ public class DataSvc
         RequestSingleton.getInstance(activityContext).addToRequestQueue(request);
     }
 
-    public interface CityDataModelResponseListener
+    public interface CityResponseListener
     {
         void onError(String message);
-        void onResponse(CityDataModel cityDataModel);
+        void onResponse(City city);
     }
 
-    public void getCityDataByCityId(int cityId, CityDataModelResponseListener responseListener)
+//    public interface CityDataModelResponseListener //TODO Es sollen jetzt City-Objekte gespeichert werden. Der Listener kann dann ggf. weg.
+//    {
+//        void onError(String message);
+//        void onResponse(CoronaData coronaData);
+//    }
+
+    public void getCityDataByCityId(int cityId, CityResponseListener responseListener)
     {
         String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/query?" +
                 "where=OBJECTID%3D" + cityId + "&outFields=OBJECTID,BEZ,GEN,EWZ,BL_ID,BL,last_update,death_rate,cases,deaths,cases_per_100k,cases_per_population," +
@@ -158,9 +165,9 @@ public class DataSvc
 
                     JSONObject attributes = firstAndOnlyArrayObject.getJSONObject("attributes");
 
-                    CityDataModel cityDataModel = createAndFillCityDataModel(attributes);
+                    City city = createAndFillCity(attributes);
 
-                    responseListener.onResponse(cityDataModel);
+                    responseListener.onResponse(city);
                 } catch (Exception e)
                 {
                     responseListener.onError(e.getMessage());
@@ -185,7 +192,7 @@ public class DataSvc
      * @param cityName ohne Präfix
      * @param modelResponseListener Wird aufgerufen, wenn Response vom Server da ist
      */
-    public void getCityDataByName(String cityName, CityDataModelResponseListener modelResponseListener)
+    public void getCityDataByName(String cityName, CityResponseListener modelResponseListener)
     {
         findAndSetCityIdByName(cityName, new CityIdResponseListener()
         {
@@ -199,7 +206,7 @@ public class DataSvc
             @Override
             public void onResponse(int cityId)
             {
-                getCityDataByCityId(cityId, new CityDataModelResponseListener()
+                getCityDataByCityId(cityId, new CityResponseListener()
                 {
                     @Override
                     public void onError(String message)
@@ -209,18 +216,25 @@ public class DataSvc
                     }
 
                     @Override
-                    public void onResponse(CityDataModel cityDataModel)
+                    public void onResponse(City city)
                     {
-                        modelResponseListener.onResponse(cityDataModel);
+                        modelResponseListener.onResponse(city);
                     }
                 });
             }
         });
     }
 
-    private CityBaseDataModel createAndFillCityBaseDataModel(JSONObject attributes) throws JSONException
+    private City createAndFillCity(JSONObject attributes) throws JSONException
     {
-        return new CityBaseDataModel(
+        BaseData baseData = createAndFillCityBaseDataModel(attributes);
+        CoronaData coronaData = createAndFillCityDataModel(attributes);
+        return new City(baseData, coronaData);
+    }
+
+    private BaseData createAndFillCityBaseDataModel(JSONObject attributes) throws JSONException
+    {
+        return new BaseData(
                 attributes.getInt(STR_OBJECT_ID),
                 attributes.getInt(STR_BL_ID),
                 attributes.getString(STR_BL),
@@ -236,12 +250,10 @@ public class DataSvc
      * @return CityDataModel, für das alle setter ausgeführt wurden
      * @throws JSONException Evtl. liefert der Server für die Felder keine Antwort, dann fliegt die Exception
      */
-    private CityDataModel createAndFillCityDataModel(JSONObject attributes) throws JSONException
+    private CoronaData createAndFillCityDataModel(JSONObject attributes) throws JSONException
     {
-        CityBaseDataModel cityBaseData = createAndFillCityBaseDataModel(attributes);
-
-        return new CityDataModel(
-                cityBaseData,
+        return new CoronaData(
+                attributes.getInt(STR_OBJECT_ID), //TODO warum sind die Stammdaten (zwangsläufig) in Capslock und der Rest nicht?
                 attributes.getString("last_update"),
                 attributes.getDouble("death_rate"),
                 attributes.getInt("cases"),
@@ -285,7 +297,7 @@ public class DataSvc
     public interface CityBaseDataResponseListener
     {
         void onError(String message);
-        void onResponse(List<CityBaseDataModel> list);
+        void onResponse(List<BaseData> list);
     }
 
     /**
@@ -309,7 +321,7 @@ public class DataSvc
                     JSONObject iterator;
                     JSONObject attributes;
 
-                    List<CityBaseDataModel> list = new ArrayList<CityBaseDataModel>();
+                    List<BaseData> list = new ArrayList<BaseData>();
                     for(int i = 0; i < features.length(); i++)
                     {
                         attributes = features.getJSONObject(i).getJSONObject("attributes");
@@ -358,7 +370,7 @@ public class DataSvc
             }
 
             @Override
-            public void onResponse(List<CityBaseDataModel> list)
+            public void onResponse(List<BaseData> list)
             {
                 boolean success;
                 for(int i = 0; i < list.size(); i++)

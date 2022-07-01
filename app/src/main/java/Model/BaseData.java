@@ -2,9 +2,8 @@ package Model;
 
 import androidx.annotation.NonNull;
 
-public class CityBaseDataModel
+public class BaseData
 {
-    //TODO Reihenfolge anpassen wie (vorher) im CityDataModel
     private int objectId;
     private int bl_id;
     private String bl;
@@ -14,12 +13,9 @@ public class CityBaseDataModel
 
     private static final String STR_KREIS = "kreis";
 
-    public CityBaseDataModel() //TODO nicht unbedingt notwendig, aber vmtl. will Firebase den auch hier haben
-    {
+    public BaseData() { } //TODO nicht unbedingt notwendig, aber vmtl. will Firebase den auch hier haben
 
-    }
-
-    public CityBaseDataModel(int objectId, int bl_id, String bl, String bez, String gen, int ewz)
+    public BaseData(int objectId, int bl_id, String bl, String bez, String gen, int ewz)
     {
         this.objectId = objectId;
         this.bl_id = bl_id;
@@ -28,6 +24,7 @@ public class CityBaseDataModel
         this.gen = gen;
         this.ewz = ewz;
     }
+
     @NonNull
     @Override
     public String toString()
