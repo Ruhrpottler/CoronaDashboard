@@ -45,7 +45,7 @@ public class CoronaData
     }
 
     /**
-     * @param objectId Eindeutige ID der Kommune und Primärschlüssel (Firebase)
+     * @param objectId Eindeutige ID der Kommune
      * @param last_update Stand (Datum und Uhrzeit)
      * @param death_rate Sterberate
      * @param cases Bestätigte Infektionen (gesamt)

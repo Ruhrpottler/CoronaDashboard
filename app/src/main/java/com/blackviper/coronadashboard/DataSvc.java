@@ -30,7 +30,7 @@ public class DataSvc
 {
     //Klassenattribute
     private final Context activityContext;
-    private int cityId;
+    private int objectId;
 
     //TODO ggf. auslagern (wie bei GC_Konstanten): Gibts dazu auch eine extra Datei bei Android wie für Sprachen?
     private static final String STR_OBJECT_ID = "OBJECTID";
@@ -53,18 +53,22 @@ public class DataSvc
         this.activityContext = activityContext;
     }
 
-    /** Callback-Methoden, welche in der Activity implementiert werden müssen
+    /**
+     * Callback-Methoden, welche in der Activity implementiert werden müssen
      */
     public interface CityIdResponseListener
     {
         void onError(String message);
+
         void onResponse(int cityId);
     }
 
     //Methoden
+
     /**
-     * Fragt die objectId der City über die API ab und speichert sie im Attribut
-     * @param cityName Landkreis oder kreisfreie Stadt
+     * Fragt die objectId der City über die API ab und speichert sie im Attribut //TODO offlinefähig machen
+     *
+     * @param cityName Vollständiger Name von Landkreis oder kreisfreie Stadt
      */
     public void findAndSetCityIdByName(String cityName, CityIdResponseListener responseListener)
     {
@@ -73,16 +77,16 @@ public class DataSvc
         String gen = inputArray[1];
 
         String whereCondition;
-        if(bez.isEmpty()) {
+        if (bez.isEmpty())
+        {
             whereCondition = "GEN%20%3D%20'" + gen + "'";
         }
-        else {
+        else
+        {
             whereCondition = "BEZ%20%3D%20'" + bez + "'%20AND%20GEN%20%3D%20'" + gen + "'";
         }
 
-        String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/" +
-                "RKI_Landkreisdaten/FeatureServer/0/query?where=" + whereCondition +
-                "&outFields=OBJECTID&returnGeometry=false&returnIdsOnly=true&outSR=&f=json";
+        String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/" + "RKI_Landkreisdaten/FeatureServer/0/query?where=" + whereCondition + "&outFields=OBJECTID&returnGeometry=false&returnIdsOnly=true&outSR=&f=json";
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>()
         {
@@ -91,26 +95,29 @@ public class DataSvc
             {
                 try
                 {
-                    JSONArray objectIdsArray = response.getJSONArray("objectIds");
+                    JSONArray objectIDsArray = response.getJSONArray("objectIds");
 
-                    if(objectIdsArray.length() == 0) {
+                    if (objectIDsArray.length() == 0)
+                    {
                         throw new IllegalArgumentException(String.format("'%s' konnte nicht gefunden werden.", cityName));
                     }
-                    else if (objectIdsArray.length() > 1) {
+                    else if (objectIDsArray.length() > 1)
+                    {
                         throw new IllegalArgumentException(String.format("Es wurden mehrere Ergebnisse für '%s' gefunden.", cityName));
                     }
 
-                    cityId = objectIdsArray.getInt(0);
+                    objectId = objectIDsArray.getInt(0);
 
-                    if(cityId == 0) {
-                        throw new IllegalArgumentException(String.format("Für '%s' wurde die ungültige Objekt-ID %d gefunden.", cityName, cityId));
+                    if (objectId == 0)
+                    {
+                        throw new IllegalArgumentException(String.format("Für '%s' wurde die ungültige Objekt-ID %d gefunden.", cityName, objectId));
                     }
-                    responseListener.onResponse(cityId); //ruft den Listener in der Activity auf --> callback
+                    responseListener.onResponse(objectId); //ruft den Listener in der Activity auf (callback)
                 } catch (JSONException e)
                 {
                     e.printStackTrace(); //TODO Exception-Handling verbessern
                     Log.d("JSONException", e.toString());
-                } catch(IllegalArgumentException userException)
+                } catch (IllegalArgumentException userException)
                 {
                     Toast.makeText(activityContext, "Fehler: " + userException.getMessage(), Toast.LENGTH_LONG).show();
                 }
@@ -132,6 +139,7 @@ public class DataSvc
     public interface CityResponseListener
     {
         void onError(String message);
+
         void onResponse(City city);
     }
 
@@ -141,12 +149,18 @@ public class DataSvc
 //        void onResponse(CoronaData coronaData);
 //    }
 
-    public void getCityDataByCityId(int cityId, CityResponseListener responseListener)
+    /**
+     * Fragt die Daten (Base und Corona) über das RKI ab (REST-Schnittstelle).
+     * @param objectId
+     * @param responseListener Rückgabe über Listener (callback)
+     */
+    public void getCityByObjectId(int objectId, CityResponseListener responseListener)
     {
-        String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/query?" +
-                "where=OBJECTID%3D" + cityId + "&outFields=OBJECTID,BEZ,GEN,EWZ,BL_ID,BL,last_update,death_rate,cases,deaths,cases_per_100k,cases_per_population," +
-                "cases7_per_100k,cases7_lk,death7_lk,death7_lk,cases7_bl_per_100k,cases7_bl,death7_bl" +
-                "&returnGeometry=false&f=json";
+        //TODO url
+        String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/query?"
+                + "where=OBJECTID%3D" + objectId
+                + "&outFields=OBJECTID,BEZ,GEN,EWZ,BL_ID,BL,last_update,death_rate,cases,deaths,cases_per_100k,cases_per_population,"
+                + "cases7_per_100k,cases7_lk,death7_lk,death7_lk,cases7_bl_per_100k,cases7_bl,death7_bl&returnGeometry=false&f=json";
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>()
         {
@@ -180,6 +194,10 @@ public class DataSvc
             @Override
             public void onErrorResponse(VolleyError error)
             {
+                //TODO Wenn kein Internet, auf die Firebase DB zugreifen.
+
+
+                //TODO Exception Handling verbessern: Nicht zu viele Details geben. Nur sowas wie "Host unavailable".
                 String msg = "Fehler bei der Verarbeitung der Server-Antwort: " + error.toString();
                 Log.d("onErrorResponse", msg);
                 responseListener.onError(msg);
@@ -188,11 +206,14 @@ public class DataSvc
         RequestSingleton.getInstance(activityContext).addToRequestQueue(request);
     }
 
-    /** Callback-Hell
-     * @param cityName ohne Präfix
-     * @param modelResponseListener Wird aufgerufen, wenn Response vom Server da ist
+    /**
+     * Callback-Hell
+     * Holt das City-Objekt anhand des Namen
+     *
+     * @param cityName              ohne Präfix
+     * @param cityResponseListener Wird aufgerufen, wenn Response vom Server da ist
      */
-    public void getCityDataByName(String cityName, CityResponseListener modelResponseListener)
+    public void getCityDataByName(String cityName, CityResponseListener cityResponseListener)
     {
         findAndSetCityIdByName(cityName, new CityIdResponseListener()
         {
@@ -204,9 +225,11 @@ public class DataSvc
             }
 
             @Override
-            public void onResponse(int cityId)
+            public void onResponse(int objectId)
             {
-                getCityDataByCityId(cityId, new CityResponseListener()
+                //objectId anhand vom City-name gefunden
+                //TODO Offlinefähig machen
+                getCityByObjectId(objectId, new CityResponseListener()
                 {
                     @Override
                     public void onError(String message)
@@ -218,7 +241,7 @@ public class DataSvc
                     @Override
                     public void onResponse(City city)
                     {
-                        modelResponseListener.onResponse(city);
+                        cityResponseListener.onResponse(city);
                     }
                 });
             }
@@ -234,17 +257,11 @@ public class DataSvc
 
     private BaseData createAndFillCityBaseDataModel(JSONObject attributes) throws JSONException
     {
-        return new BaseData(
-                attributes.getInt(STR_OBJECT_ID),
-                attributes.getInt(STR_BL_ID),
-                attributes.getString(STR_BL),
-                attributes.getString(STR_BEZ),
-                attributes.getString(STR_GEN),
-                attributes.getInt(STR_EWZ)
-        );
+        return new BaseData(attributes.getInt(STR_OBJECT_ID), attributes.getInt(STR_BL_ID), attributes.getString(STR_BL), attributes.getString(STR_BEZ), attributes.getString(STR_GEN), attributes.getInt(STR_EWZ));
     }
 
-    /** Achtung: case-sensitive!
+    /**
+     * Achtung: case-sensitive!
      *
      * @param attributes features --> first obj of the array --> attributes
      * @return CityDataModel, für das alle setter ausgeführt wurden
@@ -252,39 +269,38 @@ public class DataSvc
      */
     private CoronaData createAndFillCityDataModel(JSONObject attributes) throws JSONException
     {
-        return new CoronaData(
-                attributes.getInt(STR_OBJECT_ID), //TODO warum sind die Stammdaten (zwangsläufig) in Capslock und der Rest nicht?
-                attributes.getString("last_update"),
-                attributes.getDouble("death_rate"),
-                attributes.getInt("cases"),
-                attributes.getInt("deaths"),
-                attributes.getDouble("cases_per_100k"),
-                attributes.getDouble("cases_per_population"),
-                attributes.getDouble("cases7_per_100k"),
-                attributes.getInt("cases7_lk"),
-                attributes.getInt("death7_lk"),
-                attributes.getDouble("cases7_bl_per_100k"),
-                attributes.getInt("cases7_bl"),
-                attributes.getInt("death7_bl")
-        );
+        return new CoronaData(attributes.getInt(STR_OBJECT_ID), //TODO warum sind die Stammdaten (zwangsläufig) in Capslock und der Rest nicht?
+                attributes.getString("last_update"), attributes.getDouble("death_rate"), attributes.getInt("cases"), attributes.getInt("deaths"), attributes.getDouble("cases_per_100k"), attributes.getDouble("cases_per_population"), attributes.getDouble("cases7_per_100k"), attributes.getInt("cases7_lk"), attributes.getInt("death7_lk"), attributes.getDouble("cases7_bl_per_100k"), attributes.getInt("cases7_bl"), attributes.getInt("death7_bl"));
     }
 
     private String[] seperateBezAndGen(String cityName)
     {
         cityName = cityName.toLowerCase();
         String[] cityNameArray;// = new String[2];
-        if(cityName.startsWith(STR_KREISFREIE_STADT.toLowerCase()))
+        if (cityName.startsWith(STR_KREISFREIE_STADT.toLowerCase()))
+        {
             cityNameArray = seperateString(STR_KREISFREIE_STADT.toLowerCase(), cityName);
-        else if(cityName.startsWith(STR_LANDKREIS.toLowerCase()))
+        }
+        else if (cityName.startsWith(STR_LANDKREIS.toLowerCase()))
+        {
             cityNameArray = seperateString(STR_LANDKREIS.toLowerCase(), cityName);
-        else if(cityName.startsWith(STR_STADTKREIS.toLowerCase()))
+        }
+        else if (cityName.startsWith(STR_STADTKREIS.toLowerCase()))
+        {
             cityNameArray = seperateString(STR_STADTKREIS.toLowerCase(), cityName);
-        else if(cityName.startsWith(STR_KREIS.toLowerCase()))
+        }
+        else if (cityName.startsWith(STR_KREIS.toLowerCase()))
+        {
             cityNameArray = seperateString(STR_KREIS.toLowerCase(), cityName);
-        else if(cityName.startsWith(STR_BEZIRK.toLowerCase()))
+        }
+        else if (cityName.startsWith(STR_BEZIRK.toLowerCase()))
+        {
             cityNameArray = seperateString(STR_BEZIRK.toLowerCase(), cityName);
+        }
         else
+        {
             cityNameArray = new String[]{"", cityName};
+        }
 
         return cityNameArray;
     }
@@ -297,6 +313,7 @@ public class DataSvc
     public interface CityBaseDataResponseListener
     {
         void onError(String message);
+
         void onResponse(List<BaseData> list);
     }
 
@@ -306,8 +323,7 @@ public class DataSvc
     public void getAllCities(CityBaseDataResponseListener responseListener)
     {
 
-        String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/" +
-                "query?where=1%3D1&outFields=OBJECTID,BL_ID, BL, GEN,BEZ,EWZ&returnGeometry=false&outSR=&f=json";
+        String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/" + "query?where=1%3D1&outFields=OBJECTID,BL_ID, BL, GEN,BEZ,EWZ&returnGeometry=false&outSR=&f=json";
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>()
         {
@@ -322,7 +338,7 @@ public class DataSvc
                     JSONObject attributes;
 
                     List<BaseData> list = new ArrayList<BaseData>();
-                    for(int i = 0; i < features.length(); i++)
+                    for (int i = 0; i < features.length(); i++)
                     {
                         attributes = features.getJSONObject(i).getJSONObject("attributes");
                         list.add(createAndFillCityBaseDataModel(attributes));
@@ -352,13 +368,14 @@ public class DataSvc
     public interface ActvSetupResponseListener
     {
         void onError(String message);
+
         void onResponse(List<String> listOfEntries);
     }
 
     public void fillActvCity(AutoCompleteTextView actv_city, Context activityContext, ActvSetupResponseListener responseListener)
     {
         SQLiteDatabaseHelper dbHelper = new SQLiteDatabaseHelper(activityContext); //Können sich zwei DbHelper in die Quere kommen? Kann man ein Singleton aus dem Helper machen?
-        List<String> listOfEntries= new ArrayList<String>();
+        List<String> listOfEntries = new ArrayList<String>();
 
         getAllCities(new CityBaseDataResponseListener()
         {
@@ -373,12 +390,14 @@ public class DataSvc
             public void onResponse(List<BaseData> list)
             {
                 boolean success;
-                for(int i = 0; i < list.size(); i++)
+                for (int i = 0; i < list.size(); i++)
                 {
                     listOfEntries.add(list.get(i).getCityName());
                     success = dbHelper.insertOrUpdateCityBaseDataRow(list.get(i));
-                    if(!success)
+                    if (!success)
+                    {
                         Log.e("ErrWhileInsertOrUpdate", String.format("Fehler beim Insert/Update des Tupels '%s'. No success.", list.get(i).toString()));
+                    }
                 }
                 responseListener.onResponse(listOfEntries);
             }
