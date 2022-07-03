@@ -5,6 +5,7 @@ import android.util.Log;
 import android.widget.AutoCompleteTextView;
 import android.widget.Toast;
 
+import com.android.volley.NoConnectionError;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -17,6 +18,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import Database.FirebaseSvc;
 import Database.SQLiteDatabaseHelper;
 import Model.City;
 import Model.CoronaData;
@@ -30,6 +32,7 @@ public class DataSvc
 {
     //Klassenattribute
     private final Context activityContext;
+    final FirebaseSvc firebaseSvc = new FirebaseSvc();
     private int objectId;
 
     //TODO ggf. auslagern (wie bei GC_Konstanten): Gibts dazu auch eine extra Datei bei Android wie für Sprachen?
@@ -128,7 +131,16 @@ public class DataSvc
             @Override
             public void onErrorResponse(VolleyError error)
             {
-                String msg = "Fehler bei der Verarbeitung der Server-Antwort: " + error.toString();
+                String msg;
+                if(error instanceof NoConnectionError)
+                {
+                    msg = "Verbindung zum Host gescheitert. Prüfen Sie Ihre Internetverbindung.";
+                }
+                else
+                {
+                  msg = "Fehler bei der Verarbeitung der Server-Antwort: " + error.toString(); //TODO weniger Infos
+                }
+
                 Log.d("onErrorResponse", msg);
                 responseListener.onError(msg);
             }
@@ -195,7 +207,12 @@ public class DataSvc
             public void onErrorResponse(VolleyError error)
             {
                 //TODO Wenn kein Internet, auf die Firebase DB zugreifen.
-
+                City city = firebaseSvc.getCity(objectId);
+                if(city != null)
+                {
+                    responseListener.onResponse(city); //TODO ist es erlaubt, aus dem ErrListener trotzdem eine Response zu geben?
+                    return;
+                }
 
                 //TODO Exception Handling verbessern: Nicht zu viele Details geben. Nur sowas wie "Host unavailable".
                 String msg = "Fehler bei der Verarbeitung der Server-Antwort: " + error.toString();
@@ -220,6 +237,10 @@ public class DataSvc
             @Override
             public void onError(String message)
             {
+                //TODO weitermachen --> Hier gelangt man beim debugging hin.
+                // Ich hab den code mit firebaseSvc.getCity() wohl an der falschen Stelle.
+                // Vlt So: Den Error statt nur der Message weiterleiten (hierhin) und wenn instanceof NoConnection,
+                // dann lokal lesen, wobei FB das ja selbst schon können sollte.
                 Toast.makeText(activityContext, message, Toast.LENGTH_LONG).show();
                 Log.e("onErrCityIdListener", message);
             }

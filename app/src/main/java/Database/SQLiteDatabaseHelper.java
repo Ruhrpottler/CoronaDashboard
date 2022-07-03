@@ -74,7 +74,7 @@ public class SQLiteDatabaseHelper extends SQLiteOpenHelper
     public boolean insertOrUpdateCityBaseDataRow(BaseData baseData)
     {
         SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues cv = fillMap(baseData);
+        ContentValues cv = fillContentValues(baseData);
         long success = -1;
 
         try
@@ -98,9 +98,9 @@ public class SQLiteDatabaseHelper extends SQLiteOpenHelper
         return (success != -1);
     }
 
-    private ContentValues fillMap(BaseData baseData)
+    private ContentValues fillContentValues(BaseData baseData)
     {
-        ContentValues cv = new ContentValues(); //Wie Hashmaps, man kann jz Paare reinpacken (put)
+        ContentValues cv = new ContentValues(); //Map
 
         cv.put(COLUMN_OBJECT_ID, baseData.getObjectId());
         cv.put(COLUMN_CITY_BL_ID, baseData.getBl_id());

@@ -44,7 +44,8 @@ public class FirebaseSvc
         Query query = db.child(PATH_CITY_DATA).equalTo(Integer.toString(objectId)).limitToFirst(1);
         //query. //TODO ValueEventListener??
 
-        db.child(PATH_CITY_DATA).child(Integer.toString(objectId)).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+        //vorher: db.child(PATH_CITY_DATA).child(Integer.toString(objectId)).get().addOnCompleteListener
+        db.child(PATH_CITY_DATA).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DataSnapshot> task) {
                 if(!task.isSuccessful())
