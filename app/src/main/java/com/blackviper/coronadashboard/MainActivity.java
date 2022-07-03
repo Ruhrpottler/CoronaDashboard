@@ -133,7 +133,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void showToastText(String str, int length)
     {
-        if(length == Toast.LENGTH_SHORT || length == Toast.LENGTH_LONG)
+        //TODO eig. macht das Ex-Handling Android doch schon selbst, isnt it?
+        if(length != Toast.LENGTH_SHORT && length != Toast.LENGTH_LONG)
         {
             length = Toast.LENGTH_LONG;
             Log.i("IllegalArgument", String.format("'%d' is an illegal length for the toast display time.", length));
