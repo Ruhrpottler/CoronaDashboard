@@ -9,9 +9,11 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.Objects;
 
@@ -19,12 +21,27 @@ import Model.City;
 
 public class FirebaseSvc
 {
+    private static FirebaseSvc firebaseInstance; //Singleton
     private static final String PATH_CITY_DATA = "CoronaData"; //Name der Firebase-"Tabelle"
     private final DatabaseReference db; //root
+    //private final DatabaseReference baseDataRef;
+    private final DatabaseReference baseDataReference;
 
-    public FirebaseSvc()
+    public static FirebaseSvc getFirebaseInstance() //Singleton
     {
-        db = FirebaseDatabase.getInstance().getReference();
+        if(firebaseInstance == null)
+        {
+            firebaseInstance = new FirebaseSvc();
+        }
+        return firebaseInstance;
+    }
+
+    private FirebaseSvc()
+    {
+        FirebaseDatabase instance = FirebaseDatabase.getInstance(); //TODO variable umbenennen weil doppeldeutig
+        instance.setPersistenceEnabled(true); // Daten offline speichern, auch bei Neustart etc, see https://firebase.google.com/docs/database/android/offline-capabilities
+        db = instance.getReference();
+        baseDataReference = instance.getReference(PATH_CITY_DATA);
     }
 
     //TODO hier oder in den aufrufenden Klassen?? Es muss eben auch asynchron sein, weil Cloud-Zugriff

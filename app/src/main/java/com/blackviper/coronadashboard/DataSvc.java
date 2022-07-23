@@ -32,7 +32,8 @@ public class DataSvc
 {
     //Klassenattribute
     private final Context activityContext;
-    final FirebaseSvc firebaseSvc = new FirebaseSvc();
+    //final FirebaseSvc firebaseSvc = new FirebaseSvc();
+    final FirebaseSvc firebaseSvc = FirebaseSvc.getFirebaseInstance();
     private int objectId;
 
     //TODO ggf. auslagern (wie bei GC_Konstanten): Gibts dazu auch eine extra Datei bei Android wie für Sprachen?

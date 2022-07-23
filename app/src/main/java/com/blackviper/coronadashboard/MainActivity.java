@@ -30,7 +30,8 @@ public class MainActivity extends AppCompatActivity {
 
     final DataSvc dataSvc = new DataSvc(MainActivity.this);
     final SQLiteDatabaseHelper dbHelper = new SQLiteDatabaseHelper(MainActivity.this);
-    final FirebaseSvc firebaseSvc = new FirebaseSvc();
+    //final FirebaseSvc firebaseSvc = new FirebaseSvc();
+    final FirebaseSvc firebaseSvc = FirebaseSvc.getFirebaseInstance(); //TODO könnte man auch aus dem DataSvc ziehen
     static NotificationSvc notificationSvc; //TODO non static machen?
 
     @Override
