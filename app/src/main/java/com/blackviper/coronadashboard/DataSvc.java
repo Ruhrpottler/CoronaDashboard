@@ -136,11 +136,8 @@ public class DataSvc
                 String msg;
                 if(error instanceof NoConnectionError)
                 {
-                    msg = "Verbindung zum Host gescheitert. Prüfen Sie Ihre Internetverbindung.";
-
-                    //TODO Dafür wäre eig. SQLite zuständig, kann man aber beides machen.
-                    //firebaseSvc.getCity(106, responseListener); //TODO REMOVE! HARDCODED ! ! ! ! !
-                    //responseListener.onResponse(106); //Das muss Firebase übernehmen, sonst ist es nicht async //TODO wieder rein?
+                    msg = "Verbindung zum Host gescheitert. Es wird versucht, die Daten offline zu finden.";
+                    firebaseSvc.getCityIdByName(cityName, responseListener);
                 }
                 else
                 {
@@ -399,8 +396,22 @@ public class DataSvc
         void onResponse(List<String> listOfEntries);
     }
 
+    private List<String> fillCityNameList(List<BaseData> baseDataList)
+    {
+        List<String> cityNameList = new ArrayList<String>();
+        for(BaseData baseData : baseDataList)
+        {
+            if (baseData == null)
+            {
+                continue;
+            }
+            cityNameList.add(baseData.getCityName());
+        }
+        return cityNameList;
+    }
+
     //TODO auslagern in SQLite, aber doppelte for-Schleife verhindern / Methodennamen ändern
-    private void fillListOfEntriesWithCityNames(List<BaseData> baseDataList, List<String> listOfEntries)
+    private void fillListOfEntriesAndSaveSQLite(List<BaseData> baseDataList, List<String> listOfEntries)
     {
         boolean success;
         int i = -1;
@@ -413,7 +424,7 @@ public class DataSvc
                 continue;
             }
             listOfEntries.add(dataElement.getCityName());
-            //dbHelper.insertOrUpdateCityBaseDataRow(dataElement);
+            dbHelper.insertOrUpdateCityBaseDataRow(dataElement);
         }
 
         Log.d("DataSvc", "The basedata of all german cities was stored in the SQLite database.");
@@ -433,17 +444,9 @@ public class DataSvc
             @Override
             public void onResponse(List<BaseData> list)
             {
-                List<String> listOfEntries = new ArrayList<String>(); //TODO die list (response kommt nun von FB selbst, nicht dann direkt wieder speichern, sondern direkt in FBSvc schon machen
-                try
-                {
-                    fillListOfEntriesWithCityNames(list, listOfEntries); //TODO für eine der beiden DBs entscheiden
-                    //firebaseSvc.saveBaseDataList(list, listOfEntries); //TODO
-                }
-                catch(Exception e)
-                {
-                    Log.e("DataSvc", "Ka was hier los ist");
-                }
-                responseListener.onResponse(listOfEntries);
+                List<String> cityNameList = fillCityNameList(list);
+                firebaseSvc.saveBaseDataList(list);
+                responseListener.onResponse(cityNameList);
             }
         });
     }

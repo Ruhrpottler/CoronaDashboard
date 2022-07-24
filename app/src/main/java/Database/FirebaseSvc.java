@@ -46,6 +46,18 @@ public class FirebaseSvc
         coronaDataPath = instance.getReference(PATH_CITY_DATA);
     }
 
+    public void getCityIdByName(String cityName, DataSvc.CityIdResponseListener responseListener)
+    {
+        //TODO query: In Firebase die Stammdaten durchsuchen
+        int cityId = 65; //TODO hardcoded, remove!
+
+        responseListener.onResponse(cityId);
+        return;
+
+        //responseListener.onError(msg);
+
+    }
+
     public void getCity(int objectId, @NonNull DataSvc.CityResponseListener responseListener)
     {
         String objectIdStr = Integer.toString(objectId);
@@ -126,12 +138,15 @@ public class FirebaseSvc
         });
     }
 
-    public void saveBaseDataList(@NonNull List<BaseData> baseDataList, List<String> listOfEntries)
+    public void saveBaseDataList(@NonNull List<BaseData> baseDataList)
     {
         HashMap<String, BaseData> map = new HashMap<>();
         for(BaseData baseData : baseDataList)
         {
-            listOfEntries.add(baseData.getCityName()); //TODO async machen mit einem Listener?
+            if(baseData == null)
+            {
+                continue;
+            }
             encodeBaseData(baseData);
             map.put(Integer.toString(baseData.getObjectId()), baseData);
         }

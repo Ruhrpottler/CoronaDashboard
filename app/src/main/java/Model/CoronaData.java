@@ -4,7 +4,6 @@ import Tools.FormatTool;
 
 public class CoronaData
 {
-
     private int objectId; //Primärschlüssel
     //Allgemein
     private String last_update;
