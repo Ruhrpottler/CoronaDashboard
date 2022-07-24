@@ -32,10 +32,9 @@ public class BaseData
         return "objectId: " + getObjectId()
                 + "Bundesland-ID: " + getBl_id()
                 + "Bundesland: " + getBl()
-                + "City-Name: " + getCityName()
+                + "Stadt: " + getCityName()
                 + "Einwohnerzahl: " + getEwz();
     }
-
 
     /** @return BEZ + GEN (z.B. "Kreisfreie Stadt Dortmund", "Landkreis Recklinghausen"...)
      *          Wenn "kreis" in GEN enthalten, nur GEN zurückgeben

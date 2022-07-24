@@ -32,8 +32,8 @@ public class DataSvc
 {
     //Klassenattribute
     private final Context activityContext;
-    //final FirebaseSvc firebaseSvc = new FirebaseSvc();
-    final FirebaseSvc firebaseSvc = FirebaseSvc.getFirebaseInstance();
+    private final SQLiteDatabaseHelper dbHelper;
+    private final FirebaseSvc firebaseSvc = FirebaseSvc.getFirebaseInstance();
     private int objectId;
 
     //TODO ggf. auslagern (wie bei GC_Konstanten): Gibts dazu auch eine extra Datei bei Android wie für Sprachen?
@@ -55,6 +55,7 @@ public class DataSvc
     public DataSvc(Context activityContext)
     {
         this.activityContext = activityContext;
+        this.dbHelper = new SQLiteDatabaseHelper(activityContext);
     }
 
     /**
@@ -136,14 +137,18 @@ public class DataSvc
                 if(error instanceof NoConnectionError)
                 {
                     msg = "Verbindung zum Host gescheitert. Prüfen Sie Ihre Internetverbindung.";
+
+                    //TODO Dafür wäre eig. SQLite zuständig, kann man aber beides machen.
+                    //firebaseSvc.getCity(106, responseListener); //TODO REMOVE! HARDCODED ! ! ! ! !
+                    //responseListener.onResponse(106); //Das muss Firebase übernehmen, sonst ist es nicht async //TODO wieder rein?
                 }
                 else
                 {
-                  msg = "Fehler bei der Verarbeitung der Server-Antwort: " + error.toString(); //TODO weniger Infos
+                    msg = "Fehler bei der Verarbeitung der Server-Antwort: " + error.toString(); //TODO weniger Infos
+                    Log.d("DataSvc", msg);
+                    responseListener.onError(msg);
                 }
 
-                Log.d("onErrorResponse", msg);
-                responseListener.onError(msg);
             }
         });
         RequestSingleton.getInstance(activityContext).addToRequestQueue(request);
@@ -155,12 +160,6 @@ public class DataSvc
 
         void onResponse(City city);
     }
-
-//    public interface CityDataModelResponseListener //TODO Es sollen jetzt City-Objekte gespeichert werden. Der Listener kann dann ggf. weg.
-//    {
-//        void onError(String message);
-//        void onResponse(CoronaData coronaData);
-//    }
 
     /**
      * Fragt die Daten (Base und Corona) über das RKI ab (REST-Schnittstelle).
@@ -195,7 +194,8 @@ public class DataSvc
                     City city = createAndFillCity(attributes);
 
                     responseListener.onResponse(city);
-                } catch (Exception e)
+                }
+                catch (Exception e)
                 {
                     responseListener.onError(e.getMessage());
                     Log.e("errGetCityDataById", e.toString());
@@ -207,12 +207,10 @@ public class DataSvc
             @Override
             public void onErrorResponse(VolleyError error)
             {
-                //TODO Wenn kein Internet, auf die Firebase DB zugreifen.
-                City city = firebaseSvc.getCity(objectId);
-                if(city != null)
+                if(error instanceof NoConnectionError) //TODO Wenn kein Internet, auf die Firebase DB zugreifen.
                 {
-                    responseListener.onResponse(city); //TODO ist es erlaubt, aus dem ErrListener trotzdem eine Response zu geben?
-                    return;
+                    firebaseSvc.getCity(objectId, responseListener); //async
+                    return; //TODO Richtig? Oder kommt die Antwort dann gar nicht an?
                 }
 
                 //TODO Exception Handling verbessern: Nicht zu viele Details geben. Nur sowas wie "Host unavailable".
@@ -249,15 +247,14 @@ public class DataSvc
             @Override
             public void onResponse(int objectId)
             {
-                //objectId anhand vom City-name gefunden
-                //TODO Offlinefähig machen
-                getCityByObjectId(objectId, new CityResponseListener()
+                //objectId anhand vom City-name finden
+                getCityByObjectId(objectId, new CityResponseListener() //TODO Offlinefähig machen
                 {
                     @Override
                     public void onError(String message)
                     {
                         Toast.makeText(activityContext, message, Toast.LENGTH_LONG).show();
-                        Log.e("onErrGetCityData", message);
+                        Log.e("DataSvc", message);
                     }
 
                     @Override
@@ -332,7 +329,7 @@ public class DataSvc
         return new String[]{firstPart, fullString.replace(firstPart, "").trim()};
     }
 
-    public interface CityBaseDataResponseListener
+    public interface BaseDataResponseListener
     {
         void onError(String message);
 
@@ -342,10 +339,11 @@ public class DataSvc
     /**
      * Get list with all Cities in Germany
      */
-    public void getAllCities(CityBaseDataResponseListener responseListener)
+    public void getAllCities(BaseDataResponseListener responseListener)
     {
 
-        String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/" + "query?where=1%3D1&outFields=OBJECTID,BL_ID, BL, GEN,BEZ,EWZ&returnGeometry=false&outSR=&f=json";
+        String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/"
+                + "query?where=1%3D1&outFields=OBJECTID,BL_ID, BL, GEN,BEZ,EWZ&returnGeometry=false&outSR=&f=json";
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>()
         {
@@ -378,8 +376,15 @@ public class DataSvc
             @Override
             public void onErrorResponse(VolleyError error)
             {
+                if(error instanceof NoConnectionError)
+                {
+                    firebaseSvc.getAllBaseData(responseListener);
+                    return;
+                }
+                //TODO if(error instanceof NoConnectionError)
+                // Dann Daten aus DB lesen (oder von Anfang an und immer updaten!)
                 String msg = "Fehler bei der Verarbeitung der Server-Antwort: " + error.toString();
-                Log.d("onErrorResponse", msg);
+                Log.e("onErrorResponse", msg);
                 responseListener.onError(msg);
             }
         });
@@ -394,12 +399,29 @@ public class DataSvc
         void onResponse(List<String> listOfEntries);
     }
 
+    //TODO auslagern in SQLite, aber doppelte for-Schleife verhindern / Methodennamen ändern
+    private void fillListOfEntriesWithCityNames(List<BaseData> baseDataList, List<String> listOfEntries)
+    {
+        boolean success;
+        int i = -1;
+        for(BaseData dataElement : baseDataList)
+        {
+            i++;
+            if(dataElement == null) //Beim Lesen aus Firebase kann es passieren, dass [0] in der ArrayList null ist. Auch weitere, warum?? //TODO
+            {
+                Log.i("Counter", "Es fehlt Element i=" + i);
+                continue;
+            }
+            listOfEntries.add(dataElement.getCityName());
+            //dbHelper.insertOrUpdateCityBaseDataRow(dataElement);
+        }
+
+        Log.d("DataSvc", "The basedata of all german cities was stored in the SQLite database.");
+    }
+
     public void fillActvCity(AutoCompleteTextView actv_city, Context activityContext, ActvSetupResponseListener responseListener)
     {
-        SQLiteDatabaseHelper dbHelper = new SQLiteDatabaseHelper(activityContext); //Können sich zwei DbHelper in die Quere kommen? Kann man ein Singleton aus dem Helper machen?
-        List<String> listOfEntries = new ArrayList<String>();
-
-        getAllCities(new CityBaseDataResponseListener()
+        getAllCities(new BaseDataResponseListener()
         {
             @Override
             public void onError(String message)
@@ -411,15 +433,15 @@ public class DataSvc
             @Override
             public void onResponse(List<BaseData> list)
             {
-                boolean success;
-                for (int i = 0; i < list.size(); i++)
+                List<String> listOfEntries = new ArrayList<String>(); //TODO die list (response kommt nun von FB selbst, nicht dann direkt wieder speichern, sondern direkt in FBSvc schon machen
+                try
                 {
-                    listOfEntries.add(list.get(i).getCityName());
-                    success = dbHelper.insertOrUpdateCityBaseDataRow(list.get(i));
-                    if (!success)
-                    {
-                        Log.e("ErrWhileInsertOrUpdate", String.format("Fehler beim Insert/Update des Tupels '%s'. No success.", list.get(i).toString()));
-                    }
+                    fillListOfEntriesWithCityNames(list, listOfEntries); //TODO für eine der beiden DBs entscheiden
+                    //firebaseSvc.saveBaseDataList(list, listOfEntries); //TODO
+                }
+                catch(Exception e)
+                {
+                    Log.e("DataSvc", "Ka was hier los ist");
                 }
                 responseListener.onResponse(listOfEntries);
             }

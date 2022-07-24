@@ -93,7 +93,7 @@ public class SQLiteDatabaseHelper extends SQLiteOpenHelper
         } finally
         {
             Log.d("SQLite", "Successfully inserted or updated data (into) table " + TABLE_CITY_BASE_DATA);
-            db.close();
+            db.close(); //TODO Die DB wird zu beginn über 400 mal geschlossen in 2 Sekunden, das frisst viel Zeit
         }
         return (success != -1);
     }

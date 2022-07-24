@@ -57,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onResponse(List<String> listOfEntries) {
+                //fill ACTV
                 actv_city.setAdapter(new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_list_item_1, listOfEntries));
                 showToastTextShort("AutoComplete done.");
             }

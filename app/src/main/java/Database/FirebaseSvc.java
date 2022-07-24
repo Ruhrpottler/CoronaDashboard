@@ -4,19 +4,22 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.blackviper.coronadashboard.DataSvc;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.database.GenericTypeIndicator;
 
-import java.util.Objects;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import Model.BaseData;
 import Model.City;
 
 public class FirebaseSvc
@@ -24,8 +27,7 @@ public class FirebaseSvc
     private static FirebaseSvc firebaseInstance; //Singleton
     private static final String PATH_CITY_DATA = "CoronaData"; //Name der Firebase-"Tabelle"
     private final DatabaseReference db; //root
-    //private final DatabaseReference baseDataRef;
-    private final DatabaseReference baseDataReference;
+    private final DatabaseReference coronaDataPath;
 
     public static FirebaseSvc getFirebaseInstance() //Singleton
     {
@@ -41,38 +43,34 @@ public class FirebaseSvc
         FirebaseDatabase instance = FirebaseDatabase.getInstance(); //TODO variable umbenennen weil doppeldeutig
         instance.setPersistenceEnabled(true); // Daten offline speichern, auch bei Neustart etc, see https://firebase.google.com/docs/database/android/offline-capabilities
         db = instance.getReference();
-        baseDataReference = instance.getReference(PATH_CITY_DATA);
+        coronaDataPath = instance.getReference(PATH_CITY_DATA);
     }
 
-    //TODO hier oder in den aufrufenden Klassen?? Es muss eben auch asynchron sein, weil Cloud-Zugriff
-    public interface CityResponseListener
+    public void getCity(int objectId, @NonNull DataSvc.CityResponseListener responseListener)
     {
-        void onError(String message);
-        void onResponse(City city);
-    }
-
-    public City getCity(int objectId) //TODO Daten aus der DB holen (können) und nicht immer nur vom RKI ziehen (vor allem Offlinebetrieb!)
-    {
-        final City[] result = {null};
+        String objectIdStr = Integer.toString(objectId);
         //TODO Exception Handling (try catch?)
 
-        //TODO Wie macht man es nun richtig? Query (Video 3) oder get()?
-        //TODO see https://firebase.google.com/docs/reference/admin/java/reference/com/google/firebase/database/Query
-        Query query = db.child(PATH_CITY_DATA).equalTo(Integer.toString(objectId)).limitToFirst(1);
-        //query. //TODO ValueEventListener??
-
-        //vorher: db.child(PATH_CITY_DATA).child(Integer.toString(objectId)).get().addOnCompleteListener
-        db.child(PATH_CITY_DATA).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+        coronaDataPath.child(objectIdStr).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>()
+        {
             @Override
-            public void onComplete(@NonNull Task<DataSnapshot> task) {
-                if(!task.isSuccessful())
+            public void onComplete(@NonNull Task<DataSnapshot> task)
+            {
+                if (task.isSuccessful() && task.getResult().exists())
                 {
-                    Log.e("firebase", "Error getting data", task.getException());
+                    DataSnapshot dataSnapshot = task.getResult();
+                    City city = dataSnapshot.getValue(City.class);
+                    if(city != null)
+                    {
+                        responseListener.onResponse(city);
+                        return;
+                    }
                 }
-                result[0] =  (City) Objects.requireNonNull(task.getResult()).getValue(); //TODO 'Objects.requireNonNull' kann ggf. weg, wenn Ex-Handling gemacht wurde.
+                String msg = "Daten von City " + objectIdStr + " konnten nicht aus der Firebase-Datenbank gelesen werden.";
+                Log.e("Firebase", msg);
+                responseListener.onError(msg);
             }
         });
-        return result[0];
     }
 
     /**
@@ -80,45 +78,147 @@ public class FirebaseSvc
      * @param city Java-Objekt, welches in der DB gespeichert wird.
      * Für den Zugriff benötigt die Klasse einen Standard-Konstruktor und public getter
      */
-    public void saveCityData(City city) //TODO mehrere Tage speichern
+    public void saveCityData(@NonNull City city) //TODO mehrere Tage speichern
     {
-        encodeModel(city);
-        db.child(PATH_CITY_DATA).child(Integer.toString(city.getObjectId())).setValue(city)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
+        String objectIdStr = Integer.toString(city.getObjectId());
+        encodeCity(city);
+        db.child(PATH_CITY_DATA).child(objectIdStr).setValue(city)
+                .addOnSuccessListener(new OnSuccessListener<Void>()
+        {
             @Override
-            public void onSuccess(Void unused) {
-                Log.d("firebase", "City 'objectId " + city.getObjectId()
+            public void onSuccess(Void unused)
+            {
+                Log.d("firebase", "City 'objectId " + objectIdStr
                 + "' successfully stored to the firebase database.");
             }
-        }).addOnFailureListener(new OnFailureListener() {
+        }).addOnFailureListener(new OnFailureListener()
+        {
             @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.e("firebase", "Saving city ' +" + city.getObjectId()
+            public void onFailure(@NonNull Exception e)
+            {
+                Log.e("firebase", "Saving city ' +" + objectIdStr
                 +"' failed", e);
             }
         });
-
-
-        //DatabaseReference cityDataRef = db.child("CityData");
-        //cityDataRef.child(dataModel.getCityName()).setValue(dataModel); //TODO objectId als primaryKey und die ref von CityData nutzen (stimmt das noch??)
     }
 
-    //TODO Daten aus DB lesen (zumindest wenn offline)
+    public void saveBaseData(@NonNull BaseData baseData)
+    {
+        String objectIdStr = Integer.toString(baseData.getObjectId());
+        encodeBaseData(baseData);
+        db.child("BaseData").child(objectIdStr).setValue(baseData)
+                .addOnSuccessListener(new OnSuccessListener<Void>()
+        {
+            @Override
+            public void onSuccess(Void unused)
+            {
+                Log.d("firebase", "baseData 'objectId " + objectIdStr
+                        + "' successfully stored to the firebase database.");
+            }
+        }).addOnFailureListener(new OnFailureListener()
+        {
+            @Override
+            public void onFailure(@NonNull Exception e)
+            {
+                Log.e("firebase", "Saving baseData ' +" + objectIdStr
+                        +"' failed", e);
+            }
+        });
+    }
+
+    public void saveBaseDataList(@NonNull List<BaseData> baseDataList, List<String> listOfEntries)
+    {
+        HashMap<String, BaseData> map = new HashMap<>();
+        for(BaseData baseData : baseDataList)
+        {
+            listOfEntries.add(baseData.getCityName()); //TODO async machen mit einem Listener?
+            encodeBaseData(baseData);
+            map.put(Integer.toString(baseData.getObjectId()), baseData);
+        }
+
+        db.child("BaseDataHashMap").setValue(map)
+                .addOnSuccessListener(new OnSuccessListener<Void>()
+        {
+            @Override
+            public void onSuccess(Void unused)
+            {
+                Log.d("firebase", "baseDataList successfully stored to the firebase database.");
+            }
+        }).addOnFailureListener(new OnFailureListener()
+        {
+            @Override
+            public void onFailure(@NonNull Exception e)
+            {
+                Log.e("firebase", "Saving baseDataList failed.", e);
+            }
+        });
+    }
+
+//    public void saveAllBaseData(List<BaseData> baseDataList, List<String> listOfEntries)
+//    {
+//        for(BaseData baseData : baseDataList)
+//        {
+//            saveBaseData(baseData);
+//            listOfEntries.add(baseData.getCityName());
+//
+//            Log.d("DataSvc", "The basedata of all german cities was stored in the SQLite database.");
+//        }
+//    }
+
+    public void getAllBaseData(DataSvc.BaseDataResponseListener responseListener)
+    {
+        db.child("BaseDataHashMap").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>()
+        {
+            @Override
+            public void onComplete(@NonNull Task<DataSnapshot> task)
+            {
+                if (task.isSuccessful() && task.getResult().exists())
+                {
+                    ArrayList<BaseData> baseDataList = null;
+                    try
+                    {
+                        DataSnapshot dataSnapshot = task.getResult();
+                        GenericTypeIndicator<ArrayList<BaseData>> genericTypeIndicator = new GenericTypeIndicator<ArrayList<BaseData>>() {};
+                        baseDataList = dataSnapshot.getValue(genericTypeIndicator); //TODO dann kann man die Daten doch auch so speichern oder?
+                    } catch (Exception e)
+                    {
+                      Log.e("Firebase", e.getMessage());
+                    }
+
+                    if(baseDataList != null && !baseDataList.isEmpty())
+                    {
+                        responseListener.onResponse(baseDataList);
+                        return;
+                    }
+
+                    String msg = "Stammdaten konnten nicht aus der Firebase-Datenbank gelesen werden";
+                    responseListener.onError(msg);
+                }
+            }
+        });
+    }
+
+
 
     /**
      * @param cityData Model. Wird als Referenz übergeben => Kein return notwendig, da auf der
      *                 Referenz gearbeitet wird.
      */
-    private static void encodeModel(@NonNull City cityData)
+    private static void encodeCity(@NonNull City cityData)
     {
-        if(cityData.getBaseData().getGen().contains("_") || cityData.getBaseData().getGen().contains("."))
+        encodeBaseData(cityData.getBaseData());
+    }
+
+    private static void encodeBaseData(@NonNull BaseData baseData)
+    {
+        if(baseData.getGen().contains("_") || baseData.getGen().contains("."))
         {
-            cityData.getBaseData().setGen(encode(cityData.getBaseData().getGen()));
+            baseData.setGen(encodeString(baseData.getGen()));
         }
     }
 
     @NonNull
-    private static String encode(@NonNull String str)
+    private static String encodeString(@NonNull String str)
     {
         return str
                 .replace("_", "__")
@@ -129,16 +229,21 @@ public class FirebaseSvc
      * @param cityData Model. Wird als Referenz übergeben => Kein return notwendig, da auf der
      *                 Referenz gearbeitet wird.
      */
-    private static void decodeModel(@NonNull City cityData)
+    private static void decodeCity(@NonNull City cityData)
     {
-        if(cityData.getBaseData().getGen().contains("__") || cityData.getBaseData().getGen().contains("_P"))
+        decodeBaseData(cityData.getBaseData());
+    }
+
+    private static void decodeBaseData(@NonNull BaseData baseData)
+    {
+        if(baseData.getGen().contains("__") || baseData.getGen().contains("_P"))
         {
-            cityData.getBaseData().setGen(decode(cityData.getBaseData().getGen()));
+            baseData.setGen(decodeString(baseData.getGen()));
         }
     }
 
     @NonNull
-    private static String decode(@NonNull String str)
+    private static String decodeString(@NonNull String str)
     {
         return str
                 .replace("_P", ".")
