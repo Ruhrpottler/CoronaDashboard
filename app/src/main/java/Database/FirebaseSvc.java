@@ -56,7 +56,7 @@ public class FirebaseSvc
      * @param cityName z.B. "Kreisfreie Stadt Dortmund"
      * @param responseListener
      */
-    public void getCityIdByName(String cityName, @NonNull DataSvc.CityIdResponseListener responseListener)
+    public void getObjectIdByName(String cityName, @NonNull DataSvc.ObjectIdResponseListener responseListener)
     {
         Query query = baseDataPath.orderByChild("cityName").equalTo(cityName).limitToFirst(1);
         query.addValueEventListener(new ValueEventListener()
@@ -70,7 +70,7 @@ public class FirebaseSvc
                 if(map != null && map.keySet().size() == 1) //Obsolet, weil limitToFirst?
                 {
                     String key = map.keySet().toArray()[0].toString();
-                    if(!key.isEmpty() && map.get(key).getCityName().equals(cityName))
+                    if(!key.isEmpty() && map.get(key).getCityName().equals(cityName)) //TODO try-Catch und die ganzen if's entfernen
                     {
                         int objectId = map.get(key).getObjectId();
                         Log.i("Firebase", "The objectId of '" + cityName + "' is '" + objectId + "'.");
@@ -226,7 +226,8 @@ public class FirebaseSvc
                     try
                     {
                         DataSnapshot dataSnapshot = task.getResult();
-                        GenericTypeIndicator<ArrayList<BaseData>> genericTypeIndicator = new GenericTypeIndicator<ArrayList<BaseData>>() {};
+                        GenericTypeIndicator<ArrayList<BaseData>> genericTypeIndicator =
+                                new GenericTypeIndicator<ArrayList<BaseData>>() {};
                         baseDataList = dataSnapshot.getValue(genericTypeIndicator); //TODO dann kann man die Daten doch auch so speichern oder?
                     } catch (Exception e)
                     {

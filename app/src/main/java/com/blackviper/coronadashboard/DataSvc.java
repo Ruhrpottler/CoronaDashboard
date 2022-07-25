@@ -61,11 +61,11 @@ public class DataSvc
     /**
      * Callback-Methoden, welche in der Activity implementiert werden müssen
      */
-    public interface CityIdResponseListener
+    public interface ObjectIdResponseListener
     {
         void onError(String message);
 
-        void onResponse(int cityId);
+        void onResponse(int objectId);
     }
 
     //Methoden
@@ -75,7 +75,7 @@ public class DataSvc
      *
      * @param cityName Vollständiger Name von Landkreis oder kreisfreie Stadt
      */
-    public void findAndSetCityIdByName(String cityName, CityIdResponseListener responseListener)
+    public void findAndSetObjectIdByName(String cityName, ObjectIdResponseListener responseListener)
     {
         String[] inputArray = seperateBezAndGen(cityName);
         String bez = inputArray[0];
@@ -137,7 +137,7 @@ public class DataSvc
                 if(error instanceof NoConnectionError)
                 {
                     Log.d("DataSvc", "Verbindung zum Host gescheitert. Es wird versucht, die Daten offline zu finden.");
-                    firebaseSvc.getCityIdByName(cityName, responseListener);
+                    firebaseSvc.getObjectIdByName(cityName, responseListener);
                 }
                 else
                 {
@@ -228,13 +228,13 @@ public class DataSvc
      */
     public void getCityDataByName(String cityName, CityResponseListener cityResponseListener)
     {
-        findAndSetCityIdByName(cityName, new CityIdResponseListener()
+        findAndSetObjectIdByName(cityName, new ObjectIdResponseListener()
         {
             @Override
             public void onError(String message)
             {
                 Toast.makeText(activityContext, message, Toast.LENGTH_LONG).show();
-                Log.e("onErrCityIdListener", message);
+                Log.e("DataSvc", message);
             }
 
             @Override
