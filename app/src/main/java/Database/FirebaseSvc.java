@@ -53,7 +53,7 @@ public class FirebaseSvc
 
     /**
      *
-     * @param cityName z.B. "Kreisfreie Stadt Dortmund"
+     * @param cityName BEZ + GEN, z.B. "Kreis Recklinghausen"
      * @param responseListener
      */
     public void getObjectIdByName(String cityName, @NonNull DataSvc.ObjectIdResponseListener responseListener)
@@ -66,35 +66,51 @@ public class FirebaseSvc
             {
                 GenericTypeIndicator<HashMap<String, BaseData>> indicator =
                         new GenericTypeIndicator<HashMap<String, BaseData>>() {};
-                HashMap<String, BaseData> map = snapshot.getValue(indicator);
-                if(map != null && map.keySet().size() == 1) //Obsolet, weil limitToFirst?
+                try
                 {
-                    String key = map.keySet().toArray()[0].toString();
-                    if(!key.isEmpty() && map.get(key).getCityName().equals(cityName)) //TODO try-Catch und die ganzen if's entfernen
+                    HashMap<String, BaseData> map = snapshot.getValue(indicator);
+                    if (map != null && map.keySet().size() == 1) //Obsolet, weil limitToFirst?
                     {
-                        int objectId = map.get(key).getObjectId();
-                        Log.i("Firebase", "The objectId of '" + cityName + "' is '" + objectId + "'.");
-                        responseListener.onResponse(objectId);
-                        return;
+                        String key = map.keySet().toArray()[0].toString();
+                        if (!key.isEmpty() && map.get(key).getCityName().equals(cityName)) //TODO try-Catch und die ganzen if's entfernen
+                        {
+                            if(map.get(key).getCityName() == null || map.get(key).getCityName().isEmpty())
+                            {
+                                responseListener.onError(buildMsgGetId(cityName) + ": Attribute 'cityName' is null or empty.");
+                                return;
+                            }
+                            int objectId = map.get(key).getObjectId();
+                            Log.i("Firebase", "The objectId of '" + cityName + "' is '" + objectId + "'.");
+                            responseListener.onResponse(objectId);
+                            return;
+                        }
                     }
                 }
-                onCancelled(DatabaseError.fromException(new Exception()));
+                catch(Exception catchedException) //TODO aufteilen in NPE und Fehler beim Konv
+                {
+                    onCancelled(DatabaseError.fromException(catchedException));
+                    return;
+                }
+                responseListener.onError(buildMsgGetId(cityName));
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error)
             {
-                String msg = "Beim Versuch, die objectId für '" + cityName
-                        + "' herauszufinden, ist ein Fehler aufgetreten.\n" + error.getMessage();
-                responseListener.onError(msg);
+                responseListener.onError(buildMsgGetId(cityName) + "\n" + error.getMessage());
             }
         });
+    }
+
+    private String buildMsgGetId(String cityName)
+    {
+        return "Beim Versuch, die objectId für '" + cityName
+                + "' herauszufinden, ist ein Fehler aufgetreten";
     }
 
     public void getCity(int objectId, @NonNull DataSvc.CityResponseListener responseListener)
     {
         String objectIdStr = Integer.toString(objectId);
-        //TODO Exception Handling (try catch?)
 
         coronaDataPath.child(objectIdStr).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>()
         {
@@ -220,7 +236,7 @@ public class FirebaseSvc
             @Override
             public void onComplete(@NonNull Task<DataSnapshot> task)
             {
-                if (task.isSuccessful() && task.getResult().exists())
+                if (task.isSuccessful() && task.getResult() != null && task.getResult().exists())
                 {
                     ArrayList<BaseData> baseDataList = null;
                     try

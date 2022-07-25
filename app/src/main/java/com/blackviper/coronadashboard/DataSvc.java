@@ -71,7 +71,7 @@ public class DataSvc
     //Methoden
 
     /**
-     * Fragt die objectId der City über die API ab und speichert sie im Attribut //TODO offlinefähig machen
+     * Fragt die objectId der City über die API ab und speichert sie im Attribut
      *
      * @param cityName Vollständiger Name von Landkreis oder kreisfreie Stadt
      */
@@ -160,7 +160,7 @@ public class DataSvc
 
     /**
      * Fragt die Daten (Base und Corona) über das RKI ab (REST-Schnittstelle).
-     * @param objectId
+     * @param objectId eindeutige ID der Kommune
      * @param responseListener Rückgabe über Listener (callback)
      */
     public void getCityByObjectId(int objectId, CityResponseListener responseListener)
@@ -185,17 +185,14 @@ public class DataSvc
                     {
                         throw new JSONException("'firstAndOnlyArrayObject' is null");
                     }
-
                     JSONObject attributes = firstAndOnlyArrayObject.getJSONObject("attributes");
-
                     City city = createAndFillCity(attributes);
-
                     responseListener.onResponse(city);
                 }
                 catch (Exception e)
                 {
                     responseListener.onError(e.getMessage());
-                    Log.e("errGetCityDataById", e.toString());
+                    Log.e("DataSvc", e.toString());
                 }
 
             }
@@ -361,7 +358,7 @@ public class DataSvc
                 } catch (Exception e)
                 {
                     responseListener.onError(e.getMessage());
-                    Log.d("errOnGetAllCities", e.toString());
+                    Log.d("DataSvc", e.toString());
                 }
             }
         }, new Response.ErrorListener()
@@ -433,7 +430,7 @@ public class DataSvc
             @Override
             public void onError(String message)
             {
-                Log.e("ErrGetAllCities", message);
+                Log.e("DataSvc", message);
                 responseListener.onError(message);
             }
 
