@@ -5,9 +5,11 @@ import android.util.Log;
 import android.widget.AutoCompleteTextView;
 import android.widget.Toast;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.NoConnectionError;
 import com.android.volley.Request;
 import com.android.volley.Response;
+import com.android.volley.RetryPolicy;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 
@@ -124,7 +126,7 @@ public class DataSvc
                     Log.d("JSONException", e.toString());
                 } catch (IllegalArgumentException userException)
                 {
-                    Toast.makeText(activityContext, "Fehler: " + userException.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(activityContext, "Fehler: " + userException.getMessage(), Toast.LENGTH_LONG).show(); //TODO funktioniert nicht -> context
                 }
 
             }
@@ -136,18 +138,24 @@ public class DataSvc
                 String msg;
                 if(error instanceof NoConnectionError)
                 {
-                    Log.d("DataSvc", "Verbindung zum Host gescheitert. Es wird versucht, die Daten offline zu finden.");
+                    msg = "Verbindung zum Host gescheitert. Es wird versucht, die Daten offline zu finden.";
+                    Log.d("DataSvc", msg);
                     firebaseSvc.getObjectIdByName(cityName, responseListener);
                 }
                 else
                 {
-                    msg = "Fehler bei der Verarbeitung der Server-Antwort: " + error.toString(); //TODO weniger Infos
-                    Log.d("DataSvc", msg);
-                    responseListener.onError(msg);
+                    msg = "Fehler bei der Verarbeitung der Server-Antwort";
+                    Log.d("DataSvc", msg + ": " + error.toString());
+                    responseListener.onError(msg + ".");
                 }
 
             }
         });
+        request.setRetryPolicy(new DefaultRetryPolicy(
+                5000,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
         RequestSingleton.getInstance(activityContext).addToRequestQueue(request);
     }
 
@@ -204,7 +212,7 @@ public class DataSvc
                 if(error instanceof NoConnectionError) //TODO Wenn kein Internet, auf die Firebase DB zugreifen.
                 {
                     firebaseSvc.getCity(objectId, responseListener); //async
-                    return; //TODO Richtig? Oder kommt die Antwort dann gar nicht an?
+                    return;
                 }
 
                 //TODO Exception Handling verbessern: Nicht zu viele Details geben. Nur sowas wie "Host unavailable".
