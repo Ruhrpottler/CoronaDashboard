@@ -10,14 +10,16 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.GenericTypeIndicator;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import Model.BaseData;
 import Model.City;
@@ -26,8 +28,10 @@ public class FirebaseSvc
 {
     private static FirebaseSvc firebaseInstance; //Singleton
     private static final String PATH_CITY_DATA = "CoronaData"; //Name der Firebase-"Tabelle"
+    private static final String PATH_BASE_DATA = "BaseDataHashMap";
     private final DatabaseReference db; //root
     private final DatabaseReference coronaDataPath;
+    private final DatabaseReference baseDataPath;
 
     public static FirebaseSvc getFirebaseInstance() //Singleton
     {
@@ -44,18 +48,50 @@ public class FirebaseSvc
         instance.setPersistenceEnabled(true); // Daten offline speichern, auch bei Neustart etc, see https://firebase.google.com/docs/database/android/offline-capabilities
         db = instance.getReference();
         coronaDataPath = instance.getReference(PATH_CITY_DATA);
+        baseDataPath = instance.getReference(PATH_BASE_DATA);
     }
 
-    public void getCityIdByName(String cityName, DataSvc.CityIdResponseListener responseListener)
+    /**
+     *
+     * @param cityName z.B. "Kreisfreie Stadt Dortmund"
+     * @param responseListener
+     */
+    public void getCityIdByName(String cityName, @NonNull DataSvc.CityIdResponseListener responseListener)
     {
-        //TODO query: In Firebase die Stammdaten durchsuchen
-        int cityId = 65; //TODO hardcoded, remove!
+        Query query = baseDataPath.orderByChild("cityName").equalTo(cityName).limitToFirst(1);
+        query.addValueEventListener(new ValueEventListener()
+        {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot)
+            {
+                if(snapshot != null)
+                {
+                    GenericTypeIndicator<HashMap<String, BaseData>> indicator =
+                            new GenericTypeIndicator<HashMap<String, BaseData>>() {};
+                    HashMap<String, BaseData> map = snapshot.getValue(indicator);
+                    if(map.keySet().size() == 1) //Obsolet, weil limitToFirst?
+                    {
+                        String key = map.keySet().toArray()[0].toString();
+                        if(!key.isEmpty() && map.get(key).getCityName().equals(cityName))
+                        {
+                            int objectId = map.get(key).getObjectId();
+                            Log.i("Firebase", "The objectId of '" + cityName + "' is '" + objectId + "'.");
+                            responseListener.onResponse(objectId);
+                            return;
+                        }
+                    }
+                }
+                onCancelled(DatabaseError.fromException(new Exception()));
+            }
 
-        responseListener.onResponse(cityId);
-        return;
-
-        //responseListener.onError(msg);
-
+            @Override
+            public void onCancelled(@NonNull DatabaseError error)
+            {
+                String msg = "Beim Versuch, die objectId für '" + cityName
+                        + "' herauszufinden, ist ein Fehler aufgetreten.\n" + error.getMessage();
+                responseListener.onError(msg);
+            }
+        });
     }
 
     public void getCity(int objectId, @NonNull DataSvc.CityResponseListener responseListener)
@@ -78,7 +114,7 @@ public class FirebaseSvc
                         return;
                     }
                 }
-                String msg = "Daten von City " + objectIdStr + " konnten nicht aus der Firebase-Datenbank gelesen werden.";
+                String msg = "Daten von City " + objectIdStr + " konnten nicht aus der lokalen Firebase-Datenbank gelesen werden.";
                 Log.e("Firebase", msg);
                 responseListener.onError(msg);
             }
@@ -151,7 +187,7 @@ public class FirebaseSvc
             map.put(Integer.toString(baseData.getObjectId()), baseData);
         }
 
-        db.child("BaseDataHashMap").setValue(map)
+        baseDataPath.setValue(map)
                 .addOnSuccessListener(new OnSuccessListener<Void>()
         {
             @Override
@@ -180,9 +216,9 @@ public class FirebaseSvc
 //        }
 //    }
 
-    public void getAllBaseData(DataSvc.BaseDataResponseListener responseListener)
+    public void getAllBaseData(@NonNull DataSvc.BaseDataResponseListener responseListener)
     {
-        db.child("BaseDataHashMap").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>()
+        baseDataPath.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>()
         {
             @Override
             public void onComplete(@NonNull Task<DataSnapshot> task)
@@ -205,15 +241,11 @@ public class FirebaseSvc
                         responseListener.onResponse(baseDataList);
                         return;
                     }
-
-                    String msg = "Stammdaten konnten nicht aus der Firebase-Datenbank gelesen werden";
-                    responseListener.onError(msg);
                 }
+                responseListener.onError("Stammdaten konnten nicht aus der Firebase-Datenbank gelesen werden");
             }
         });
     }
-
-
 
     /**
      * @param cityData Model. Wird als Referenz übergeben => Kein return notwendig, da auf der
@@ -264,18 +296,5 @@ public class FirebaseSvc
                 .replace("_P", ".")
                 .replace("_", "__");
     }
-
-//TODO remove
-
-//    public void addTestData()
-//    {
-//        HashMap<String, Object> map = new HashMap<>();
-//        map.put("Vorname", "Jan");
-//        map.put("Nachname", "Lappenküper");
-//        map.put("Hochschule", "Fachhochschule Dortmund");
-//
-//        db.child("Personen").child("me").updateChildren(map);
-//
-//    }
 
 }

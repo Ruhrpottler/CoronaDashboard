@@ -87,8 +87,6 @@ public class CoronaData
         setDeath7_bl(death7_bl);
     }
 
-
-
     /*
      * Achtung: Alle setter müssen final sein (!), damit sie nicht überschrieben werden können!
      */

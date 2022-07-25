@@ -20,9 +20,9 @@ import java.util.List;
 
 import Database.FirebaseSvc;
 import Database.SQLiteDatabaseHelper;
+import Model.BaseData;
 import Model.City;
 import Model.CoronaData;
-import Model.BaseData;
 
 /**
  * Diese Klasse stellt asynchrone Methoden (Callbacks) zur Verfügung, welche den Traffic mit den Anfragen an die API
@@ -233,10 +233,6 @@ public class DataSvc
             @Override
             public void onError(String message)
             {
-                //TODO weitermachen --> Hier gelangt man beim debugging hin.
-                // Ich hab den code mit firebaseSvc.getCity() wohl an der falschen Stelle.
-                // Vlt So: Den Error statt nur der Message weiterleiten (hierhin) und wenn instanceof NoConnection,
-                // dann lokal lesen, wobei FB das ja selbst schon können sollte.
                 Toast.makeText(activityContext, message, Toast.LENGTH_LONG).show();
                 Log.e("onErrCityIdListener", message);
             }
@@ -245,7 +241,7 @@ public class DataSvc
             public void onResponse(int objectId)
             {
                 //objectId anhand vom City-name finden
-                getCityByObjectId(objectId, new CityResponseListener() //TODO Offlinefähig machen
+                getCityByObjectId(objectId, new CityResponseListener()
                 {
                     @Override
                     public void onError(String message)
