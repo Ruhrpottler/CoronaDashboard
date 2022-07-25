@@ -11,6 +11,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseException;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.GenericTypeIndicator;
@@ -72,23 +73,22 @@ public class FirebaseSvc
                     if (map != null && map.keySet().size() == 1) //Obsolet, weil limitToFirst?
                     {
                         String key = map.keySet().toArray()[0].toString();
-                        if (!key.isEmpty() && map.get(key).getCityName().equals(cityName)) //TODO try-Catch und die ganzen if's entfernen
+                        BaseData baseData = map.get(key);
+                        if (baseData == null || baseData.getCityName() == null || !baseData.getCityName().equals(cityName))
                         {
-                            if(map.get(key).getCityName() == null || map.get(key).getCityName().isEmpty())
-                            {
-                                responseListener.onError(buildMsgGetId(cityName) + ": Attribute 'cityName' is null or empty.");
-                                return;
-                            }
-                            int objectId = map.get(key).getObjectId();
-                            Log.i("Firebase", "The objectId of '" + cityName + "' is '" + objectId + "'.");
-                            responseListener.onResponse(objectId);
+                            responseListener.onError(buildMsgGetId(cityName) + ": Attribute 'cityName' is null or empty or " +
+                                    "does not equal the cityName what was queried for.");
                             return;
                         }
+                        int objectId = baseData.getObjectId();
+                        Log.i("Firebase", "The objectId of '" + cityName + "' is '" + objectId + "'.");
+                        responseListener.onResponse(objectId);
+                        return;
                     }
                 }
-                catch(Exception catchedException) //TODO aufteilen in NPE und Fehler beim Konv
+                catch(DatabaseException e)
                 {
-                    onCancelled(DatabaseError.fromException(catchedException));
+                    onCancelled(DatabaseError.fromException(e));
                     return;
                 }
                 responseListener.onError(buildMsgGetId(cityName));
