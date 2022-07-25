@@ -126,7 +126,7 @@ public class DataSvc
                     Log.d("JSONException", e.toString());
                 } catch (IllegalArgumentException userException)
                 {
-                    Toast.makeText(activityContext, "Fehler: " + userException.getMessage(), Toast.LENGTH_LONG).show(); //TODO funktioniert nicht -> context
+                    Toast.makeText(activityContext, "Fehler: " + userException.getMessage(), Toast.LENGTH_LONG).show();
                 }
 
             }
@@ -148,7 +148,7 @@ public class DataSvc
                     Log.d("DataSvc", msg + ": " + error.toString());
                     responseListener.onError(msg + ".");
                 }
-
+                Toast.makeText(activityContext, msg,Toast.LENGTH_LONG).show();
             }
         });
         request.setRetryPolicy(new DefaultRetryPolicy(
