@@ -1,8 +1,5 @@
 package com.blackviper.coronadashboard;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,11 +13,13 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import java.util.List;
 
-import Database.SQLiteDatabaseHelper;
 import Database.FirebaseSvc;
-import Model.CityDataModel;
+import Database.SQLiteDatabaseHelper;
+import Model.City;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -31,7 +30,8 @@ public class MainActivity extends AppCompatActivity {
 
     final DataSvc dataSvc = new DataSvc(MainActivity.this);
     final SQLiteDatabaseHelper dbHelper = new SQLiteDatabaseHelper(MainActivity.this);
-    final FirebaseSvc firebaseSvc = new FirebaseSvc();
+    //final FirebaseSvc firebaseSvc = new FirebaseSvc();
+    final FirebaseSvc firebaseSvc = FirebaseSvc.getFirebaseInstance(); //TODO könnte man auch aus dem DataSvc ziehen
     static NotificationSvc notificationSvc; //TODO non static machen?
 
     @Override
@@ -57,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onResponse(List<String> listOfEntries) {
+                //fill ACTV
                 actv_city.setAdapter(new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_list_item_1, listOfEntries));
                 showToastTextShort("AutoComplete done.");
             }
@@ -76,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
 
                 pushKeyboardDown();
 
-                dataSvc.getCityDataByName(userInputCityName, new DataSvc.CityDataModelResponseListener()
+                dataSvc.getCityDataByName(userInputCityName, new DataSvc.CityResponseListener()
                 {
                     @Override
                     public void onError(String message)
@@ -86,10 +87,10 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onResponse(CityDataModel cityDataModel)
+                    public void onResponse(City city)
                     {
-                        tvErgebnisse.setText(cityDataModel.toString());
-                        firebaseSvc.saveCityData(cityDataModel);
+                        tvErgebnisse.setText(city.toString());
+                        firebaseSvc.saveCityData(city);
                     }
                 });
 
@@ -134,7 +135,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void showToastText(String str, int length)
     {
-        if(length == Toast.LENGTH_SHORT || length == Toast.LENGTH_LONG)
+        //TODO eig. macht das Ex-Handling Android doch schon selbst, isnt it?
+        if(length != Toast.LENGTH_SHORT && length != Toast.LENGTH_LONG)
         {
             length = Toast.LENGTH_LONG;
             Log.i("IllegalArgument", String.format("'%d' is an illegal length for the toast display time.", length));

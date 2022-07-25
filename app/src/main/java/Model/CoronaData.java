@@ -1,14 +1,10 @@
 package Model;
 
-import androidx.annotation.NonNull;
-
 import Tools.FormatTool;
 
-public class CityDataModel
+public class CoronaData
 {
-    //Stammdaten
-    private CityBaseDataModel baseData;
-
+    private int objectId; //Primärschlüssel
     //Allgemein
     private String last_update;
     //TODO Datentyp Date nutzen
@@ -42,13 +38,13 @@ public class CityDataModel
      * Default constructor for firebase to save Java objects
      * see: https://firebase.google.com/docs/database/android/read-and-write
      */
-    public CityDataModel()
+    public CoronaData()
     {
 
     }
 
     /**
-     * @param baseData CityBaseDataModel / Stammdaten
+     * @param objectId Eindeutige ID der Kommune
      * @param last_update Stand (Datum und Uhrzeit)
      * @param death_rate Sterberate
      * @param cases Bestätigte Infektionen (gesamt)
@@ -70,12 +66,12 @@ public class CityDataModel
      * --> Deswegen alle setter auf final setzen, damit können sie nicht überschrieben werden.
      *
      */
-    public CityDataModel(CityBaseDataModel baseData, String last_update, double death_rate, int cases,
-                         int deaths, double cases_per_100k, double cases_per_population,
-                         double cases7_per_100k, int cases7_lk, int death7_lk,
-                         double cases7_bl_per_100k, int cases7_bl, int death7_bl)
+    public CoronaData(int objectId, String last_update,
+                      double death_rate, int cases, int deaths, double cases_per_100k,
+                      double cases_per_population, double cases7_per_100k, int cases7_lk,
+                      int death7_lk, double cases7_bl_per_100k, int cases7_bl, int death7_bl)
     {
-        setBaseData(baseData);
+        setObjectId(objectId);
         setLast_update(last_update);
         setDeath_rate(death_rate);
         setCases(cases);
@@ -91,44 +87,18 @@ public class CityDataModel
         setDeath7_bl(death7_bl);
     }
 
-    @NonNull
-    @Override
-    public String toString()
-    {
-        return String.format("Daten für %s,\n" +
-                        "Stand %s:\n" +
-                "Bundesland: %s\n" +
-                "7-Tage-Inzidenz: %s\n" +
-                "Einwohnerzahl: %s\n" +
-                "Bestätigte Fälle: %s\n" +
-                "Bestätigte Fälle/100k EW: %s\n" +
-                "Betroffenenrate: %.2f%%\n" +
-                "Todesfälle: %s\n" +
-                "Sterberate: %.2f%%",
-                getBaseData().getCityName(), getLast_update(), getBaseData().getBl(), getCases7_per_100k_txt(),
-                FormatTool.intToString(getBaseData().getEwz()), FormatTool.intToString(getCases()),
-                FormatTool.doubleToString(FormatTool.roundDouble(getCases_per_100k(), 2), 2),
-                getCases_per_population() , FormatTool.intToString(getDeaths()), getDeath_rate()
-        );
-    }
-
     /*
      * Achtung: Alle setter müssen final sein (!), damit sie nicht überschrieben werden können!
      */
 
-    public String getCityName()
+    public int getObjectId()
     {
-        return baseData != null ? baseData.getCityName() : ""; //TODO ggf. Fehlermeldung statt empty String
+        return objectId;
     }
 
-    public CityBaseDataModel getBaseData()
+    public void setObjectId(int objectId)
     {
-        return baseData; //TODO nullcheck und ExceptionHandling?
-    }
-
-    public final void setBaseData(CityBaseDataModel baseData)
-    {
-        this.baseData = baseData;
+        this.objectId = objectId;
     }
 
     public String getLast_update()
