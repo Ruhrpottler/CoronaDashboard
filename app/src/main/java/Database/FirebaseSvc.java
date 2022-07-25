@@ -64,21 +64,18 @@ public class FirebaseSvc
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot)
             {
-                if(snapshot != null)
+                GenericTypeIndicator<HashMap<String, BaseData>> indicator =
+                        new GenericTypeIndicator<HashMap<String, BaseData>>() {};
+                HashMap<String, BaseData> map = snapshot.getValue(indicator);
+                if(map != null && map.keySet().size() == 1) //Obsolet, weil limitToFirst?
                 {
-                    GenericTypeIndicator<HashMap<String, BaseData>> indicator =
-                            new GenericTypeIndicator<HashMap<String, BaseData>>() {};
-                    HashMap<String, BaseData> map = snapshot.getValue(indicator);
-                    if(map.keySet().size() == 1) //Obsolet, weil limitToFirst?
+                    String key = map.keySet().toArray()[0].toString();
+                    if(!key.isEmpty() && map.get(key).getCityName().equals(cityName))
                     {
-                        String key = map.keySet().toArray()[0].toString();
-                        if(!key.isEmpty() && map.get(key).getCityName().equals(cityName))
-                        {
-                            int objectId = map.get(key).getObjectId();
-                            Log.i("Firebase", "The objectId of '" + cityName + "' is '" + objectId + "'.");
-                            responseListener.onResponse(objectId);
-                            return;
-                        }
+                        int objectId = map.get(key).getObjectId();
+                        Log.i("Firebase", "The objectId of '" + cityName + "' is '" + objectId + "'.");
+                        responseListener.onResponse(objectId);
+                        return;
                     }
                 }
                 onCancelled(DatabaseError.fromException(new Exception()));
@@ -104,7 +101,7 @@ public class FirebaseSvc
             @Override
             public void onComplete(@NonNull Task<DataSnapshot> task)
             {
-                if (task.isSuccessful() && task.getResult().exists())
+                if (task.isSuccessful() && task.getResult() != null && task.getResult().exists())
                 {
                     DataSnapshot dataSnapshot = task.getResult();
                     City city = dataSnapshot.getValue(City.class);

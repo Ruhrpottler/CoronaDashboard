@@ -136,7 +136,7 @@ public class DataSvc
                 String msg;
                 if(error instanceof NoConnectionError)
                 {
-                    msg = "Verbindung zum Host gescheitert. Es wird versucht, die Daten offline zu finden.";
+                    Log.d("DataSvc", "Verbindung zum Host gescheitert. Es wird versucht, die Daten offline zu finden.");
                     firebaseSvc.getCityIdByName(cityName, responseListener);
                 }
                 else
