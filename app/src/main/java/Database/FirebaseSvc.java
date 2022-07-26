@@ -24,12 +24,19 @@ import java.util.List;
 
 import Model.BaseData;
 import Model.City;
+import Model.CoronaData;
+import Tools.DateFormatTool;
 
 public class FirebaseSvc
 {
+    private static final String LOG_TAG = FirebaseSvc.class.getName();
+
     private static FirebaseSvc firebaseInstance; //Singleton
+
     private static final String PATH_CITY_DATA = "CoronaData"; //Name der Firebase-"Tabelle"
-    private static final String PATH_BASE_DATA = "BaseDataHashMap";
+    private static final String PATH_BASE_DATA = "BaseData";
+    private static final String PATH_MIT_DATUM = "CoronaDataMitDatum";
+
     private final DatabaseReference db; //root
     private final DatabaseReference coronaDataPath;
     private final DatabaseReference baseDataPath;
@@ -43,6 +50,8 @@ public class FirebaseSvc
         return firebaseInstance;
     }
 
+    //Read data
+
     private FirebaseSvc()
     {
         FirebaseDatabase instance = FirebaseDatabase.getInstance(); //TODO variable umbenennen weil doppeldeutig
@@ -51,6 +60,8 @@ public class FirebaseSvc
         coronaDataPath = instance.getReference(PATH_CITY_DATA);
         baseDataPath = instance.getReference(PATH_BASE_DATA);
     }
+
+    //TODO Alle Listener aus den Methoden auslagern (mehrere machen)
 
     /**
      *
@@ -81,7 +92,7 @@ public class FirebaseSvc
                             return;
                         }
                         int objectId = baseData.getObjectId();
-                        Log.i("Firebase", "The objectId of '" + cityName + "' is '" + objectId + "'.");
+                        Log.i(LOG_TAG, "The objectId of '" + cityName + "' is '" + objectId + "'.");
                         responseListener.onResponse(objectId);
                         return;
                     }
@@ -100,12 +111,6 @@ public class FirebaseSvc
                 responseListener.onError(buildMsgGetId(cityName) + "\n" + error.getMessage());
             }
         });
-    }
-
-    private String buildMsgGetId(String cityName)
-    {
-        return "Beim Versuch, die objectId für '" + cityName
-                + "' herauszufinden, ist ein Fehler aufgetreten";
     }
 
     public void getCity(int objectId, @NonNull DataSvc.CityResponseListener responseListener)
@@ -134,101 +139,6 @@ public class FirebaseSvc
         });
     }
 
-    /**
-     * DOKU: https://firebase.google.com/docs/database/android/read-and-write
-     * @param city Java-Objekt, welches in der DB gespeichert wird.
-     * Für den Zugriff benötigt die Klasse einen Standard-Konstruktor und public getter
-     */
-    public void saveCityData(@NonNull City city) //TODO mehrere Tage speichern
-    {
-        String objectIdStr = Integer.toString(city.getObjectId());
-        encodeCity(city);
-        db.child(PATH_CITY_DATA).child(objectIdStr).setValue(city)
-                .addOnSuccessListener(new OnSuccessListener<Void>()
-        {
-            @Override
-            public void onSuccess(Void unused)
-            {
-                Log.d("firebase", "City 'objectId " + objectIdStr
-                + "' successfully stored to the firebase database.");
-            }
-        }).addOnFailureListener(new OnFailureListener()
-        {
-            @Override
-            public void onFailure(@NonNull Exception e)
-            {
-                Log.e("firebase", "Saving city ' +" + objectIdStr
-                +"' failed", e);
-            }
-        });
-    }
-
-    public void saveBaseData(@NonNull BaseData baseData)
-    {
-        String objectIdStr = Integer.toString(baseData.getObjectId());
-        encodeBaseData(baseData);
-        db.child("BaseData").child(objectIdStr).setValue(baseData)
-                .addOnSuccessListener(new OnSuccessListener<Void>()
-        {
-            @Override
-            public void onSuccess(Void unused)
-            {
-                Log.d("firebase", "baseData 'objectId " + objectIdStr
-                        + "' successfully stored to the firebase database.");
-            }
-        }).addOnFailureListener(new OnFailureListener()
-        {
-            @Override
-            public void onFailure(@NonNull Exception e)
-            {
-                Log.e("firebase", "Saving baseData ' +" + objectIdStr
-                        +"' failed", e);
-            }
-        });
-    }
-
-    public void saveBaseDataList(@NonNull List<BaseData> baseDataList)
-    {
-        HashMap<String, BaseData> map = new HashMap<>();
-        for(BaseData baseData : baseDataList)
-        {
-            if(baseData == null)
-            {
-                continue;
-            }
-            encodeBaseData(baseData);
-            map.put(Integer.toString(baseData.getObjectId()), baseData);
-        }
-
-        baseDataPath.setValue(map)
-                .addOnSuccessListener(new OnSuccessListener<Void>()
-        {
-            @Override
-            public void onSuccess(Void unused)
-            {
-                Log.d("firebase", "baseDataList successfully stored to the firebase database.");
-            }
-        }).addOnFailureListener(new OnFailureListener()
-        {
-            @Override
-            public void onFailure(@NonNull Exception e)
-            {
-                Log.e("firebase", "Saving baseDataList failed.", e);
-            }
-        });
-    }
-
-//    public void saveAllBaseData(List<BaseData> baseDataList, List<String> listOfEntries)
-//    {
-//        for(BaseData baseData : baseDataList)
-//        {
-//            saveBaseData(baseData);
-//            listOfEntries.add(baseData.getCityName());
-//
-//            Log.d("DataSvc", "The basedata of all german cities was stored in the SQLite database.");
-//        }
-//    }
-
     public void getAllBaseData(@NonNull DataSvc.BaseDataResponseListener responseListener)
     {
         baseDataPath.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>()
@@ -247,7 +157,7 @@ public class FirebaseSvc
                         baseDataList = dataSnapshot.getValue(genericTypeIndicator); //TODO dann kann man die Daten doch auch so speichern oder?
                     } catch (Exception e)
                     {
-                      Log.e("Firebase", e.getMessage());
+                        Log.e(LOG_TAG, e.getMessage());
                     }
 
                     if(baseDataList != null && !baseDataList.isEmpty())
@@ -260,6 +170,141 @@ public class FirebaseSvc
             }
         });
     }
+
+    //Save data
+
+    public void saveCityDataSeparated(City city)
+    {
+        if(city == null)
+        {
+            Log.i(LOG_TAG, "city is null, abord saving");
+            return;
+        }
+
+        saveBaseData(city.getBaseData());
+        saveCoronaDataWithDate(city.getCoronaData());
+    }
+
+    /**
+     * DOKU: https://firebase.google.com/docs/database/android/read-and-write
+     * @param city Java-Objekt, welches in der DB gespeichert wird.
+     * Für den Zugriff benötigt die Klasse einen Standard-Konstruktor und public getter.
+     * @deprecated Use {@link #saveCityDataSeparated(City)} instead.
+     */
+    @Deprecated
+    public void saveCityData(@NonNull City city)
+    {
+        String objectIdStr = Integer.toString(city.getObjectId());
+        encodeCity(city);
+        db.child(PATH_CITY_DATA).child(objectIdStr).setValue(city)
+                .addOnSuccessListener(new OnSuccessListener<Void>()
+        {
+            @Override
+            public void onSuccess(Void unused)
+            {
+                Log.d(LOG_TAG, "City 'objectId " + objectIdStr
+                + "' successfully stored to the firebase database.");
+            }
+        }).addOnFailureListener(new OnFailureListener()
+        {
+            @Override
+            public void onFailure(@NonNull Exception e)
+            {
+                Log.e(LOG_TAG, "Saving city ' +" + objectIdStr
+                +"' failed", e);
+            }
+        });
+    }
+
+    public void saveCoronaDataWithDate(CoronaData coronaData)
+    {
+        if(coronaData == null)
+        {
+            return;
+        }
+
+        String objectIdStr = Integer.toString(coronaData.getObjectId());
+        HashMap<String, CoronaData> map = new HashMap<>();
+        String key = DateFormatTool.germanToSort(coronaData.getLast_update());
+        map.put(key, coronaData);
+
+        db.child(PATH_MIT_DATUM).child(objectIdStr).setValue(map).addOnSuccessListener(new OnSuccessListener<Void>()
+        {
+            @Override
+            public void onSuccess(Void unused)
+            {
+                Log.d(LOG_TAG, "CoronaData with id '" + objectIdStr + "' successfully saved.");
+            }
+        });
+    }
+
+    public void saveBaseData(BaseData baseData)
+    {
+        if(baseData == null)
+        {
+            return;
+        }
+
+        int objectId = baseData.getObjectId();
+
+        baseDataPath.child(Integer.toString(objectId)).setValue(baseData).addOnSuccessListener(new OnSuccessListener<Void>()
+        {
+            @Override
+            public void onSuccess(Void unused)
+            {
+                Log.d(LOG_TAG, String.format("BaseData with objectId '%s' successfully " +
+                        "stored to the firebase database.", objectId));
+            }
+        }).addOnFailureListener(new OnFailureListener()
+        {
+            @Override
+            public void onFailure(@NonNull Exception e)
+            {
+                Log.e(LOG_TAG, String.format("BaseData with objectId '%s' could not be" +
+                        " stored to the firebase database.", objectId));
+            }
+        });
+    }
+
+    /**
+     * Overwrites the existing data in the path!
+     * @param list
+     */
+    public void saveBaseDataList(List<BaseData> list)
+    {
+        if(list == null || list.isEmpty())
+        {
+            return;
+        }
+        HashMap<String, BaseData> map = new HashMap<>();
+        for(BaseData baseData : list)
+        {
+            if(baseData == null)
+            {
+                continue;
+            }
+            encodeBaseData(baseData);
+            map.put(Integer.toString(baseData.getObjectId()), baseData);
+        }
+
+        baseDataPath.setValue(map).addOnSuccessListener(new OnSuccessListener<Void>()
+        {
+            @Override
+            public void onSuccess(Void unused)
+            {
+                Log.d(LOG_TAG, "baseDataList successfully stored to the firebase database.");
+            }
+        }).addOnFailureListener(new OnFailureListener()
+        {
+            @Override
+            public void onFailure(@NonNull Exception e)
+            {
+                Log.e(LOG_TAG, "Saving baseDataList failed.", e);
+            }
+        });
+    }
+
+    //Other
 
     /**
      * @param cityData Model. Wird als Referenz übergeben => Kein return notwendig, da auf der
@@ -311,4 +356,9 @@ public class FirebaseSvc
                 .replace("_", "__");
     }
 
+    private String buildMsgGetId(String cityName) //TODO wenn res nutzen
+    {
+        return "Beim Versuch, die objectId für '" + cityName
+                + "' herauszufinden, ist ein Fehler aufgetreten";
+    }
 }

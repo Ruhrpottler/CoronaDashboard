@@ -90,7 +90,8 @@ public class MainActivity extends AppCompatActivity {
                     public void onResponse(City city)
                     {
                         tvErgebnisse.setText(city.toString());
-                        firebaseSvc.saveCityData(city);
+                        firebaseSvc.saveCityDataSeparated(city);
+                        //firebaseSvc.saveCoronaDataWithDate(city.getCoronaData());
                     }
                 });
 
