@@ -4,14 +4,13 @@ import Tools.FormatTool;
 
 public class CoronaData
 {
-    private int objectId; //Primärschlüssel
-    //Allgemein
+    //(Primary-) Key
+    private int objectId;
+    //General
     private String last_update;
-    //TODO Datentyp Date nutzen
-    //TODO see https://firebase.google.com/docs/reference/android/com/google/firebase/Timestamp
-    //TODO see eclipse
 
-    //Corona-Daten City
+    //TODO genesene (recovered) hinzufügen
+    //Corona-Data of the city
     private double death_rate;
     private int cases;
     private int deaths;
@@ -21,7 +20,7 @@ public class CoronaData
     private int cases7_lk;
     private int death7_lk;
 
-    //Corona-Daten Bundesland
+    //Corona-Data of the federal state
     private double cases7_bl_per_100k;
     private int cases7_bl;
     private int death7_bl;

@@ -172,8 +172,9 @@ public class FirebaseSvc
     }
 
     //Save data
+    //Objects which will be stored need a default constructor and public getters
 
-    public void saveCityDataSeparated(City city)
+    public void saveCityData(City city)
     {
         if(city == null)
         {
@@ -182,41 +183,10 @@ public class FirebaseSvc
         }
 
         saveBaseData(city.getBaseData());
-        saveCoronaDataWithDate(city.getCoronaData());
+        saveCoronaData(city.getCoronaData());
     }
 
-    /**
-     * DOKU: https://firebase.google.com/docs/database/android/read-and-write
-     * @param city Java-Objekt, welches in der DB gespeichert wird.
-     * Für den Zugriff benötigt die Klasse einen Standard-Konstruktor und public getter.
-     * @deprecated Use {@link #saveCityDataSeparated(City)} instead.
-     */
-    @Deprecated
-    public void saveCityData(@NonNull City city)
-    {
-        String objectIdStr = Integer.toString(city.getObjectId());
-        encodeCity(city);
-        db.child(PATH_CITY_DATA).child(objectIdStr).setValue(city)
-                .addOnSuccessListener(new OnSuccessListener<Void>()
-        {
-            @Override
-            public void onSuccess(Void unused)
-            {
-                Log.d(LOG_TAG, "City 'objectId " + objectIdStr
-                + "' successfully stored to the firebase database.");
-            }
-        }).addOnFailureListener(new OnFailureListener()
-        {
-            @Override
-            public void onFailure(@NonNull Exception e)
-            {
-                Log.e(LOG_TAG, "Saving city ' +" + objectIdStr
-                +"' failed", e);
-            }
-        });
-    }
-
-    public void saveCoronaDataWithDate(CoronaData coronaData)
+    public void saveCoronaData(CoronaData coronaData)
     {
         if(coronaData == null)
         {
@@ -228,7 +198,7 @@ public class FirebaseSvc
         String key = DateFormatTool.germanToSort(coronaData.getLast_update());
         map.put(key, coronaData);
 
-        db.child(PATH_MIT_DATUM).child(objectIdStr).setValue(map).addOnSuccessListener(new OnSuccessListener<Void>()
+        db.child(PATH_MIT_DATUM).child(objectIdStr).child("CoronaData").setValue(map).addOnSuccessListener(new OnSuccessListener<Void>()
         {
             @Override
             public void onSuccess(Void unused)
@@ -239,6 +209,31 @@ public class FirebaseSvc
     }
 
     public void saveBaseData(BaseData baseData)
+    {
+
+        if(baseData == null)
+        {
+            return;
+        }
+
+        String objectIdStr = Integer.toString(baseData.getObjectId());
+        db.child(PATH_MIT_DATUM).child(objectIdStr).child("BaseData").setValue(baseData).addOnCompleteListener(new OnCompleteListener<Void>()
+        {
+            @Override
+            public void onComplete(@NonNull Task<Void> task)
+            {
+                Log.d(LOG_TAG, String.format("BaseData with objectId '%s' successfully " +
+                        "stored to the firebase database.", objectIdStr));
+            }
+        });
+    }
+
+    /**
+     * Saves the data in the path where the list of baseData will be stored when the
+     * app starts.
+     * @param baseData
+     */
+    public void saveBaseDataInMapPath(BaseData baseData)
     {
         if(baseData == null)
         {
