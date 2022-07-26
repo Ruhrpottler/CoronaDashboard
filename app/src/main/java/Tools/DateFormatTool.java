@@ -2,42 +2,64 @@ package Tools;
 
 import android.util.Log;
 
-public class DateFormatTool //extends FormatTool
+import androidx.annotation.NonNull;
+
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
+import java.time.temporal.TemporalAccessor;
+
+public class DateFormatTool
 {
+    private static final String FORMAT_GER = "dd.MM.yyyy";
+    private static final String FORMAT_SORT = "yyMMdd";
+    //private boolean validate
 
     /**
-     *
+     * Validates the input-format and converts it.
      * @param input format dd.MM.yyyy
      * @return format yyMMdd
      */
-    public static String convertDateToString(String input) //TODO UnitTests schreiben
+    public static String validateAndConvertDateGermanToSortFormat(@NonNull String input) //TODO UnitTests schreiben
     {
-        if(input == null || input.isEmpty())
+        return validateAndConvert(input, FORMAT_GER, FORMAT_SORT);
+    }
+
+    /**
+     * Validates the input-format and converts it.
+     * @param input format yyMMdd
+     * @return format dd.MM.yyyy
+     */
+    public static String validateAndConvertDateSortFormatToGerman(@NonNull String input)
+    {
+        return validateAndConvert(input, FORMAT_SORT, FORMAT_GER);
+    }
+
+    private static String validateAndConvert(String input, String formatFrom, String formatTo)
+    {
+        if(input == null && input.isEmpty())
         {
-            throw new IllegalArgumentException("String date is null or emtpy.");
+            throw new IllegalArgumentException("String input is null or empty.");
         }
-        input = input.trim();
-        if(input.length() != 10)
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(formatFrom)
+                .withResolverStyle(ResolverStyle.STRICT);
+        String result;
+        try
         {
-            throw new IllegalArgumentException("String date has an incorrect format, should be 'DD.MM.YYYY'.");
+            TemporalAccessor ta = formatter.parse(input);
+            formatter = DateTimeFormatter.ofPattern(formatFrom)
+                    .withResolverStyle(ResolverStyle.STRICT);
+            result = formatter.format(ta);
+        }
+        catch(DateTimeParseException e)
+        {
+            Log.e(DateFormatTool.class.toString(),
+                    String.format("The date '%s' has an invalid date format, should be '%s'.", input, formatFrom));
+            return input; //TODO Exception Handling
         }
 
-        int index = input.indexOf(".");
-        if(index != 2)
-        {
-            throw new IllegalArgumentException("Format incorrect");
-        }
-        String day = input.substring(0, index);
-        input = input.substring(++index);
-        String month = input.substring(0, --index);
-        input = input.substring(++index);
-        String year = input.substring(2);
-        String result = year+month+day;
-        if(result.length() != 6)
-        {
-            throw new IllegalArgumentException("String date has an incorrect format. Format should be 'DD.MM.YYYY'.");
-        }
-        Log.d(DateFormatTool.class.toString(), String.format("Converted date '%s' to format yyMMDD. Result: '%s'", input, result));
+        Log.d(DateFormatTool.class.toString(),
+                String.format("Converted date '%s' to format '%s'. Result: '%s'", input, formatTo, result));
         return result;
     }
 }
