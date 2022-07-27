@@ -18,14 +18,14 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.database.core.Path;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
+import Comparator.LastUpdateComparator;
 import Model.BaseData;
 import Model.City;
 import Model.CoronaData;
@@ -126,7 +126,7 @@ public class FirebaseSvc
         //Path p = db.child(PATH_MIT_DATUM).child(objectIdStr).child("CoronaData").orderByKey().limitToLast(1).get();
 
         Task<DataSnapshot> taskCoronaData =
-                db.child(PATH_MIT_DATUM).child(objectIdStr).child("CoronaData").orderByKey().limitToLast(1).get();
+                db.child(PATH_MIT_DATUM).child(objectIdStr).child("CoronaData").orderByKey().limitToFirst(1).get();
 
         //Task<DataSnapshot> taskCoronaData = db.child(PATH_MIT_DATUM).child(objectIdStr).child("CoronaData").child("220727").get(); //TODO hardcoded
         Task<Void> syncedTasks = Tasks.whenAll(taskBaseData, taskCoronaData);
@@ -172,21 +172,12 @@ public class FirebaseSvc
         if (taskCoronaData != null && taskCoronaData.isSuccessful()
                 && taskCoronaData.getResult() != null && taskCoronaData.getResult().exists())
         {
-//            DataSnapshot dataSnapshot = taskCoronaData.getResult();
-//            coronaData = dataSnapshot.getValue(CoronaData.class);
             DataSnapshot dataSnapshot = taskCoronaData.getResult();
-            GenericTypeIndicator<Map<String, CoronaData>> genericTypeIndicator =
-                    new GenericTypeIndicator<Map<String, CoronaData>>() {};
-            Map<String, CoronaData> map = dataSnapshot.getValue(genericTypeIndicator);
-
-//            Optional<String> firstKey = map.keySet().stream().findFirst();
-//            String key;
-//            if (!firstKey.isPresent()) {
-//                 return null;
-//            }
-//            key = firstKey.get();
-            String key = "220727";
-            coronaData = map.get(key); //TODO hardcoded
+            GenericTypeIndicator<HashMap<String, CoronaData>> genericTypeIndicator =
+                    new GenericTypeIndicator<HashMap<String, CoronaData>>() {};
+            HashMap<String, CoronaData> map = dataSnapshot.getValue(genericTypeIndicator);
+            Comparator<CoronaData> cmp = new LastUpdateComparator().reversed();
+            coronaData = getFirstCoronaDataFromMap(map, cmp);
         }
 
         City city;
@@ -199,6 +190,33 @@ public class FirebaseSvc
             city = null;
         }
         return city;
+    }
+
+    private CoronaData getFirstCoronaDataFromMap(Map<String, CoronaData> map, Comparator<CoronaData> cmp)
+    {
+        List<CoronaData> list = getCoronaDataListFromMap(map, cmp);
+        if(list == null || list.isEmpty())
+        {
+            return null;
+        }
+        return list.get(0);
+    }
+
+    private List<CoronaData> getCoronaDataListFromMap(Map<String, CoronaData> map, Comparator<CoronaData> cmp)
+    {
+        List<CoronaData> list = new ArrayList<CoronaData>();
+        if(map == null || map.isEmpty())
+        {
+            return list;
+        }
+
+        for(CoronaData elem : map.values())
+        {
+            list.add(elem);
+        }
+
+        list.sort(cmp); //TODO return directly
+        return list;
     }
 
     public void getAllBaseData(@NonNull DataSvc.BaseDataListResponseListener responseListener)
