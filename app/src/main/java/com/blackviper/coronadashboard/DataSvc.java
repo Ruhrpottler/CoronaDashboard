@@ -9,7 +9,6 @@ import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.NoConnectionError;
 import com.android.volley.Request;
 import com.android.volley.Response;
-import com.android.volley.RetryPolicy;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 
@@ -249,16 +248,16 @@ public class DataSvc
                 getCityByObjectId(objectId, new CityResponseListener()
                 {
                     @Override
+                    public void onResponse(City city)
+                    {
+                        cityResponseListener.onResponse(city);
+                    }
+
+                    @Override
                     public void onError(String message)
                     {
                         Toast.makeText(activityContext, message, Toast.LENGTH_LONG).show();
                         Log.e("DataSvc", message);
-                    }
-
-                    @Override
-                    public void onResponse(City city)
-                    {
-                        cityResponseListener.onResponse(city);
                     }
                 });
             }
@@ -327,7 +326,14 @@ public class DataSvc
         return new String[]{firstPart, fullString.replace(firstPart, "").trim()};
     }
 
-    public interface BaseDataResponseListener
+    public interface BaseDataResponseListener //Kann man evtl. weglassen und stattdessen den list-Listener nutzen
+    {
+        void onError(String message);
+
+        void onResponse(BaseData baseData);
+    }
+
+    public interface BaseDataListResponseListener
     {
         void onError(String message);
 
@@ -337,7 +343,7 @@ public class DataSvc
     /**
      * Get list with all Cities in Germany
      */
-    public void getAllCities(BaseDataResponseListener responseListener)
+    public void getAllCities(BaseDataListResponseListener responseListener)
     {
 
         String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/"
@@ -433,7 +439,7 @@ public class DataSvc
 
     public void fillActvCity(AutoCompleteTextView actv_city, Context activityContext, ActvSetupResponseListener responseListener)
     {
-        getAllCities(new BaseDataResponseListener()
+        getAllCities(new BaseDataListResponseListener()
         {
             @Override
             public void onError(String message)

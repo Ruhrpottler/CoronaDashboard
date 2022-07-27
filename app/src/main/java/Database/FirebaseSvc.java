@@ -9,6 +9,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseException;
@@ -17,10 +18,13 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.database.core.Path;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import Model.BaseData;
 import Model.City;
@@ -38,8 +42,8 @@ public class FirebaseSvc
     private static final String PATH_MIT_DATUM = "CoronaDataMitDatum";
 
     private final DatabaseReference db; //root
-    private final DatabaseReference coronaDataPath;
-    private final DatabaseReference baseDataPath;
+    private final DatabaseReference coronaDataRef;
+    private final DatabaseReference baseDataRef;
 
     public static FirebaseSvc getFirebaseInstance() //Singleton
     {
@@ -55,8 +59,8 @@ public class FirebaseSvc
         FirebaseDatabase instance = FirebaseDatabase.getInstance(); //TODO variable umbenennen weil doppeldeutig
         instance.setPersistenceEnabled(true); // Daten offline speichern, auch bei Neustart etc, see https://firebase.google.com/docs/database/android/offline-capabilities
         db = instance.getReference();
-        coronaDataPath = instance.getReference(PATH_CITY_DATA);
-        baseDataPath = instance.getReference(PATH_BASE_DATA);
+        coronaDataRef = instance.getReference(PATH_CITY_DATA);
+        baseDataRef = instance.getReference(PATH_BASE_DATA);
     }
 
     //TODO Alle Listener aus den Methoden auslagern (mehrere machen)
@@ -70,7 +74,7 @@ public class FirebaseSvc
      */
     public void getObjectIdByName(String cityName, @NonNull DataSvc.ObjectIdResponseListener responseListener)
     {
-        Query query = baseDataPath.orderByChild("cityName").equalTo(cityName).limitToFirst(1);
+        Query query = baseDataRef.orderByChild("cityName").equalTo(cityName).limitToFirst(1); //TODO Pfad umstellen?!
         query.addValueEventListener(new ValueEventListener()
         {
             @Override
@@ -113,37 +117,93 @@ public class FirebaseSvc
         });
     }
 
-    //TODO An neue Datenstruktur anpassen, Base- und CoronaData müssen zusammengesetzt werden
-    //Dafür muss man zwie Callbacks quasi syncen --> ask google
     public void getCity(int objectId, @NonNull DataSvc.CityResponseListener responseListener)
     {
         String objectIdStr = Integer.toString(objectId);
+        Task<DataSnapshot> taskBaseData = db.child(PATH_MIT_DATUM).child(objectIdStr).child(PATH_BASE_DATA).get();
 
-        coronaDataPath.child(objectIdStr).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>()
+        //Task<DataSnapshot> taskCoronaData = db.child(PATH_MIT_DATUM).child(objectIdStr).orderByChild("CoronaData").limitToFirst(1).get();
+        //Path p = db.child(PATH_MIT_DATUM).child(objectIdStr).child("CoronaData").orderByKey().limitToLast(1).get();
+
+        Task<DataSnapshot> taskCoronaData =
+                db.child(PATH_MIT_DATUM).child(objectIdStr).child("CoronaData").orderByKey().limitToLast(1).get();
+
+        //Task<DataSnapshot> taskCoronaData = db.child(PATH_MIT_DATUM).child(objectIdStr).child("CoronaData").child("220727").get(); //TODO hardcoded
+        Task<Void> syncedTasks = Tasks.whenAll(taskBaseData, taskCoronaData);
+        syncedTasks.addOnSuccessListener(new OnSuccessListener<Void>()
         {
             @Override
-            public void onComplete(@NonNull Task<DataSnapshot> task)
+            public void onSuccess(Void unused)
             {
-                if (task.isSuccessful() && task.getResult() != null && task.getResult().exists())
+                City city = getCityFromTasks(taskBaseData, taskCoronaData);
+                if(city != null)
                 {
-                    DataSnapshot dataSnapshot = task.getResult();
-                    City city = dataSnapshot.getValue(City.class);
-                    if(city != null)
-                    {
-                        responseListener.onResponse(city);
-                        return;
-                    }
+                    responseListener.onResponse(city);
                 }
-                String msg = "Daten von City " + objectIdStr + " konnten nicht aus der lokalen Firebase-Datenbank gelesen werden.";
-                Log.e("Firebase", msg);
-                responseListener.onError(msg);
+                else
+                {
+                    responseListener.onError("Daten von City " + objectIdStr
+                            + " konnten nicht aus der lokalen Firebase-Datenbank gelesen werden.");
+                }
+            }
+        });
+        syncedTasks.addOnFailureListener(new OnFailureListener()
+        {
+            @Override
+            public void onFailure(@NonNull Exception e)
+            {
+                responseListener.onError("Daten von City " + objectIdStr
+                        + " konnten nicht aus der lokalen Firebase-Datenbank gelesen werden.");
             }
         });
     }
 
-    public void getAllBaseData(@NonNull DataSvc.BaseDataResponseListener responseListener)
+    private City getCityFromTasks(Task<DataSnapshot> taskBaseData, Task<DataSnapshot> taskCoronaData)
     {
-        baseDataPath.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>()
+        BaseData baseData = null;
+        CoronaData coronaData = null;
+        if (taskBaseData != null && taskBaseData.isSuccessful()
+                && taskBaseData.getResult() != null && taskBaseData.getResult().exists())
+        {
+            DataSnapshot dataSnapshot = taskBaseData.getResult();
+            baseData = dataSnapshot.getValue(BaseData.class);
+        }
+
+        if (taskCoronaData != null && taskCoronaData.isSuccessful()
+                && taskCoronaData.getResult() != null && taskCoronaData.getResult().exists())
+        {
+//            DataSnapshot dataSnapshot = taskCoronaData.getResult();
+//            coronaData = dataSnapshot.getValue(CoronaData.class);
+            DataSnapshot dataSnapshot = taskCoronaData.getResult();
+            GenericTypeIndicator<Map<String, CoronaData>> genericTypeIndicator =
+                    new GenericTypeIndicator<Map<String, CoronaData>>() {};
+            Map<String, CoronaData> map = dataSnapshot.getValue(genericTypeIndicator);
+
+//            Optional<String> firstKey = map.keySet().stream().findFirst();
+//            String key;
+//            if (!firstKey.isPresent()) {
+//                 return null;
+//            }
+//            key = firstKey.get();
+            String key = "220727";
+            coronaData = map.get(key); //TODO hardcoded
+        }
+
+        City city;
+        if(baseData != null && coronaData != null)
+        {
+            city = new City(baseData, coronaData);
+        }
+        else
+        {
+            city = null;
+        }
+        return city;
+    }
+
+    public void getAllBaseData(@NonNull DataSvc.BaseDataListResponseListener responseListener)
+    {
+        baseDataRef.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>()
         {
             @Override
             public void onComplete(@NonNull Task<DataSnapshot> task)
@@ -242,7 +302,7 @@ public class FirebaseSvc
 
         int objectId = baseData.getObjectId();
 
-        baseDataPath.child(Integer.toString(objectId)).setValue(baseData).addOnSuccessListener(new OnSuccessListener<Void>()
+        baseDataRef.child(Integer.toString(objectId)).setValue(baseData).addOnSuccessListener(new OnSuccessListener<Void>()
         {
             @Override
             public void onSuccess(Void unused)
@@ -282,7 +342,7 @@ public class FirebaseSvc
             map.put(Integer.toString(baseData.getObjectId()), baseData);
         }
 
-        baseDataPath.setValue(map).addOnSuccessListener(new OnSuccessListener<Void>()
+        baseDataRef.setValue(map).addOnSuccessListener(new OnSuccessListener<Void>()
         {
             @Override
             public void onSuccess(Void unused)

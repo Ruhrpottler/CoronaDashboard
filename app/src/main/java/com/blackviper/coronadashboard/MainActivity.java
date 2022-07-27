@@ -90,8 +90,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onResponse(City city)
                     {
                         tvErgebnisse.setText(city.toString());
-                        firebaseSvc.saveCityData(city);
-                        //firebaseSvc.saveCoronaDataWithDate(city.getCoronaData());
+                        firebaseSvc.saveCityData(city); //TODO Daten nicht speichern, wenn sie offline gezogen wurden.
                     }
                 });
 
