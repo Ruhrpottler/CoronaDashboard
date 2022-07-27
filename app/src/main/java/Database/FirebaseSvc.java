@@ -50,8 +50,6 @@ public class FirebaseSvc
         return firebaseInstance;
     }
 
-    //Read data
-
     private FirebaseSvc()
     {
         FirebaseDatabase instance = FirebaseDatabase.getInstance(); //TODO variable umbenennen weil doppeldeutig
@@ -62,6 +60,8 @@ public class FirebaseSvc
     }
 
     //TODO Alle Listener aus den Methoden auslagern (mehrere machen)
+
+    //Read data
 
     /**
      *
@@ -113,6 +113,8 @@ public class FirebaseSvc
         });
     }
 
+    //TODO An neue Datenstruktur anpassen, Base- und CoronaData müssen zusammengesetzt werden
+    //Dafür muss man zwie Callbacks quasi syncen --> ask google
     public void getCity(int objectId, @NonNull DataSvc.CityResponseListener responseListener)
     {
         String objectIdStr = Integer.toString(objectId);
@@ -154,7 +156,7 @@ public class FirebaseSvc
                         DataSnapshot dataSnapshot = task.getResult();
                         GenericTypeIndicator<ArrayList<BaseData>> genericTypeIndicator =
                                 new GenericTypeIndicator<ArrayList<BaseData>>() {};
-                        baseDataList = dataSnapshot.getValue(genericTypeIndicator); //TODO dann kann man die Daten doch auch so speichern oder?
+                        baseDataList = dataSnapshot.getValue(genericTypeIndicator);
                     } catch (Exception e)
                     {
                         Log.e(LOG_TAG, e.getMessage());
@@ -194,16 +196,14 @@ public class FirebaseSvc
         }
 
         String objectIdStr = Integer.toString(coronaData.getObjectId());
-        HashMap<String, CoronaData> map = new HashMap<>();
         String key = DateFormatTool.germanToSort(coronaData.getLast_update());
-        map.put(key, coronaData);
 
-        db.child(PATH_MIT_DATUM).child(objectIdStr).child("CoronaData").setValue(map).addOnSuccessListener(new OnSuccessListener<Void>()
+        db.child(PATH_MIT_DATUM).child(objectIdStr).child("CoronaData").child(key).setValue(coronaData).addOnSuccessListener(new OnSuccessListener<Void>()
         {
             @Override
             public void onSuccess(Void unused)
             {
-                Log.d(LOG_TAG, "CoronaData with id '" + objectIdStr + "' successfully saved.");
+                Log.d(LOG_TAG, "CoronaData with id '" + objectIdStr + "' successfully saved."); //TODO add date to log
             }
         });
     }
