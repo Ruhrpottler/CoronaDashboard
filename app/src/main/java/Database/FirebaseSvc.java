@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import Comparator.CoronaDataComparator;
 import Comparator.LastUpdateComparator;
 import Model.BaseData;
 import Model.City;
@@ -120,15 +121,19 @@ public class FirebaseSvc
     public void getCity(int objectId, @NonNull DataSvc.CityResponseListener responseListener)
     {
         String objectIdStr = Integer.toString(objectId);
-        Task<DataSnapshot> taskBaseData = db.child(PATH_MIT_DATUM).child(objectIdStr).child(PATH_BASE_DATA).get();
+        Task<DataSnapshot> taskBaseData = db
+                .child(PATH_MIT_DATUM)
+                .child(objectIdStr)
+                .child(PATH_BASE_DATA)
+                .get();
+        Task<DataSnapshot> taskCoronaData = db
+                .child(PATH_MIT_DATUM)
+                .child(objectIdStr)
+                .child("CoronaData")
+                .orderByKey()
+                .limitToFirst(1)
+                .get();
 
-        //Task<DataSnapshot> taskCoronaData = db.child(PATH_MIT_DATUM).child(objectIdStr).orderByChild("CoronaData").limitToFirst(1).get();
-        //Path p = db.child(PATH_MIT_DATUM).child(objectIdStr).child("CoronaData").orderByKey().limitToLast(1).get();
-
-        Task<DataSnapshot> taskCoronaData =
-                db.child(PATH_MIT_DATUM).child(objectIdStr).child("CoronaData").orderByKey().limitToFirst(1).get();
-
-        //Task<DataSnapshot> taskCoronaData = db.child(PATH_MIT_DATUM).child(objectIdStr).child("CoronaData").child("220727").get(); //TODO hardcoded
         Task<Void> syncedTasks = Tasks.whenAll(taskBaseData, taskCoronaData);
         syncedTasks.addOnSuccessListener(new OnSuccessListener<Void>()
         {
@@ -214,8 +219,7 @@ public class FirebaseSvc
         {
             list.add(elem);
         }
-
-        list.sort(cmp); //TODO return directly
+        list.sort(cmp);
         return list;
     }
 

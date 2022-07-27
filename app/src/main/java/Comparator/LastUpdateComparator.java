@@ -5,18 +5,18 @@ import java.util.Comparator;
 import Model.CoronaData;
 import Tools.DateFormatTool;
 
-public class LastUpdateComparator implements Comparator<CoronaData>
+public class LastUpdateComparator extends CoronaDataComparator implements Comparator<CoronaData>
 {
-    /**
+    /** Sort by last_update
      * First object will be the oldest, last the newest.
      * Use comparator.reversed() for the reversed order.
      */
     @Override
     public int compare(CoronaData a, CoronaData b)
     {
-        if(a == null && b == null)
+        if(a == null || b == null)
         {
-            return 0;
+            return super.compare(a, b);
         }
 
         String dateA = DateFormatTool.germanToSort(a.getLast_update());
