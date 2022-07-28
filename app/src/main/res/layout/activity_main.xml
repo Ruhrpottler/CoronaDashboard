@@ -14,7 +14,7 @@
         android:layout_marginTop="32dp"
         android:layout_marginEnd="205dp"
         android:backgroundTint="@color/dark_blue"
-        android:text="Daten abrufen"
+        android:text="@string/btnSendRequest_text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/actv_Landkreis" />
@@ -38,7 +38,7 @@
         android:layout_marginStart="50dp"
         android:layout_marginTop="49dp"
         android:layout_marginEnd="50dp"
-        android:hint="Kreis oder kreisfreie Stadt"
+        android:hint="@string/actv_hint"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -53,5 +53,17 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btn_sendRequest" />
+
+    <ImageView
+        android:id="@+id/ic_offline"
+        android:layout_width="51dp"
+        android:layout_height="42dp"
+        android:layout_marginTop="32dp"
+        android:contentDescription="@string/ic_offline_desc"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/btn_sendRequest"
+        app:layout_constraintTop_toBottomOf="@+id/actv_Landkreis"
+        app:srcCompat="@drawable/ic_baseline_signal_wifi_off_24" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

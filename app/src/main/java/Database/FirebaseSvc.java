@@ -258,7 +258,7 @@ public class FirebaseSvc
     //Save data
     //Objects which will be stored need a default constructor and public getters
 
-    public void saveCityData(City city)
+    public void saveCityData(City city) //TODO responseListener??
     {
         if(city == null)
         {
@@ -266,7 +266,7 @@ public class FirebaseSvc
             return;
         }
 
-        saveBaseData(city.getBaseData());
+        saveBaseData(city.getBaseData()); //TODO eig. nicht mehr notwendig
         saveCoronaData(city.getCoronaData());
     }
 
@@ -286,6 +286,14 @@ public class FirebaseSvc
             public void onSuccess(Void unused)
             {
                 Log.d(LOG_TAG, "CoronaData with id '" + objectIdStr + "' successfully saved."); //TODO add date to log
+            }
+        }).addOnFailureListener(new OnFailureListener()
+        {
+            @Override
+            public void onFailure(@NonNull Exception e)
+            {
+                Log.e(LOG_TAG, "CoronaData with id '" + objectIdStr + "' could not be stored:\n"
+                        + e.getStackTrace());
             }
         });
     }

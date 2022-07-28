@@ -1,7 +1,9 @@
 package com.blackviper.coronadashboard;
 
+import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
+import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.Toast;
 
@@ -32,6 +34,7 @@ import Model.CoronaData;
 public class DataSvc
 {
     //Klassenattribute
+    private final MainActivity activity;
     private final Context activityContext;
     private final SQLiteDatabaseHelper dbHelper;
     private final FirebaseSvc firebaseSvc = FirebaseSvc.getFirebaseInstance();
@@ -53,8 +56,9 @@ public class DataSvc
 
 
     //Konstuktoren
-    public DataSvc(Context activityContext)
+    public DataSvc(MainActivity activity, Context activityContext)
     {
+        this.activity = activity;
         this.activityContext = activityContext;
         this.dbHelper = new SQLiteDatabaseHelper(activityContext);
     }
@@ -99,6 +103,7 @@ public class DataSvc
             @Override
             public void onResponse(JSONObject response)
             {
+                disableOfflineMode();
                 try
                 {
                     JSONArray objectIDsArray = response.getJSONArray("objectIds");
@@ -137,12 +142,14 @@ public class DataSvc
                 String msg;
                 if(error instanceof NoConnectionError)
                 {
+                    enableOfflineMode();
                     msg = "Verbindung zum Host gescheitert. Es wird versucht, die Daten offline zu finden.";
                     Log.d("DataSvc", msg);
                     firebaseSvc.getObjectIdByName(cityName, responseListener);
                 }
                 else
                 {
+                    disableOfflineMode();
                     msg = "Fehler bei der Verarbeitung der Server-Antwort";
                     Log.d("DataSvc", msg + ": " + error.toString());
                     responseListener.onError(msg + ".");
@@ -183,6 +190,7 @@ public class DataSvc
             @Override
             public void onResponse(JSONObject response)
             {
+                disableOfflineMode();
                 try
                 {
                     JSONArray features = response.getJSONArray("features");
@@ -210,8 +218,13 @@ public class DataSvc
             {
                 if(error instanceof NoConnectionError) //TODO Wenn kein Internet, auf die Firebase DB zugreifen.
                 {
+                    enableOfflineMode();
                     firebaseSvc.getCity(objectId, responseListener); //async
                     return;
+                }
+                else
+                {
+                    disableOfflineMode();
                 }
 
                 //TODO Exception Handling verbessern: Nicht zu viele Details geben. Nur sowas wie "Host unavailable".
@@ -222,6 +235,7 @@ public class DataSvc
         });
         RequestSingleton.getInstance(activityContext).addToRequestQueue(request);
     }
+
 
     /**
      * Callback-Hell
@@ -340,6 +354,8 @@ public class DataSvc
         void onResponse(List<BaseData> list);
     }
 
+
+
     /**
      * Get list with all Cities in Germany
      */
@@ -354,6 +370,7 @@ public class DataSvc
             @Override
             public void onResponse(JSONObject response)
             {
+                disableOfflineMode();
                 try
                 {
                     JSONArray features = response.getJSONArray("features");
@@ -382,11 +399,15 @@ public class DataSvc
             {
                 if(error instanceof NoConnectionError)
                 {
+                    enableOfflineMode();
                     firebaseSvc.getAllBaseData(responseListener);
                     return;
                 }
-                //TODO if(error instanceof NoConnectionError)
-                // Dann Daten aus DB lesen (oder von Anfang an und immer updaten!)
+                else
+                {
+                    disableOfflineMode();
+                }
+
                 String msg = "Fehler bei der Verarbeitung der Server-Antwort: " + error.toString();
                 Log.e("onErrorResponse", msg);
                 responseListener.onError(msg);
@@ -456,5 +477,15 @@ public class DataSvc
                 responseListener.onResponse(cityNameList);
             }
         });
+    }
+
+    private void enableOfflineMode()
+    {
+        activity.enableOfflineMode();
+    }
+
+    private void disableOfflineMode()
+    {
+        activity.disableOfflineMode();
     }
 }

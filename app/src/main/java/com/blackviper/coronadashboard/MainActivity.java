@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
     TextView tvErgebnisse;
     AutoCompleteTextView actv_city;
 
-    final DataSvc dataSvc = new DataSvc(MainActivity.this);
+    final DataSvc dataSvc = new DataSvc(this, MainActivity.this);
     final SQLiteDatabaseHelper dbHelper = new SQLiteDatabaseHelper(MainActivity.this);
     //final FirebaseSvc firebaseSvc = new FirebaseSvc();
     final FirebaseSvc firebaseSvc = FirebaseSvc.getFirebaseInstance(); //TODO könnte man auch aus dem DataSvc ziehen
@@ -90,7 +90,11 @@ public class MainActivity extends AppCompatActivity {
                     public void onResponse(City city)
                     {
                         tvErgebnisse.setText(city.toString());
-                        firebaseSvc.saveCityData(city); //TODO Daten nicht speichern, wenn sie offline gezogen wurden.
+                        if(!isOfflineModeEnabled())
+                        {
+                            firebaseSvc.saveCityData(city);
+                        }
+
                     }
                 });
 
@@ -148,4 +152,25 @@ public class MainActivity extends AppCompatActivity {
     {
         return actv_city.getText().toString().trim();
     }
+
+    public void enableOfflineMode()
+    {
+        setOfflineMode(View.VISIBLE);
+    }
+
+    public void disableOfflineMode()
+    {
+        setOfflineMode(View.INVISIBLE);
+    }
+
+    private void setOfflineMode(int visibility)
+    {
+        findViewById(R.id.ic_offline).setVisibility(visibility);
+    }
+
+    private boolean isOfflineModeEnabled()
+    {
+        return (findViewById(R.id.ic_offline).getVisibility() == View.VISIBLE);
+    }
+
 }

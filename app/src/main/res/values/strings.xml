@@ -1,6 +1,14 @@
 <resources>
+    <!-- General -->
     <string name="app_name">Corona-Dashboard</string>
-    <!-- Fehlermeldungen, die an den User gehen -->
+
+    <!-- Frontend -->
+    <string name="actv_hint">z.B. Kreisfreie Stadt Dortmund</string>
+    <string name="btnSendRequest_text">Daten abrufen</string>
+
+    <string name="ic_offline_desc">Offlinemodus</string>
+
+    <!-- User errors -->
     <string name="err_actv_cityName_empty">"Bitte geben Sie eine kreisfreie Stadt oder einen (Land-) Kreis innerhalb deutschlands ein."</string>
 
 </resources>
