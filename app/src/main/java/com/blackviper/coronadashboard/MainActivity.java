@@ -21,11 +21,8 @@ import Database.SQLiteDatabaseHelper;
 import Model.City;
 import Tools.UiUtility;
 
-public class MainActivity extends AppCompatActivity {
-
-    private Button btn_sendRequest;
-    private ListView lv;
-    private TextView tvErgebnisse;
+public class MainActivity extends AppCompatActivity
+{
     private AutoCompleteTextView actv_city;
 
     final UiUtility uiUtility = new UiUtility(MainActivity.this);
@@ -40,9 +37,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         notificationSvc = new NotificationSvc(this);
 
-        btn_sendRequest = (Button) findViewById(R.id.btn_sendRequest);
-        lv = (ListView) findViewById(R.id.lv_responseView);
-        tvErgebnisse = (TextView) findViewById(R.id.tvErgebnisse);
+        Button btn_sendRequest = (Button) findViewById(R.id.btn_sendRequest);
+        ListView lv = (ListView) findViewById(R.id.lv_responseView);
+        TextView tvErgebnisse = (TextView) findViewById(R.id.tvErgebnisse);
         actv_city = (AutoCompleteTextView) findViewById(R.id.actv_Landkreis);
 
         setupActv_city();
