@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import Comparator.CoronaDataComparator;
 import Comparator.LastUpdateComparator;
 import Model.BaseData;
 import Model.City;
@@ -36,7 +35,7 @@ public class FirebaseSvc
 {
     private static final String LOG_TAG = FirebaseSvc.class.getName();
 
-    private static FirebaseSvc firebaseInstance; //Singleton
+    private static FirebaseSvc firebaseInstance;
 
     private static final String PATH_CITY_DATA = "CoronaData"; //Name der Firebase-"Tabelle"
     private static final String PATH_BASE_DATA = "BaseData";
@@ -46,7 +45,10 @@ public class FirebaseSvc
     private final DatabaseReference coronaDataRef;
     private final DatabaseReference baseDataRef;
 
-    public static FirebaseSvc getFirebaseInstance() //Singleton
+    /**
+     * Singleton. Get the instance if it exists. Otherwise, creates a new instance.
+     */
+    public static FirebaseSvc getFirebaseInstance()
     {
         if(firebaseInstance == null)
         {
@@ -269,7 +271,7 @@ public class FirebaseSvc
     //Save data
     //Objects which will be stored need a default constructor and public getters
 
-    public void saveCityData(City city) //TODO responseListener??
+    public void saveCityData(City city) //TODO responseListener
     {
         if(city == null)
         {
@@ -329,39 +331,6 @@ public class FirebaseSvc
         });
     }
 
-//    /**
-//     * Saves the data in the path where the list of baseData will be stored when the
-//     * app starts.
-//     * @param baseData
-//     */
-//    public void saveBaseDataInMapPath(BaseData baseData)
-//    {
-//        if(baseData == null)
-//        {
-//            return;
-//        }
-//
-//        int objectId = baseData.getObjectId();
-//        encodeBaseData(baseData);
-//        baseDataRef.child(Integer.toString(objectId)).setValue(baseData).addOnSuccessListener(new OnSuccessListener<Void>()
-//        {
-//            @Override
-//            public void onSuccess(Void unused)
-//            {
-//                Log.d(LOG_TAG, String.format("BaseData with objectId '%s' successfully " +
-//                        "stored to the firebase database.", objectId));
-//            }
-//        }).addOnFailureListener(new OnFailureListener()
-//        {
-//            @Override
-//            public void onFailure(@NonNull Exception e)
-//            {
-//                Log.e(LOG_TAG, String.format("BaseData with objectId '%s' could not be" +
-//                        " stored to the firebase database.", objectId));
-//            }
-//        });
-//    }
-
     /**
      * Overwrites the existing data in the path!
      * @param list
@@ -375,13 +344,9 @@ public class FirebaseSvc
         HashMap<String, BaseData> map = new HashMap<>();
         for(BaseData baseData : list)
         {
-            if(baseData == null)
+            if(baseData == null) //First object will be null because list starts with objectId=1
             {
                 continue;
-            }
-            if(baseData.getObjectId() == 240)
-            {
-                Log.i("d", "Look for encoding pls");
             }
             encodeBaseData(baseData);
             map.put(Integer.toString(baseData.getObjectId()), baseData);
@@ -404,17 +369,19 @@ public class FirebaseSvc
         });
     }
 
-    //Other
+    // Encode / Decode special character
 
-    /**
-     * @param cityData Model. Wird als Referenz übergeben => Kein return notwendig, da auf der
-     *                 Referenz gearbeitet wird.
+    /** Encode data which will be stored to the firebase database.
+     * @param cityData Changes will be done by reference => no return nedded
      */
     private static void encodeCity(@NonNull City cityData)
     {
         encodeBaseData(cityData.getBaseData());
     }
 
+    /** Encode data which will be stored to the firebase database.
+     * @param baseData Changes will be done by reference => no return nedded
+     */
     private static void encodeBaseData(@NonNull BaseData baseData)
     {
         if(baseData.getGen().contains("_") || baseData.getGen().contains("."))
@@ -431,15 +398,17 @@ public class FirebaseSvc
                 .replace(".", "_P");
     }
 
-    /**
-     * @param cityData Model. Wird als Referenz übergeben => Kein return notwendig, da auf der
-     *                 Referenz gearbeitet wird.
+    /** Decode Data which was loaded from the database
+     * @param cityData Changes will be done by reference => no return nedded
      */
     private static void decodeCity(@NonNull City cityData)
     {
         decodeBaseData(cityData.getBaseData());
     }
 
+    /** Decode Data which was loaded from the database
+     * @param baseData Es wird auf der Referenz gearbeitet => Kein return notwendig
+     */
     private static void decodeBaseData(@NonNull BaseData baseData)
     {
         if(baseData.getGen().contains("__") || baseData.getGen().contains("_P"))
@@ -456,7 +425,9 @@ public class FirebaseSvc
                 .replace("_", "__");
     }
 
-    private String buildMsgGetId(String cityName) //TODO wenn res nutzen
+    // Other
+
+    private String buildMsgGetId(String cityName)
     {
         return "Beim Versuch, die objectId für '" + cityName
                 + "' herauszufinden, ist ein Fehler aufgetreten";
