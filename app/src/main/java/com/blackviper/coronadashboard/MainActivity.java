@@ -32,13 +32,13 @@ public class MainActivity extends AppCompatActivity {
     private final DataSvc dataSvc = new DataSvc(this, MainActivity.this);
     private final SQLiteDatabaseHelper dbHelper = new SQLiteDatabaseHelper(MainActivity.this);
     private final FirebaseSvc firebaseSvc = FirebaseSvc.getFirebaseInstance(); //TODO könnte man auch aus dem DataSvc ziehen
-    private static NotificationSvc notificationSvc; //TODO non static machen?
+    private NotificationSvc notificationSvc;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        notificationSvc = new NotificationSvc(this); //TODO init in try-catch packen, damit die App auch funktioniert, wenn es hierbei Probleme gibt
+        notificationSvc = new NotificationSvc(this);
 
         btn_sendRequest = (Button) findViewById(R.id.btn_sendRequest);
         lv = (ListView) findViewById(R.id.lv_responseView);
@@ -46,7 +46,6 @@ public class MainActivity extends AppCompatActivity {
         actv_city = (AutoCompleteTextView) findViewById(R.id.actv_Landkreis);
 
         setupActv_city();
-        //TODO Die App hängt hierbei trotzdem, wenn die ganze Schleife durchlaufen wird. Hier muss man background-services nutzen (Intent oder was es ist)
         dataSvc.fillActvCity(actv_city, MainActivity.this, new DataSvc.ActvSetupResponseListener() {
             @Override
             public void onError(String message) {

@@ -58,11 +58,11 @@ public class FirebaseSvc
 
     private FirebaseSvc()
     {
-        FirebaseDatabase instance = FirebaseDatabase.getInstance(); //TODO variable umbenennen weil doppeldeutig
-        instance.setPersistenceEnabled(true); // Daten offline speichern, auch bei Neustart etc, see https://firebase.google.com/docs/database/android/offline-capabilities
-        db = instance.getReference();
-        cityDataRef = instance.getReference(PATH_CITY_DATA);
-        baseDataRef = instance.getReference(PATH_BASE_DATA);
+        FirebaseDatabase dbInstance = FirebaseDatabase.getInstance();
+        dbInstance.setPersistenceEnabled(true); // Store data local, even beyond an android restart
+        db = dbInstance.getReference();
+        cityDataRef = dbInstance.getReference(PATH_CITY_DATA);
+        baseDataRef = dbInstance.getReference(PATH_BASE_DATA);
     }
 
     //TODO Alle Listener aus den Methoden auslagern (mehrere machen)
@@ -70,7 +70,7 @@ public class FirebaseSvc
     //Read data
 
     /**
-     *
+     * Find objectId with the database.
      * @param cityName BEZ + GEN, z.B. "Kreis Recklinghausen"
      * @param responseListener
      */
@@ -217,10 +217,7 @@ public class FirebaseSvc
             return list;
         }
 
-        for(CoronaData elem : map.values())
-        {
-            list.add(elem);
-        }
+        list.addAll(map.values());
         list.sort(cmp);
         return list;
     }
@@ -303,7 +300,7 @@ public class FirebaseSvc
             public void onFailure(@NonNull Exception e)
             {
                 Log.e(LOG_TAG, "CoronaData with id '" + objectIdStr + "' could not be stored:\n"
-                        + e.getStackTrace());
+                        + e.getMessage());
             }
         });
     }
