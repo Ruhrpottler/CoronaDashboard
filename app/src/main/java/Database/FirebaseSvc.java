@@ -75,7 +75,9 @@ public class FirebaseSvc
      */
     public void getObjectIdByName(String cityName, @NonNull DataSvc.ObjectIdResponseListener responseListener)
     {
-        Query query = baseDataRef.orderByChild("cityName").equalTo(cityName).limitToFirst(1); //TODO Pfad umstellen?!
+        String cityNameEncoded = encodeString(cityName);
+        Query query = baseDataRef.orderByChild("cityName").equalTo(cityNameEncoded).limitToFirst(1); //TODO Pfad umstellen?!
+
         query.addValueEventListener(new ValueEventListener()
         {
             @Override
@@ -90,7 +92,7 @@ public class FirebaseSvc
                     {
                         String key = map.keySet().toArray()[0].toString();
                         BaseData baseData = map.get(key);
-                        if (baseData == null || baseData.getCityName() == null || !baseData.getCityName().equals(cityName))
+                        if (baseData == null || baseData.getCityName() == null || !baseData.getCityName().equals(cityNameEncoded))
                         {
                             responseListener.onError(buildMsgGetId(cityName) + ": Attribute 'cityName' is null or empty or " +
                                     "does not equal the cityName what was queried for.");
@@ -107,13 +109,13 @@ public class FirebaseSvc
                     onCancelled(DatabaseError.fromException(e));
                     return;
                 }
-                responseListener.onError(buildMsgGetId(cityName));
+                responseListener.onError(buildMsgGetId(cityNameEncoded));
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error)
             {
-                responseListener.onError(buildMsgGetId(cityName) + "\n" + error.getMessage());
+                responseListener.onError(buildMsgGetId(cityNameEncoded) + "\n" + error.getMessage());
             }
         });
     }
@@ -189,6 +191,7 @@ public class FirebaseSvc
         if(baseData != null && coronaData != null)
         {
             city = new City(baseData, coronaData);
+            decodeCity(city);
         }
         else
         {
@@ -246,11 +249,19 @@ public class FirebaseSvc
 
                     if(baseDataList != null && !baseDataList.isEmpty())
                     {
+                        for(BaseData element : baseDataList)
+                        {
+                            if(element == null) //First object will be null because list starts with objectId=1
+                            {
+                                continue;
+                            }
+                            decodeBaseData(element);
+                        }
                         responseListener.onResponse(baseDataList);
                         return;
                     }
                 }
-                responseListener.onError("Stammdaten konnten nicht aus der Firebase-Datenbank gelesen werden");
+                responseListener.onError("Stammdaten konnten nicht aus der Firebase-Datenbank gelesen werden.");
             }
         });
     }
@@ -305,7 +316,7 @@ public class FirebaseSvc
         {
             return;
         }
-
+        encodeBaseData(baseData);
         String objectIdStr = Integer.toString(baseData.getObjectId());
         db.child(PATH_MIT_DATUM).child(objectIdStr).child("BaseData").setValue(baseData).addOnCompleteListener(new OnCompleteListener<Void>()
         {
@@ -318,38 +329,38 @@ public class FirebaseSvc
         });
     }
 
-    /**
-     * Saves the data in the path where the list of baseData will be stored when the
-     * app starts.
-     * @param baseData
-     */
-    public void saveBaseDataInMapPath(BaseData baseData)
-    {
-        if(baseData == null)
-        {
-            return;
-        }
-
-        int objectId = baseData.getObjectId();
-
-        baseDataRef.child(Integer.toString(objectId)).setValue(baseData).addOnSuccessListener(new OnSuccessListener<Void>()
-        {
-            @Override
-            public void onSuccess(Void unused)
-            {
-                Log.d(LOG_TAG, String.format("BaseData with objectId '%s' successfully " +
-                        "stored to the firebase database.", objectId));
-            }
-        }).addOnFailureListener(new OnFailureListener()
-        {
-            @Override
-            public void onFailure(@NonNull Exception e)
-            {
-                Log.e(LOG_TAG, String.format("BaseData with objectId '%s' could not be" +
-                        " stored to the firebase database.", objectId));
-            }
-        });
-    }
+//    /**
+//     * Saves the data in the path where the list of baseData will be stored when the
+//     * app starts.
+//     * @param baseData
+//     */
+//    public void saveBaseDataInMapPath(BaseData baseData)
+//    {
+//        if(baseData == null)
+//        {
+//            return;
+//        }
+//
+//        int objectId = baseData.getObjectId();
+//        encodeBaseData(baseData);
+//        baseDataRef.child(Integer.toString(objectId)).setValue(baseData).addOnSuccessListener(new OnSuccessListener<Void>()
+//        {
+//            @Override
+//            public void onSuccess(Void unused)
+//            {
+//                Log.d(LOG_TAG, String.format("BaseData with objectId '%s' successfully " +
+//                        "stored to the firebase database.", objectId));
+//            }
+//        }).addOnFailureListener(new OnFailureListener()
+//        {
+//            @Override
+//            public void onFailure(@NonNull Exception e)
+//            {
+//                Log.e(LOG_TAG, String.format("BaseData with objectId '%s' could not be" +
+//                        " stored to the firebase database.", objectId));
+//            }
+//        });
+//    }
 
     /**
      * Overwrites the existing data in the path!
@@ -367,6 +378,10 @@ public class FirebaseSvc
             if(baseData == null)
             {
                 continue;
+            }
+            if(baseData.getObjectId() == 240)
+            {
+                Log.i("d", "Look for encoding pls");
             }
             encodeBaseData(baseData);
             map.put(Integer.toString(baseData.getObjectId()), baseData);
