@@ -2,6 +2,39 @@
     <!-- General -->
     <string name="app_name">Corona-Dashboard</string>
 
+    <!-- API fields-->
+
+    <string name="STR_OBJECT_ID">OBJECTID</string>
+        <!-- BaseData -->
+    <string name="STR_BL_ID">BL_ID</string>
+    <string name="STR_BL">BL</string>
+    <string name="STR_BEZ">BEZ</string>
+    <string name="STR_GEN">GEN</string>
+    <string name="STR_EWZ">EWZ</string>
+        <!-- CoronaData -->
+    <string name="STR_LAST_UPDATE">last_update</string>
+    <string name="STR_DEATH_RATE">death_rate</string>
+    <string name="STR_CASES">cases</string>
+    <string name="STR_DEATHS">deaths</string>
+    <string name="STR_CASES_PER_100k">cases_per_100k</string>
+    <string name="STR_CASES_PER_POPULATION">cases_per_population</string>
+    <string name="STR_7_TAGE_INZIDENZWERT">cases7_per_100k</string>
+    <string name="STR_CASES_7">cases7_lk</string>
+    <string name="STR_DEATH_7">death7_lk</string>
+
+    <string name="STR_BL_7_TAGE_INZIDENZWERT">cases7_bl_per_100k</string>
+    <string name="STR_CASES_7_BL">cases7_bl</string>
+    <string name="STR_DEATH_7_BL">death7_bl</string>
+
+
+
+    <!-- Values for API attribute 'BEZ'-->
+    <string name="STR_KREISFREIE_STADT">kreisfreie stadt</string>
+    <string name="STR_KREIS">kreis</string>
+    <string name="STR_STADTKREIS">stadtkreis</string>
+    <string name="STR_LANDKREIS">landkreis</string>
+    <string name="STR_BEZIRK">bezirk</string>
+
     <!-- Frontend -->
     <string name="actv_hint">z.B. Kreisfreie Stadt Dortmund</string>
     <string name="btnSendRequest_text">Daten abrufen</string>

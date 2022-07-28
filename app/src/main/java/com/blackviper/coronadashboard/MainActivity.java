@@ -11,7 +11,6 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -20,19 +19,20 @@ import java.util.List;
 import Database.FirebaseSvc;
 import Database.SQLiteDatabaseHelper;
 import Model.City;
+import Tools.UiUtility;
 
 public class MainActivity extends AppCompatActivity {
 
-    Button btn_sendRequest;
-    ListView lv;
-    TextView tvErgebnisse;
-    AutoCompleteTextView actv_city;
+    private Button btn_sendRequest;
+    private ListView lv;
+    private TextView tvErgebnisse;
+    private AutoCompleteTextView actv_city;
 
-    final DataSvc dataSvc = new DataSvc(this, MainActivity.this);
-    final SQLiteDatabaseHelper dbHelper = new SQLiteDatabaseHelper(MainActivity.this);
-    //final FirebaseSvc firebaseSvc = new FirebaseSvc();
-    final FirebaseSvc firebaseSvc = FirebaseSvc.getFirebaseInstance(); //TODO könnte man auch aus dem DataSvc ziehen
-    static NotificationSvc notificationSvc; //TODO non static machen?
+    final UiUtility uiUtility = new UiUtility(MainActivity.this);
+    private final DataSvc dataSvc = new DataSvc(this, MainActivity.this);
+    private final SQLiteDatabaseHelper dbHelper = new SQLiteDatabaseHelper(MainActivity.this);
+    private final FirebaseSvc firebaseSvc = FirebaseSvc.getFirebaseInstance(); //TODO könnte man auch aus dem DataSvc ziehen
+    private static NotificationSvc notificationSvc; //TODO non static machen?
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onError(String message) {
                 message = "Fehler beim Initialisieren der Städte-Listeneinträge. " + message;
-                showToastTextLong(message);
+                uiUtility.showToastTextLong(message);
                 Log.e("actvSetupFailed", message);
             }
 
@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(List<String> listOfEntries) {
                 //fill ACTV
                 actv_city.setAdapter(new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_list_item_1, listOfEntries));
-                showToastTextShort("AutoComplete done.");
+                uiUtility.showToastTextShort("AutoComplete done.");
             }
         });
 
@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
                 String userInputCityName = getCityInput();
                 if(userInputCityName.isEmpty())
                 {
-                    showToastTextLong(getString(R.string.err_actv_cityName_empty));
+                    uiUtility.showToastTextLong(getString(R.string.err_actv_cityName_empty));
                     return;
                 }
 
@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onError(String message)
                     {
                         Log.e("ErrGetCityDataByName", message);
-                        showToastTextLong(message);
+                        uiUtility.showToastTextLong(message);
                     }
 
                     @Override
@@ -97,7 +97,6 @@ public class MainActivity extends AppCompatActivity {
 
                     }
                 });
-
             }
         });
     }
@@ -109,12 +108,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id)
             {
-                pushKeyboardDown(); //Methode onKeyboardDownListener dingen machen
+                pushKeyboardDown();
             }
         });
     }
-
-    //TODO In Tools auslagern
 
     public void pushKeyboardDown()
     {
@@ -125,27 +122,6 @@ public class MainActivity extends AppCompatActivity {
         }
         InputMethodManager imm = (InputMethodManager) this.getSystemService(Activity.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-    }
-
-    private void showToastTextShort(String str)
-    {
-        showToastText(str, Toast.LENGTH_SHORT);
-    }
-
-    private void showToastTextLong(String str)
-    {
-        showToastText(str, Toast.LENGTH_LONG);
-    }
-
-    private void showToastText(String str, int length)
-    {
-        //TODO eig. macht das Ex-Handling Android doch schon selbst, isnt it?
-        if(length != Toast.LENGTH_SHORT && length != Toast.LENGTH_LONG)
-        {
-            length = Toast.LENGTH_LONG;
-            Log.i("IllegalArgument", String.format("'%d' is an illegal length for the toast display time.", length));
-        }
-        Toast.makeText(MainActivity.this, str, length).show();
     }
 
     private String getCityInput()

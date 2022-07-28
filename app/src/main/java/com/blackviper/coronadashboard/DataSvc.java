@@ -1,11 +1,8 @@
 package com.blackviper.coronadashboard;
 
-import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
-import android.view.View;
 import android.widget.AutoCompleteTextView;
-import android.widget.Toast;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.NoConnectionError;
@@ -26,6 +23,7 @@ import Database.SQLiteDatabaseHelper;
 import Model.BaseData;
 import Model.City;
 import Model.CoronaData;
+import Tools.FormatTool;
 
 /**
  * Diese Klasse stellt asynchrone Methoden (Callbacks) zur Verfügung, welche den Traffic mit den Anfragen an die API
@@ -35,32 +33,19 @@ public class DataSvc
 {
     //Klassenattribute
     private final MainActivity activity;
-    private final Context activityContext;
+    private final Context context;
+    private final FormatTool formatTool;
     private final SQLiteDatabaseHelper dbHelper;
     private final FirebaseSvc firebaseSvc = FirebaseSvc.getFirebaseInstance();
     private int objectId;
 
-    //TODO ggf. auslagern (wie bei GC_Konstanten): Gibts dazu auch eine extra Datei bei Android wie für Sprachen?
-    private static final String STR_OBJECT_ID = "OBJECTID";
-    private static final String STR_BL_ID = "BL_ID";
-    private static final String STR_BL = "BL";
-    private static final String STR_BEZ = "BEZ";
-    private static final String STR_GEN = "GEN";
-    private static final String STR_EWZ = "EWZ";
-
-    private static final String STR_KREISFREIE_STADT = "kreisfreie stadt";
-    private static final String STR_KREIS = "kreis";
-    private static final String STR_STADTKREIS = "stadtkreis";
-    private static final String STR_LANDKREIS = "landkreis";
-    private static final String STR_BEZIRK = "bezirk";
-
-
     //Konstuktoren
-    public DataSvc(MainActivity activity, Context activityContext)
+    public DataSvc(MainActivity activity, Context context)
     {
         this.activity = activity;
-        this.activityContext = activityContext;
-        this.dbHelper = new SQLiteDatabaseHelper(activityContext);
+        this.context = context;
+        this.formatTool = new FormatTool(context);
+        this.dbHelper = new SQLiteDatabaseHelper(context);
     }
 
     /**
@@ -82,7 +67,7 @@ public class DataSvc
      */
     public void findAndSetObjectIdByName(String cityName, ObjectIdResponseListener responseListener)
     {
-        String[] inputArray = seperateBezAndGen(cityName);
+        String[] inputArray = formatTool.seperateBezAndGen(cityName);
         String bez = inputArray[0];
         String gen = inputArray[1];
 
@@ -130,7 +115,7 @@ public class DataSvc
                     Log.d("JSONException", e.toString());
                 } catch (IllegalArgumentException userException)
                 {
-                    Toast.makeText(activityContext, "Fehler: " + userException.getMessage(), Toast.LENGTH_LONG).show();
+                    activity.uiUtility.showToastTextLong("Fehler: " + userException.getMessage());
                 }
 
             }
@@ -154,7 +139,7 @@ public class DataSvc
                     Log.d("DataSvc", msg + ": " + error.toString());
                     responseListener.onError(msg + ".");
                 }
-                Toast.makeText(activityContext, msg,Toast.LENGTH_LONG).show();
+                activity.uiUtility.showToastTextLong(msg);
             }
         });
         request.setRetryPolicy(new DefaultRetryPolicy(
@@ -162,7 +147,7 @@ public class DataSvc
                 DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 
-        RequestSingleton.getInstance(activityContext).addToRequestQueue(request);
+        RequestSingleton.getInstance(context).addToRequestQueue(request);
     }
 
     public interface CityResponseListener
@@ -233,7 +218,7 @@ public class DataSvc
                 responseListener.onError(msg);
             }
         });
-        RequestSingleton.getInstance(activityContext).addToRequestQueue(request);
+        RequestSingleton.getInstance(context).addToRequestQueue(request);
     }
 
 
@@ -251,7 +236,7 @@ public class DataSvc
             @Override
             public void onError(String message)
             {
-                Toast.makeText(activityContext, message, Toast.LENGTH_LONG).show();
+                activity.uiUtility.showToastTextLong(message);
                 Log.e("DataSvc", message);
             }
 
@@ -270,7 +255,7 @@ public class DataSvc
                     @Override
                     public void onError(String message)
                     {
-                        Toast.makeText(activityContext, message, Toast.LENGTH_LONG).show();
+                        activity.uiUtility.showToastTextLong(message);
                         Log.e("DataSvc", message);
                     }
                 });
@@ -287,7 +272,14 @@ public class DataSvc
 
     private BaseData createAndFillCityBaseDataModel(JSONObject attributes) throws JSONException
     {
-        return new BaseData(attributes.getInt(STR_OBJECT_ID), attributes.getInt(STR_BL_ID), attributes.getString(STR_BL), attributes.getString(STR_BEZ), attributes.getString(STR_GEN), attributes.getInt(STR_EWZ));
+        return new BaseData(
+                attributes.getInt(context.getString(R.string.STR_OBJECT_ID)),
+                attributes.getInt(context.getString(R.string.STR_BL_ID)),
+                attributes.getString(context.getString(R.string.STR_BL)),
+                attributes.getString(context.getString(R.string.STR_BEZ)),
+                attributes.getString(context.getString(R.string.STR_GEN)),
+                attributes.getInt(context.getString(R.string.STR_EWZ))
+        );
     }
 
     /**
@@ -299,45 +291,20 @@ public class DataSvc
      */
     private CoronaData createAndFillCityDataModel(JSONObject attributes) throws JSONException
     {
-        return new CoronaData(attributes.getInt(STR_OBJECT_ID), //TODO warum sind die Stammdaten (zwangsläufig) in Capslock und der Rest nicht?
-                attributes.getString("last_update"), attributes.getDouble("death_rate"), attributes.getInt("cases"), attributes.getInt("deaths"), attributes.getDouble("cases_per_100k"), attributes.getDouble("cases_per_population"), attributes.getDouble("cases7_per_100k"), attributes.getInt("cases7_lk"), attributes.getInt("death7_lk"), attributes.getDouble("cases7_bl_per_100k"), attributes.getInt("cases7_bl"), attributes.getInt("death7_bl"));
-    }
-
-    private String[] seperateBezAndGen(String cityName)
-    {
-        cityName = cityName.toLowerCase();
-        String[] cityNameArray;// = new String[2];
-        if (cityName.startsWith(STR_KREISFREIE_STADT.toLowerCase()))
-        {
-            cityNameArray = seperateString(STR_KREISFREIE_STADT.toLowerCase(), cityName);
-        }
-        else if (cityName.startsWith(STR_LANDKREIS.toLowerCase()))
-        {
-            cityNameArray = seperateString(STR_LANDKREIS.toLowerCase(), cityName);
-        }
-        else if (cityName.startsWith(STR_STADTKREIS.toLowerCase()))
-        {
-            cityNameArray = seperateString(STR_STADTKREIS.toLowerCase(), cityName);
-        }
-        else if (cityName.startsWith(STR_KREIS.toLowerCase()))
-        {
-            cityNameArray = seperateString(STR_KREIS.toLowerCase(), cityName);
-        }
-        else if (cityName.startsWith(STR_BEZIRK.toLowerCase()))
-        {
-            cityNameArray = seperateString(STR_BEZIRK.toLowerCase(), cityName);
-        }
-        else
-        {
-            cityNameArray = new String[]{"", cityName};
-        }
-
-        return cityNameArray;
-    }
-
-    private String[] seperateString(String firstPart, String fullString)
-    {
-        return new String[]{firstPart, fullString.replace(firstPart, "").trim()};
+        return new CoronaData(
+                attributes.getInt(context.getString(R.string.STR_OBJECT_ID)),
+                attributes.getString(context.getString(R.string.STR_LAST_UPDATE)),
+                attributes.getDouble(context.getString(R.string.STR_DEATH_RATE)),
+                attributes.getInt(context.getString(R.string.STR_CASES)),
+                attributes.getInt(context.getString(R.string.STR_DEATHS)),
+                attributes.getDouble(context.getString(R.string.STR_CASES_PER_100k)),
+                attributes.getDouble(context.getString(R.string.STR_CASES_PER_POPULATION)),
+                attributes.getDouble(context.getString(R.string.STR_7_TAGE_INZIDENZWERT)),
+                attributes.getInt(context.getString(R.string.STR_CASES_7)),
+                attributes.getInt(context.getString(R.string.STR_DEATH_7)),
+                attributes.getDouble(context.getString(R.string.STR_BL_7_TAGE_INZIDENZWERT)),
+                attributes.getInt(context.getString(R.string.STR_CASES_7_BL)),
+                attributes.getInt(context.getString(R.string.STR_DEATH_7_BL)));
     }
 
     public interface BaseDataResponseListener //Kann man evtl. weglassen und stattdessen den list-Listener nutzen
@@ -353,8 +320,6 @@ public class DataSvc
 
         void onResponse(List<BaseData> list);
     }
-
-
 
     /**
      * Get list with all Cities in Germany
@@ -413,7 +378,7 @@ public class DataSvc
                 responseListener.onError(msg);
             }
         });
-        RequestSingleton.getInstance(activityContext).addToRequestQueue(request);
+        RequestSingleton.getInstance(context).addToRequestQueue(request);
 
     }
 
