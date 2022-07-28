@@ -37,12 +37,11 @@ public class FirebaseSvc
 
     private static FirebaseSvc firebaseInstance;
 
-    private static final String PATH_CITY_DATA = "CoronaData"; //Name der Firebase-"Tabelle"
+    private static final String PATH_CITY_DATA = "CoronaDataMitDatum"; //Name des Pfades //TODO rename
     private static final String PATH_BASE_DATA = "BaseData";
-    private static final String PATH_MIT_DATUM = "CoronaDataMitDatum";
 
     private final DatabaseReference db; //root
-    private final DatabaseReference coronaDataRef;
+    private final DatabaseReference cityDataRef;
     private final DatabaseReference baseDataRef;
 
     /**
@@ -62,7 +61,7 @@ public class FirebaseSvc
         FirebaseDatabase instance = FirebaseDatabase.getInstance(); //TODO variable umbenennen weil doppeldeutig
         instance.setPersistenceEnabled(true); // Daten offline speichern, auch bei Neustart etc, see https://firebase.google.com/docs/database/android/offline-capabilities
         db = instance.getReference();
-        coronaDataRef = instance.getReference(PATH_CITY_DATA);
+        cityDataRef = instance.getReference(PATH_CITY_DATA);
         baseDataRef = instance.getReference(PATH_BASE_DATA);
     }
 
@@ -125,13 +124,11 @@ public class FirebaseSvc
     public void getCity(int objectId, @NonNull DataSvc.CityResponseListener responseListener)
     {
         String objectIdStr = Integer.toString(objectId);
-        Task<DataSnapshot> taskBaseData = db
-                .child(PATH_MIT_DATUM)
+        Task<DataSnapshot> taskBaseData = cityDataRef
                 .child(objectIdStr)
                 .child(PATH_BASE_DATA)
                 .get();
-        Task<DataSnapshot> taskCoronaData = db
-                .child(PATH_MIT_DATUM)
+        Task<DataSnapshot> taskCoronaData = cityDataRef
                 .child(objectIdStr)
                 .child("CoronaData")
                 .orderByKey()
@@ -293,7 +290,7 @@ public class FirebaseSvc
         String objectIdStr = Integer.toString(coronaData.getObjectId());
         String key = DateFormatTool.germanToSort(coronaData.getLast_update());
 
-        db.child(PATH_MIT_DATUM).child(objectIdStr).child("CoronaData").child(key).setValue(coronaData).addOnSuccessListener(new OnSuccessListener<Void>()
+        cityDataRef.child(objectIdStr).child("CoronaData").child(key).setValue(coronaData).addOnSuccessListener(new OnSuccessListener<Void>()
         {
             @Override
             public void onSuccess(Void unused)
@@ -320,7 +317,7 @@ public class FirebaseSvc
         }
         encodeBaseData(baseData);
         String objectIdStr = Integer.toString(baseData.getObjectId());
-        db.child(PATH_MIT_DATUM).child(objectIdStr).child("BaseData").setValue(baseData).addOnCompleteListener(new OnCompleteListener<Void>()
+        cityDataRef.child(objectIdStr).child("BaseData").setValue(baseData).addOnCompleteListener(new OnCompleteListener<Void>()
         {
             @Override
             public void onComplete(@NonNull Task<Void> task)
