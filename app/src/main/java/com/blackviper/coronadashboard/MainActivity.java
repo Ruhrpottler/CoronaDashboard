@@ -140,7 +140,7 @@ public class MainActivity extends AppCompatActivity
         findViewById(R.id.ic_offline).setVisibility(visibility);
     }
 
-    private boolean isOfflineModeEnabled()
+    private boolean isOfflineModeEnabled() //TODO notification when switch
     {
         return (findViewById(R.id.ic_offline).getVisibility() == View.VISIBLE);
     }

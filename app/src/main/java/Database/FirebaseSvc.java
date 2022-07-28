@@ -305,6 +305,20 @@ public class FirebaseSvc
         });
     }
 
+    public void saveCityList(List<City> cities, DataSvc.FirebaseResponseListener responseListener)
+    {
+        if(cities == null || cities.isEmpty())
+        {
+            return;
+        }
+
+        for(City city : cities)
+        {
+            saveCityData(city);
+        }
+        responseListener.onResponse();
+    }
+
     public void saveBaseData(BaseData baseData)
     {
 

@@ -1,15 +1,19 @@
 package Model;
 
+import com.blackviper.coronadashboard.R;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import Tools.FormatTool;
 
-public class CoronaData
+public class CoronaData implements Data
 {
     //(Primary-) Key
     private int objectId;
     //General
     private String last_update;
 
-    //TODO genesene (recovered) hinzufügen
     //Corona-Data of the city
     private double death_rate;
     private int cases;
@@ -226,5 +230,30 @@ public class CoronaData
     public final void setDeath7_bl(int death7_bl)
     {
         this.death7_bl = death7_bl;
+    }
+
+    @Override
+    public <T extends Data> Data createDataFromJSONAttributesGeneric(JSONObject attributes) throws JSONException
+    {
+        return createDataFromJSONAttributes(attributes);
+    }
+
+    public static CoronaData createDataFromJSONAttributes (JSONObject attributes) throws JSONException
+    {
+        return new CoronaData(
+                attributes.getInt(Constants.STR_OBJECT_ID),
+                attributes.getString(Constants.STR_LAST_UPDATE),
+                attributes.getDouble(Constants.STR_DEATH_RATE),
+                attributes.getInt(Constants.STR_CASES),
+                attributes.getInt(Constants.STR_DEATHS),
+                attributes.getDouble(Constants.STR_CASES_PER_100k),
+                attributes.getDouble(Constants.STR_CASES_PER_POPULATION),
+                attributes.getDouble(Constants.STR_7_TAGE_INZIDENZWERT),
+                attributes.getInt(Constants.STR_CASES_7),
+                attributes.getInt(Constants.STR_DEATH_7),
+                attributes.getDouble(Constants.STR_BL_7_TAGE_INZIDENZWERT),
+                attributes.getInt(Constants.STR_CASES_7_BL),
+                attributes.getInt(Constants.STR_DEATH_7_BL)
+        );
     }
 }

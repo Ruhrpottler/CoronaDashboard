@@ -2,7 +2,12 @@ package Model;
 
 import androidx.annotation.NonNull;
 
-public class BaseData
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.List;
+
+public class BaseData implements Data
 {
     private int objectId;
     private int bl_id;
@@ -105,4 +110,24 @@ public class BaseData
     {
         this.ewz = ewz;
     }
+
+    @Override
+    public Data createDataFromJSONAttributesGeneric(JSONObject attributes) throws JSONException
+    {
+        return createDataFromJSONAttributes(attributes);
+
+    }
+
+    public static BaseData createDataFromJSONAttributes(JSONObject attributes) throws JSONException
+    {
+        return new BaseData(
+                attributes.getInt(Constants.STR_OBJECT_ID),
+                attributes.getInt(Constants.STR_BL_ID),
+                attributes.getString(Constants.STR_BL),
+                attributes.getString(Constants.STR_BEZ),
+                attributes.getString(Constants.STR_GEN),
+                attributes.getInt(Constants.STR_EWZ)
+        );
+    }
+
 }

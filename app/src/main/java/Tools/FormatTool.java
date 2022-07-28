@@ -9,6 +9,8 @@ import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.Locale;
 
+import Model.Constants;
+
 public class FormatTool {
 
     private final Context context;
@@ -65,29 +67,29 @@ public class FormatTool {
         return bd.doubleValue();
     }
 
-    public String[] seperateBezAndGen(String cityName)
+    public static String[] seperateBezAndGen(String cityName)
     {
         cityName = cityName.toLowerCase();
         String[] cityNameArray;// = new String[2];
-        if (cityName.startsWith(context.getString(R.string.STR_KREISFREIE_STADT).toLowerCase()))
+        if (cityName.startsWith(Constants.STR_KREISFREIE_STADT.toLowerCase()))
         {
-            cityNameArray = seperateString(context.getString(R.string.STR_KREISFREIE_STADT).toLowerCase(), cityName);
+            cityNameArray = seperateString(Constants.STR_KREISFREIE_STADT.toLowerCase(), cityName);
         }
-        else if (cityName.startsWith(context.getString(R.string.STR_LANDKREIS).toLowerCase()))
+        else if (cityName.startsWith(Constants.STR_LANDKREIS.toLowerCase()))
         {
-            cityNameArray = seperateString(context.getString(R.string.STR_LANDKREIS).toLowerCase(), cityName);
+            cityNameArray = seperateString(Constants.STR_LANDKREIS.toLowerCase(), cityName);
         }
-        else if (cityName.startsWith(context.getString(R.string.STR_STADTKREIS).toLowerCase()))
+        else if (cityName.startsWith(Constants.STR_STADTKREIS.toLowerCase()))
         {
-            cityNameArray = seperateString(context.getString(R.string.STR_STADTKREIS).toLowerCase(), cityName);
+            cityNameArray = seperateString(Constants.STR_STADTKREIS.toLowerCase(), cityName);
         }
-        else if (cityName.startsWith(context.getString(R.string.STR_KREIS).toLowerCase()))
+        else if (cityName.startsWith(Constants.STR_KREIS.toLowerCase()))
         {
-            cityNameArray = seperateString(context.getString(R.string.STR_KREIS).toLowerCase(), cityName);
+            cityNameArray = seperateString(Constants.STR_KREIS.toLowerCase(), cityName);
         }
-        else if (cityName.startsWith(context.getString(R.string.STR_BEZIRK).toLowerCase()))
+        else if (cityName.startsWith(Constants.STR_BEZIRK.toLowerCase()))
         {
-            cityNameArray = seperateString(context.getString(R.string.STR_BEZIRK).toLowerCase(), cityName);
+            cityNameArray = seperateString(Constants.STR_BEZIRK.toLowerCase(), cityName);
         }
         else
         {
@@ -97,7 +99,7 @@ public class FormatTool {
         return cityNameArray;
     }
 
-    private String[] seperateString(String firstPart, String fullString)
+    private static String[] seperateString(String firstPart, String fullString)
     {
         return new String[]{firstPart, fullString.replace(firstPart, "").trim()};
     }

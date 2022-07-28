@@ -23,7 +23,7 @@ import Database.SQLiteDatabaseHelper;
 import Model.BaseData;
 import Model.City;
 import Model.CoronaData;
-import Tools.FormatTool;
+import Model.Data;
 
 /**
  * Diese Klasse stellt asynchrone Methoden (Callbacks) zur Verfügung, welche den Traffic mit den Anfragen an die API
@@ -34,7 +34,6 @@ public class DataSvc
     //Klassenattribute
     private final MainActivity activity;
     private final Context context;
-    private final FormatTool formatTool;
     private final SQLiteDatabaseHelper dbHelper;
     private final FirebaseSvc firebaseSvc = FirebaseSvc.getFirebaseInstance();
     private int objectId;
@@ -44,7 +43,6 @@ public class DataSvc
     {
         this.activity = activity;
         this.context = context;
-        this.formatTool = new FormatTool(context);
         this.dbHelper = new SQLiteDatabaseHelper(context);
     }
 
@@ -67,21 +65,7 @@ public class DataSvc
      */
     public void findAndSetObjectIdByName(String cityName, ObjectIdResponseListener responseListener)
     {
-        String[] inputArray = formatTool.seperateBezAndGen(cityName);
-        String bez = inputArray[0];
-        String gen = inputArray[1];
-
-        String whereCondition;
-        if (bez.isEmpty())
-        {
-            whereCondition = "GEN%20%3D%20'" + gen + "'";
-        }
-        else
-        {
-            whereCondition = "BEZ%20%3D%20'" + bez + "'%20AND%20GEN%20%3D%20'" + gen + "'";
-        }
-
-        String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/" + "RKI_Landkreisdaten/FeatureServer/0/query?where=" + whereCondition + "&outFields=OBJECTID&returnGeometry=false&returnIdsOnly=true&outSR=&f=json";
+        String url = UrlManager.getUrlSearchObjectIdByCityName(cityName);
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>()
         {
@@ -108,11 +92,11 @@ public class DataSvc
                     {
                         throw new IllegalArgumentException(String.format("Für '%s' wurde die ungültige Objekt-ID %d gefunden.", cityName, objectId));
                     }
-                    responseListener.onResponse(objectId); //ruft den Listener in der Activity auf (callback)
+                    responseListener.onResponse(objectId);
                 } catch (JSONException e)
                 {
-                    e.printStackTrace(); //TODO Exception-Handling verbessern
-                    Log.d("JSONException", e.toString());
+                    e.printStackTrace();
+                    Log.d("JSONException", e.getMessage());
                 } catch (IllegalArgumentException userException)
                 {
                     activity.uiUtility.showToastTextLong("Fehler: " + userException.getMessage());
@@ -152,9 +136,75 @@ public class DataSvc
 
     public interface CityResponseListener
     {
-        void onError(String message);
-
         void onResponse(City city);
+
+        void onError(String message);
+    }
+
+    public interface CityListResponseListener
+    {
+        void onResponse(List<City> cities);
+
+        void onError(String message);
+    }
+
+    public void getAllCityData(CityListResponseListener responseListener)
+    {
+        String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/query?where=1%3D1&outFields=OBJECTID,BEZ,GEN,EWZ,BL_ID,BL,last_update,death_rate,cases,deaths,cases_per_100k,cases_per_population,cases7_per_100k,cases7_lk,death7_lk,death7_lk,cases7_bl_per_100k,cases7_bl,death7_bl&returnGeometry=false&outSR=&f=json";
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>()
+        {
+            @Override
+            public void onResponse(JSONObject response)
+            {
+                List<City> list =  new ArrayList<>();
+                try
+                {
+                    //TODO in eigene Methode auslagern
+                    //list = getCityListFromResponse(response);
+                    JSONArray features = getJSONFeaturesFromResponse(response);
+                    JSONObject attributes;
+                    City city;
+                    for(int i = 0; i < features.length(); i++)
+                    {
+                        attributes = getJSONAttributesFromFeatures(features, i);
+                        city = createAndFillCity(attributes);
+                        if(city != null)
+                        {
+                            list.add(city);
+                        }
+                    }
+                }
+                catch(JSONException jsonException)
+                {
+                    activity.uiUtility.showToastTextLong("JSON exception");
+                }
+                catch(IndexOutOfBoundsException outOfBoundsException)
+                {
+                    activity.uiUtility.showToastTextLong("IndexOutOfBoundsException");
+                }
+                responseListener.onResponse(list);
+            }
+
+        }, new Response.ErrorListener()
+        {
+            @Override
+            public void onErrorResponse(VolleyError error)
+            {
+                //TODO
+                if(error instanceof NoConnectionError)
+                {
+                    enableOfflineMode();
+                    //firebaseSvc.getCity(objectId, responseListener); //async
+                    return;
+                }
+                else
+                {
+                    disableOfflineMode();
+                }
+
+            }
+        });
+        RequestSingleton.getInstance(context).addToRequestQueue(request);
     }
 
     /**
@@ -178,21 +228,15 @@ public class DataSvc
                 disableOfflineMode();
                 try
                 {
-                    JSONArray features = response.getJSONArray("features");
-
-                    JSONObject firstAndOnlyArrayObject = features.getJSONObject(0); //Object without name
-                    if (firstAndOnlyArrayObject == null)
-                    {
-                        throw new JSONException("'firstAndOnlyArrayObject' is null");
-                    }
-                    JSONObject attributes = firstAndOnlyArrayObject.getJSONObject("attributes");
+                    JSONArray features = getJSONFeaturesFromResponse(response);
+                    JSONObject attributes = getJSONAttributesFromFeatures(features, 0);
                     City city = createAndFillCity(attributes);
                     responseListener.onResponse(city);
                 }
-                catch (Exception e)
+                catch (JSONException jsonException)
                 {
-                    responseListener.onError(e.getMessage());
-                    Log.e("DataSvc", e.toString());
+                    responseListener.onError(jsonException.getMessage());
+                    Log.e("DataSvc", jsonException.toString());
                 }
 
             }
@@ -201,7 +245,7 @@ public class DataSvc
             @Override
             public void onErrorResponse(VolleyError error)
             {
-                if(error instanceof NoConnectionError) //TODO Wenn kein Internet, auf die Firebase DB zugreifen.
+                if(error instanceof NoConnectionError) //Wenn kein Internet, auf die Firebase DB zugreifen.
                 {
                     enableOfflineMode();
                     firebaseSvc.getCity(objectId, responseListener); //async
@@ -265,46 +309,9 @@ public class DataSvc
 
     private City createAndFillCity(JSONObject attributes) throws JSONException
     {
-        BaseData baseData = createAndFillCityBaseDataModel(attributes);
-        CoronaData coronaData = createAndFillCityDataModel(attributes);
+        BaseData baseData = BaseData.createDataFromJSONAttributes(attributes);
+        CoronaData coronaData = CoronaData.createDataFromJSONAttributes(attributes);
         return new City(baseData, coronaData);
-    }
-
-    private BaseData createAndFillCityBaseDataModel(JSONObject attributes) throws JSONException
-    {
-        return new BaseData(
-                attributes.getInt(context.getString(R.string.STR_OBJECT_ID)),
-                attributes.getInt(context.getString(R.string.STR_BL_ID)),
-                attributes.getString(context.getString(R.string.STR_BL)),
-                attributes.getString(context.getString(R.string.STR_BEZ)),
-                attributes.getString(context.getString(R.string.STR_GEN)),
-                attributes.getInt(context.getString(R.string.STR_EWZ))
-        );
-    }
-
-    /**
-     * Achtung: case-sensitive!
-     *
-     * @param attributes features --> first obj of the array --> attributes
-     * @return CityDataModel, für das alle setter ausgeführt wurden
-     * @throws JSONException Evtl. liefert der Server für die Felder keine Antwort, dann fliegt die Exception
-     */
-    private CoronaData createAndFillCityDataModel(JSONObject attributes) throws JSONException
-    {
-        return new CoronaData(
-                attributes.getInt(context.getString(R.string.STR_OBJECT_ID)),
-                attributes.getString(context.getString(R.string.STR_LAST_UPDATE)),
-                attributes.getDouble(context.getString(R.string.STR_DEATH_RATE)),
-                attributes.getInt(context.getString(R.string.STR_CASES)),
-                attributes.getInt(context.getString(R.string.STR_DEATHS)),
-                attributes.getDouble(context.getString(R.string.STR_CASES_PER_100k)),
-                attributes.getDouble(context.getString(R.string.STR_CASES_PER_POPULATION)),
-                attributes.getDouble(context.getString(R.string.STR_7_TAGE_INZIDENZWERT)),
-                attributes.getInt(context.getString(R.string.STR_CASES_7)),
-                attributes.getInt(context.getString(R.string.STR_DEATH_7)),
-                attributes.getDouble(context.getString(R.string.STR_BL_7_TAGE_INZIDENZWERT)),
-                attributes.getInt(context.getString(R.string.STR_CASES_7_BL)),
-                attributes.getInt(context.getString(R.string.STR_DEATH_7_BL)));
     }
 
     public interface BaseDataResponseListener //Kann man evtl. weglassen und stattdessen den list-Listener nutzen
@@ -321,12 +328,49 @@ public class DataSvc
         void onResponse(List<BaseData> list);
     }
 
+    private JSONArray getJSONFeaturesFromResponse(JSONObject response) throws JSONException
+    {
+        return response.getJSONArray("features");
+    }
+
+    private JSONObject getJSONAttributesFromFeatures(JSONArray features, int index) throws JSONException
+    {
+        return features.getJSONObject(index).getJSONObject("attributes");
+    }
+
+    private List<BaseData> getBaseDataListFromResponse(JSONObject response) throws JSONException
+    {
+        List<BaseData> list = getListFromResponse(response, new BaseData());
+        return list; //TODO direkt returnen
+    }
+
+    private List<CoronaData> getCoronaDataListFromResponse(JSONObject response) throws JSONException
+    {
+        List<CoronaData> list = getListFromResponse(response, new CoronaData());
+        return list; //TODO direkt returnen
+    }
+
+    private <T extends Data> List<T> getListFromResponse(JSONObject response, T t) throws JSONException
+    {
+        JSONArray features = getJSONFeaturesFromResponse(response);
+        JSONObject attributes;
+        List<T> list = new ArrayList<>();
+
+        for (int i = 0; i < features.length(); i++)
+        {
+            attributes = getJSONAttributesFromFeatures(features, i);
+
+            list.add((T) t.createDataFromJSONAttributesGeneric(attributes));
+        }
+
+        return list;
+    }
+
     /**
      * Get list with all Cities in Germany
      */
-    public void getAllCities(BaseDataListResponseListener responseListener)
+    public void getAllBaseData(BaseDataListResponseListener responseListener)
     {
-
         String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/"
                 + "query?where=1%3D1&outFields=OBJECTID,BL_ID, BL, GEN,BEZ,EWZ&returnGeometry=false&outSR=&f=json";
 
@@ -338,23 +382,12 @@ public class DataSvc
                 disableOfflineMode();
                 try
                 {
-                    JSONArray features = response.getJSONArray("features");
-
-                    JSONObject iterator;
-                    JSONObject attributes;
-
-                    List<BaseData> list = new ArrayList<BaseData>();
-                    for (int i = 0; i < features.length(); i++)
-                    {
-                        attributes = features.getJSONObject(i).getJSONObject("attributes");
-                        list.add(createAndFillCityBaseDataModel(attributes));
-                    }
-
-                    responseListener.onResponse(list); //ruft die implementierte Methode auf (MainActivity) --> callback
-                } catch (Exception e)
+                    List<BaseData> list = getBaseDataListFromResponse(response);
+                    responseListener.onResponse(list);
+                } catch (JSONException jsonExceptione)
                 {
-                    responseListener.onError(e.getMessage());
-                    Log.d("DataSvc", e.toString());
+                    responseListener.onError(jsonExceptione.getMessage());
+                    Log.d("DataSvc", jsonExceptione.toString());
                 }
             }
         }, new Response.ErrorListener()
@@ -380,13 +413,57 @@ public class DataSvc
         });
         RequestSingleton.getInstance(context).addToRequestQueue(request);
 
+        //Test //TODO move to other point
+        getAllCityData(new CityListResponseListener()
+        {
+            @Override
+            public void onResponse(List<City> cities)
+            {
+                if(cities.isEmpty())
+                {
+                    String msg = "Cities is empty";
+                    activity.uiUtility.showToastTextShort(msg);
+                    throw new IllegalArgumentException(msg);
+                }
+                firebaseSvc.saveCityList(cities, new FirebaseResponseListener()
+                {
+                    @Override
+                    public void onResponse()
+                    {
+                        activity.uiUtility.showToastTextShort("Daten aller Städte wurden gespeichert.");
+                        //Hinweis: Dass sie wirklich gespeichert wurden, ist nicht klar. Es wurde nur die
+                        //Liste abgearbeitet und Firebase wurden die Tasks übergeben
+                    }
+
+                    @Override
+                    public void onError(String message)
+                    {
+                        activity.uiUtility.showToastTextShort("Fehler beim Speicher aller Städte-Daten.");
+                    }
+                });
+            }
+
+            @Override
+            public void onError(String message)
+            {
+
+            }
+        });
+
+    }
+
+    public interface FirebaseResponseListener //TODO rename or outsource to firebaseSvc
+    {
+        void onResponse();
+
+        void onError(String message);
     }
 
     public interface ActvSetupResponseListener
     {
-        void onError(String message);
-
         void onResponse(List<String> listOfEntries);
+
+        void onError(String message);
     }
 
     private List<String> fillCityNameList(List<BaseData> baseDataList)
@@ -425,7 +502,7 @@ public class DataSvc
 
     public void fillActvCity(AutoCompleteTextView actv_city, Context activityContext, ActvSetupResponseListener responseListener)
     {
-        getAllCities(new BaseDataListResponseListener()
+        getAllBaseData(new BaseDataListResponseListener()
         {
             @Override
             public void onError(String message)
