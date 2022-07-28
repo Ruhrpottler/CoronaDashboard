@@ -156,23 +156,10 @@ public class DataSvc
             @Override
             public void onResponse(JSONObject response)
             {
-                List<City> list =  new ArrayList<>();
+                List<City> list = new ArrayList<>();
                 try
                 {
-                    //TODO in eigene Methode auslagern
-                    //list = getCityListFromResponse(response);
-                    JSONArray features = getJSONFeaturesFromResponse(response);
-                    JSONObject attributes;
-                    City city;
-                    for(int i = 0; i < features.length(); i++)
-                    {
-                        attributes = getJSONAttributesFromFeatures(features, i);
-                        city = createAndFillCity(attributes);
-                        if(city != null)
-                        {
-                            list.add(city);
-                        }
-                    }
+                    list = getCityListFromResponse(response);
                 }
                 catch(JSONException jsonException)
                 {
@@ -265,7 +252,6 @@ public class DataSvc
         RequestSingleton.getInstance(context).addToRequestQueue(request);
     }
 
-
     /**
      * Callback-Hell
      * Holt das City-Objekt anhand des Namen
@@ -307,13 +293,6 @@ public class DataSvc
         });
     }
 
-    private City createAndFillCity(JSONObject attributes) throws JSONException
-    {
-        BaseData baseData = BaseData.createDataFromJSONAttributes(attributes);
-        CoronaData coronaData = CoronaData.createDataFromJSONAttributes(attributes);
-        return new City(baseData, coronaData);
-    }
-
     public interface BaseDataResponseListener //Kann man evtl. weglassen und stattdessen den list-Listener nutzen
     {
         void onError(String message);
@@ -338,16 +317,40 @@ public class DataSvc
         return features.getJSONObject(index).getJSONObject("attributes");
     }
 
+    private List<City> getCityListFromResponse(JSONObject response) throws JSONException
+    {
+        List<City> list = new ArrayList<>();
+
+        JSONArray features = getJSONFeaturesFromResponse(response);
+        JSONObject attributes;
+        City city;
+        for(int i = 0; i < features.length(); i++)
+        {
+            attributes = getJSONAttributesFromFeatures(features, i);
+            city = createAndFillCity(attributes);
+            if(city != null)
+            {
+                list.add(city);
+            }
+        }
+        return list;
+    }
+
+    private City createAndFillCity(JSONObject attributes) throws JSONException
+    {
+        BaseData baseData = BaseData.createDataFromJSONAttributes(attributes);
+        CoronaData coronaData = CoronaData.createDataFromJSONAttributes(attributes);
+        return new City(baseData, coronaData);
+    }
+
     private List<BaseData> getBaseDataListFromResponse(JSONObject response) throws JSONException
     {
-        List<BaseData> list = getListFromResponse(response, new BaseData());
-        return list; //TODO direkt returnen
+        return getListFromResponse(response, new BaseData());
     }
 
     private List<CoronaData> getCoronaDataListFromResponse(JSONObject response) throws JSONException
     {
-        List<CoronaData> list = getListFromResponse(response, new CoronaData());
-        return list; //TODO direkt returnen
+        return getListFromResponse(response, new CoronaData());
     }
 
     private <T extends Data> List<T> getListFromResponse(JSONObject response, T t) throws JSONException
@@ -359,7 +362,6 @@ public class DataSvc
         for (int i = 0; i < features.length(); i++)
         {
             attributes = getJSONAttributesFromFeatures(features, i);
-
             list.add((T) t.createDataFromJSONAttributesGeneric(attributes));
         }
 
@@ -446,7 +448,7 @@ public class DataSvc
             @Override
             public void onError(String message)
             {
-
+                //TODO
             }
         });
 
