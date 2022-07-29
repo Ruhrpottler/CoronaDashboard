@@ -26,6 +26,12 @@ public class UrlManager
                 false, getOutFieldsBaseData());
     }
 
+    public static String getUrlGetAllCityData()
+    {
+        return getUrlWithWhereConditionAllOutFields(getWhereConditionEmptyEncoded(),
+                false, getOutFieldsAll());
+    }
+
     public static String getUrlGetCityByObjectId(int objectId)
     {
         String objectIdStr = Integer.toString(objectId);
@@ -47,7 +53,7 @@ public class UrlManager
         else
         {
             whereCondition = encodeUrl(String.format("BEZ='%s'AND", bez));
-            whereCondition = whereCondition + "%20" + getWhereConditionGenEncoded(gen); //%20 for the needed whitespace
+            whereCondition = whereCondition + getEncodedWhitespace() + getWhereConditionGenEncoded(gen);
         }
         String outfields = "&outFields=OBJECTID";
         String result = getUrlWithWhereConditionAllOutFields(whereCondition, true, outfields);
@@ -120,5 +126,10 @@ public class UrlManager
             Log.e("UrlManager", "URL-Encoding failed: " + e.getMessage());
         }
         return result;
+    }
+
+    private static String getEncodedWhitespace()
+    {
+        return "%20";
     }
 }

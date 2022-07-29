@@ -149,7 +149,7 @@ public class DataSvc
 
     public void getAllCityData(CityListResponseListener responseListener)
     {
-        String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/query?where=1%3D1&outFields=OBJECTID,BEZ,GEN,EWZ,BL_ID,BL,last_update,death_rate,cases,deaths,cases_per_100k,cases_per_population,cases7_per_100k,cases7_lk,death7_lk,death7_lk,cases7_bl_per_100k,cases7_bl,death7_bl&returnGeometry=false&outSR=&f=json";
+        String url = UrlManager.getUrlGetAllCityData();
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>()
         {
             @Override
@@ -162,11 +162,19 @@ public class DataSvc
                 }
                 catch(JSONException jsonException)
                 {
-                    activity.uiUtility.showToastTextLong("JSON exception");
+                    String msg = "Loading city-data from all cities and extracting to list failed: "
+                            + jsonException.getMessage();
+                    activity.uiUtility.showToastTextLong(msg);
+                    responseListener.onError(msg);
+                    return;
                 }
                 catch(IndexOutOfBoundsException outOfBoundsException)
                 {
-                    activity.uiUtility.showToastTextLong("IndexOutOfBoundsException");
+                    String msg = "Loading city-data from all cities and extracting to list failed: "
+                            + outOfBoundsException.getMessage();
+                    activity.uiUtility.showToastTextLong(msg);
+                    responseListener.onError(msg);
+                    return;
                 }
                 responseListener.onResponse(list);
             }
@@ -368,8 +376,6 @@ public class DataSvc
      */
     public void getAllBaseData(BaseDataListResponseListener responseListener)
     {
-//        String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/"
-//                + "query?where=1%3D1&outFields=OBJECTID,BL_ID, BL, GEN,BEZ,EWZ&returnGeometry=false&outSR=&f=json";
         String url = UrlManager.getUrlGetAllBaseData();
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>()
@@ -411,7 +417,7 @@ public class DataSvc
         });
         RequestSingleton.getInstance(context).addToRequestQueue(request);
 
-        //Test //TODO move to other point
+        //TODO move to other point
         getAllCityData(new CityListResponseListener()
         {
             @Override
