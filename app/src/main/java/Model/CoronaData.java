@@ -171,6 +171,10 @@ public class CoronaData implements Data
         return cases7_per_100k;
     }
 
+    /**
+     *
+     * @param cases7_per_100k 7-Tage Inzidenzwert pro 100.000 Einwohner
+     */
     public final void setCases7_per_100k(double cases7_per_100k)
     {
         this.cases7_per_100k = FormatTool.roundDouble(cases7_per_100k, 1);

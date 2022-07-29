@@ -15,11 +15,10 @@ import androidx.core.app.NotificationManagerCompat;
  */
 public class NotificationSvc
 {
-
     private int notificationId = 1;
     private static String defaultChannelId = "defaultChannel";
-    private static Context context;
-    private static NotificationManager manager;
+    private final Context context;
+    private final NotificationManager manager;
 
     public NotificationSvc(Context context)
     {
@@ -31,14 +30,14 @@ public class NotificationSvc
         }
     }
 
-    private static void createNotificationChannel(String channelId, String channelName, String description)
+    private void createNotificationChannel(String channelId, String channelName, String description)
     {
         NotificationChannel channel = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT);
         channel.setDescription(description);
         manager.createNotificationChannel(channel);
     }
 
-    private static NotificationChannel getNotificationChannel(String channelId) //TODO notwendig?
+    private NotificationChannel getNotificationChannel(String channelId) //TODO notwendig?
     {
         return manager.getNotificationChannel(channelId);
     }
@@ -46,6 +45,14 @@ public class NotificationSvc
     /** Benachrichtigung senden oder aktualisieren
      * @param priority z.B. NotificationCompat.PRIORITY_DEFAULT
      */
+
+    /**
+     * With default priority
+     */
+    public int sendNotification(String title, String description) //TODO aktuell immer über defualt, entscheiden für eins und dann entsprechend anpassen
+    {
+        return sendNotification(getNotificationId(), title, description, NotificationCompat.PRIORITY_DEFAULT);
+    }
 
     public int sendNotification(String title, String description, int priority) //TODO aktuell immer über defualt, entscheiden für eins und dann entsprechend anpassen
     {
@@ -66,7 +73,7 @@ public class NotificationSvc
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, this.defaultChannelId)
-                .setSmallIcon(R.drawable.ic_launcher_background) //TODO NotificationIcon ändern
+                .setSmallIcon(R.mipmap.appicon) //TODO Von Manifest abhängig machen
                 .setContentTitle(title)
                 .setContentText(description)
                 .setContentIntent(pendingIntent)

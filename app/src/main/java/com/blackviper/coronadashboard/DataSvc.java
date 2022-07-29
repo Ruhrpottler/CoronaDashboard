@@ -165,6 +165,7 @@ public class DataSvc
         RequestSingleton.getInstance(context).addToRequestQueue(request);
     }
 
+
     /**
      * Fragt die Daten (Base und Corona) über das RKI ab (REST-Schnittstelle).
      * @param objectId eindeutige ID der Kommune

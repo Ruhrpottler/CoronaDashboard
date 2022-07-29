@@ -3,8 +3,10 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/janni/AndroidStudioProjects/CoronaDashboard/app/src/main/res/drawable/ic_launcher_background.xml" value="0.228" />
         <entry key="..\:/Users/janni/AndroidStudioProjects/CoronaDashboard/app/src/main/res/drawable/ic_logo.xml" value="0.336" />
         <entry key="..\:/Users/janni/AndroidStudioProjects/CoronaDashboard/app/src/main/res/layout/activity_main.xml" value="0.3546875" />
+        <entry key="..\:/Users/janni/AndroidStudioProjects/CoronaDashboard/app/src/main/res/mipmap-anydpi-v26/appicon.xml" value="0.228" />
       </map>
     </option>
   </component>
