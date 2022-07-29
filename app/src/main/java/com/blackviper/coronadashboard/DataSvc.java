@@ -121,7 +121,48 @@ public class DataSvc
         RequestSingleton.getInstance(context).addToRequestQueue(request);
     }
 
-    public void getAllCityData(CityListResponseListener responseListener)
+    public void loadAllCityData()
+    {
+        getAllCityDataInternal(new CityListResponseListener()
+        {
+            @Override
+            public void onResponse(List<City> cities)
+            {
+                if(cities.isEmpty())
+                {
+                    String msg = "Cities is empty";
+                    activity.uiUtility.showToastTextShort(msg);
+                    throw new IllegalArgumentException(msg);
+                }
+                firebaseSvc.saveCityList(cities, new FirebaseResponseListener()
+                {
+                    @Override
+                    public void onResponse()
+                    {
+                        activity.uiUtility.showToastTextShort("Daten aller Städte werden gespeichert.");
+                        //Hinweis: Dass sie wirklich gespeichert wurden, ist nicht klar. Es wurde nur die
+                        //Liste abgearbeitet und Firebase wurden die Tasks übergeben
+                    }
+
+                    @Override
+                    public void onError(String message)
+                    {
+                        Log.e("DataSvc", "Saving all cities to the database failed: " + message);
+                        activity.uiUtility.showToastTextShort("Fehler beim Speicher aller Städte-Daten.");
+                    }
+                });
+            }
+
+            @Override
+            public void onError(String message)
+            {
+                Log.e("DataSvc", "Request loading all cities failed: " + message);
+                activity.uiUtility.showToastTextShort("Fehler beim Speicher aller Städte-Daten.");
+            }
+        });
+    }
+
+    private void getAllCityDataInternal(CityListResponseListener responseListener)
     {
         String url = UrlManager.getUrlGetAllCityData();
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>()
@@ -291,7 +332,7 @@ public class DataSvc
                     public void onResponse(City city)
                     {
                         apiListener.onResponse(city);
-                        firebaseSvc.getCity(objectId, firebaseListener);
+                        firebaseSvc.getCity(objectId, firebaseListener); //TODO Wenn offline, wird doppelt getCity ausgeüfhrt, oder?
                     }
 
                     @Override
@@ -357,46 +398,7 @@ public class DataSvc
             }
         });
         RequestSingleton.getInstance(context).addToRequestQueue(request);
-
-        //TODO move to other point
-        getAllCityData(new CityListResponseListener()
-        {
-            @Override
-            public void onResponse(List<City> cities)
-            {
-                if(cities.isEmpty())
-                {
-                    String msg = "Cities is empty";
-                    activity.uiUtility.showToastTextShort(msg);
-                    throw new IllegalArgumentException(msg);
-                }
-                firebaseSvc.saveCityList(cities, new FirebaseResponseListener()
-                {
-                    @Override
-                    public void onResponse()
-                    {
-                        activity.uiUtility.showToastTextShort("Daten aller Städte werden gespeichert.");
-                        //Hinweis: Dass sie wirklich gespeichert wurden, ist nicht klar. Es wurde nur die
-                        //Liste abgearbeitet und Firebase wurden die Tasks übergeben
-                    }
-
-                    @Override
-                    public void onError(String message)
-                    {
-                        Log.e("DataSvc", "Saving all cities to the database failed: " + message);
-                        activity.uiUtility.showToastTextShort("Fehler beim Speicher aller Städte-Daten.");
-                    }
-                });
-            }
-
-            @Override
-            public void onError(String message)
-            {
-                Log.e("DataSvc", "Request loading all cities failed: " + message);
-                activity.uiUtility.showToastTextShort("Fehler beim Speicher aller Städte-Daten.");
-            }
-        });
-
+        loadAllCityData();
     }
 
     private List<String> fillCityNameList(List<BaseData> baseDataList)

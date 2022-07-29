@@ -87,7 +87,7 @@ public class NotificationSvc
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, this.defaultChannelId)
                 .setSmallIcon(R.drawable.appicon_drawable)
-                .setLargeIcon(BitmapFactory.decodeResource(context.getResources(), R.drawable.appicon_drawable))
+                //.setLargeIcon(BitmapFactory.decodeResource(context.getResources(), R.drawable.appicon_drawable))
                 .setContentTitle(title)
                 .setContentText(description)
                 .setContentIntent(pendingIntent)
