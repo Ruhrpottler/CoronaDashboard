@@ -4,7 +4,6 @@ import android.content.Context;
 import android.util.Log;
 import android.widget.AutoCompleteTextView;
 
-import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.NoConnectionError;
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -65,7 +64,7 @@ public class DataSvc
      */
     public void findAndSetObjectIdByName(String cityName, ObjectIdResponseListener responseListener)
     {
-        String url = UrlManager.getUrlSearchObjectIdByCityName(cityName);
+        String url = UrlManager.getUrlFindObjectIdByCityName(cityName);
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>()
         {
@@ -126,10 +125,10 @@ public class DataSvc
                 activity.uiUtility.showToastTextLong(msg);
             }
         });
-        request.setRetryPolicy(new DefaultRetryPolicy(
-                5000,
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+//        request.setRetryPolicy(new DefaultRetryPolicy(
+//                5000,
+//                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+//                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 
         RequestSingleton.getInstance(context).addToRequestQueue(request);
     }
@@ -201,11 +200,7 @@ public class DataSvc
      */
     public void getCityByObjectId(int objectId, CityResponseListener responseListener)
     {
-        //TODO url
-        String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/query?"
-                + "where=OBJECTID%3D" + objectId
-                + "&outFields=OBJECTID,BEZ,GEN,EWZ,BL_ID,BL,last_update,death_rate,cases,deaths,cases_per_100k,cases_per_population,"
-                + "cases7_per_100k,cases7_lk,death7_lk,death7_lk,cases7_bl_per_100k,cases7_bl,death7_bl&returnGeometry=false&f=json";
+        String url = UrlManager.getUrlGetCityByObjectId(objectId);
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>()
         {
@@ -373,8 +368,9 @@ public class DataSvc
      */
     public void getAllBaseData(BaseDataListResponseListener responseListener)
     {
-        String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/"
-                + "query?where=1%3D1&outFields=OBJECTID,BL_ID, BL, GEN,BEZ,EWZ&returnGeometry=false&outSR=&f=json";
+//        String url = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/"
+//                + "query?where=1%3D1&outFields=OBJECTID,BL_ID, BL, GEN,BEZ,EWZ&returnGeometry=false&outSR=&f=json";
+        String url = UrlManager.getUrlGetAllBaseData();
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>()
         {
