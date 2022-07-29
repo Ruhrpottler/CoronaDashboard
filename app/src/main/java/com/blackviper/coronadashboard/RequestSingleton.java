@@ -10,6 +10,10 @@ import com.android.volley.toolbox.Volley;
  * Documentation: https://google.github.io/volley/requestqueue#singleton
  * Aufruf wie folgt: RequestSingleton.getInstance(MainActivity.this).addToRequestQueue(request); request ist ein JSONObjectRequest
  */
+
+/**
+ * Singleton. Get the instance if it exists. Otherwise, creates a new instance.
+ */
 public class RequestSingleton
 {
     private static RequestSingleton instance; //Typ ist die Instanz der Klasse //TODO non static machen lt. Warning?!
@@ -22,9 +26,8 @@ public class RequestSingleton
         requestQueue = getRequestQueue();
     }
 
-    //TODO Prüfen wegen Activity vs ApplicationContext (der wird doch schon autom. gezogen, oder?)
     /**
-     * @param applicationContext Sollte der ApplicationContext sein, damit die Instanz nicht recreated wird,
+     * @param applicationContext Sollte der ApplicationContext sein, damit die Instanz NICHT recreated wird,
      *                wenn die Activity neu erstellt wird (z.B. wenn Smartphone gedreht wird).
      * @return Wenn die Instanz existiert, wird diese zurückgegeben. Wenn nicht, wird sie erstellt.
      */

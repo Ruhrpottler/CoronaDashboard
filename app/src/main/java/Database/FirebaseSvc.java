@@ -38,11 +38,10 @@ public class FirebaseSvc
 {
     private static final String LOG_TAG = FirebaseSvc.class.getName();
 
-    private static FirebaseSvc firebaseInstance;
-
     private static final String PATH_CITY_DATA = "CoronaDataMitDatum"; //Name des Pfades //TODO rename
     private static final String PATH_BASE_DATA = "BaseData";
 
+    private static FirebaseSvc firebaseInstance;
     private final DatabaseReference db; //root
     private final DatabaseReference cityDataRef;
     private final DatabaseReference baseDataRef;
@@ -50,7 +49,7 @@ public class FirebaseSvc
     /**
      * Singleton. Get the instance if it exists. Otherwise, creates a new instance.
      */
-    public static FirebaseSvc getFirebaseInstance()
+    public static synchronized FirebaseSvc getFirebaseInstance()
     {
         if(firebaseInstance == null)
         {
