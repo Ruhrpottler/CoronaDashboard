@@ -259,58 +259,6 @@ public class DataSvc
         RequestSingleton.getInstance(context).addToRequestQueue(request);
     }
 
-//    /**
-//     * Fragt die Daten (Base und Corona) über das RKI ab (REST-Schnittstelle).
-//     * @param objectId eindeutige ID der Kommune
-//     * @param responseListener Rückgabe über Listener (callback)
-//     */
-//    public void getCityByObjectId(int objectId, CityResponseListener responseListener)
-//    {
-//        String url = UrlManager.getUrlGetCityByObjectId(objectId);
-//
-//        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>()
-//        {
-//            @Override
-//            public void onResponse(JSONObject response)
-//            {
-//                disableOfflineMode();
-//                try
-//                {
-//                    JSONArray features = JsonSvc.getJSONFeaturesFromResponse(response);
-//                    JSONObject attributes = JsonSvc.getJSONAttributesFromFeatures(features, 0);
-//                    City city = JsonSvc.createAndFillCity(attributes);
-//                    responseListener.onResponse(city);
-//                }
-//                catch (JSONException jsonException)
-//                {
-//                    String msg = "Error processing JSON-response.";
-//                    responseListener.onError(msg);
-//                    Log.e("DataSvc", msg + "\n" + jsonException.getMessage());
-//                }
-//            }
-//        }, new Response.ErrorListener()
-//        {
-//            @Override
-//            public void onErrorResponse(VolleyError error)
-//            {
-//                if(error instanceof NoConnectionError) //Wenn kein Internet, auf die Firebase DB zugreifen.
-//                {
-//                    enableOfflineMode();
-//                    firebaseSvc.getCity(objectId, responseListener); //async
-//                    return;
-//                }
-//                else
-//                {
-//                    disableOfflineMode();
-//                }
-//                String msg = "Fehler bei der Verarbeitung der Server-Antwort. Host nicht erreichbar.";
-//                Log.d("DataSvc", msg + "\n" + error.toString());
-//                responseListener.onError(msg);
-//            }
-//        });
-//        RequestSingleton.getInstance(context).addToRequestQueue(request);
-//    }
-
     /**
      * Callback-Hell
      * Holt das City-Objekt anhand des Namen
@@ -332,7 +280,10 @@ public class DataSvc
                     public void onResponse(City city)
                     {
                         apiListener.onResponse(city);
-                        firebaseSvc.getCity(objectId, firebaseListener); //TODO Wenn offline, wird doppelt getCity ausgeüfhrt, oder?
+                        if(!isOfflineModeEnabled())
+                        {
+                            firebaseSvc.getCity(objectId, firebaseListener); //Already done when data came from the local database
+                        }
                     }
 
                     @Override

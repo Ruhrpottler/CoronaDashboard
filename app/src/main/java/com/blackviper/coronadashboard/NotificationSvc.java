@@ -87,7 +87,6 @@ public class NotificationSvc
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, this.defaultChannelId)
                 .setSmallIcon(R.drawable.appicon_drawable)
-                //.setLargeIcon(BitmapFactory.decodeResource(context.getResources(), R.drawable.appicon_drawable))
                 .setContentTitle(title)
                 .setContentText(description)
                 .setContentIntent(pendingIntent)
@@ -99,7 +98,7 @@ public class NotificationSvc
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
         notificationManager.notify(notificationId, builder.build());
 
-        Log.i(this.getClass().toString(), "Benachrichtigung mit ID " + notificationId + " gesendet.");
+        Log.d(this.getClass().toString(), "Benachrichtigung mit ID " + notificationId + " gesendet.");
         return notificationId;
     }
 
