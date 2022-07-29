@@ -137,8 +137,8 @@ public class FirebaseSvc
                 .limitToFirst(1)
                 .get();
 
-        Task<Void> syncedTasks = Tasks.whenAll(taskBaseData, taskCoronaData);
-        syncedTasks.addOnSuccessListener(new OnSuccessListener<Void>()
+        Task<Void> syncedTasks = Tasks.whenAll(taskBaseData, taskCoronaData)
+                .addOnSuccessListener(new OnSuccessListener<Void>()
         {
             @Override
             public void onSuccess(Void unused)
@@ -154,8 +154,7 @@ public class FirebaseSvc
                             + " konnten nicht aus der lokalen Firebase-Datenbank gelesen werden.");
                 }
             }
-        });
-        syncedTasks.addOnFailureListener(new OnFailureListener()
+        }).addOnFailureListener(new OnFailureListener()
         {
             @Override
             public void onFailure(@NonNull Exception e)
