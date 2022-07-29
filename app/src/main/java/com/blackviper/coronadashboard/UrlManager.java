@@ -56,8 +56,7 @@ public class UrlManager
             whereCondition = whereCondition + getEncodedWhitespace() + getWhereConditionGenEncoded(gen);
         }
         String outfields = "&outFields=OBJECTID";
-        String result = getUrlWithWhereConditionAllOutFields(whereCondition, true, outfields);
-        return result;
+        return getUrlWithWhereConditionAllOutFields(whereCondition, true, outfields);
     }
 
     //Internal methods
