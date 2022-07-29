@@ -8,7 +8,10 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import java.util.List;
+
 import Model.BaseData;
+import Tools.Constants;
 
 /**
  * Zum Speichern der City-Stammdaten auf dem Gerät, um die Vorschläge bei Eingabe der City-Namen zu ermöglichen.
@@ -21,16 +24,35 @@ public class SQLiteDatabaseHelper extends SQLiteOpenHelper
     //Tabellen
     private static final String TABLE_CITY_BASE_DATA = "CITY_STAMMDATEN";
     //Spalten
-    private static final String COLUMN_OBJECT_ID = "OBJECTID";
-    private static final String COLUMN_CITY_BL_ID = "BL_ID";
-    private static final String COLUMN_CITY_BL = "BL";
-    private static final String COLUMN_CITY_BEZ = "BEZ";
-    private static final String COLUMN_CITY_NAME = "GEN";
-    private static final String COLUMN_CITY_EWZ = "EWZ";
+    private static final String COLUMN_OBJECT_ID = Constants.STR_OBJECT_ID;
+    private static final String COLUMN_CITY_BL_ID = Constants.STR_BL_ID;
+    private static final String COLUMN_CITY_BL = Constants.STR_BL;
+    private static final String COLUMN_CITY_BEZ = Constants.STR_BEZ;
+    private static final String COLUMN_CITY_NAME = Constants.STR_GEN;
+    private static final String COLUMN_CITY_EWZ = Constants.STR_EWZ;
 
     public SQLiteDatabaseHelper(@Nullable Context activityContext) //, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version
     {
         super(activityContext, db_name, null, 1);
+    }
+
+    private void fillListOfEntriesAndSaveSQLite(List<BaseData> baseDataList, List<String> listOfEntries)
+    {
+        boolean success;
+        int i = -1;
+        for(BaseData dataElement : baseDataList)
+        {
+            i++;
+            if(dataElement == null) //Beim Lesen aus Firebase kann es passieren, dass [0] in der ArrayList null ist. Auch weitere, warum?? //TODO
+            {
+                Log.i("SQLite", "Element i=" + i + " is missing.");
+                continue;
+            }
+            listOfEntries.add(dataElement.getCityName());
+            insertOrUpdateCityBaseDataRow(dataElement);
+        }
+
+        Log.d("SQLite", "The basedata of all cities was stored in the SQLite database.");
     }
 
     /**

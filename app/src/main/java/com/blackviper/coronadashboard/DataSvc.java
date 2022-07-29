@@ -362,26 +362,6 @@ public class DataSvc
         return cityNameList;
     }
 
-    //TODO auslagern in SQLite, aber doppelte for-Schleife verhindern / Methodennamen ändern
-    private void fillListOfEntriesAndSaveSQLite(List<BaseData> baseDataList, List<String> listOfEntries)
-    {
-        boolean success;
-        int i = -1;
-        for(BaseData dataElement : baseDataList)
-        {
-            i++;
-            if(dataElement == null) //Beim Lesen aus Firebase kann es passieren, dass [0] in der ArrayList null ist. Auch weitere, warum?? //TODO
-            {
-                Log.i("Counter", "Es fehlt Element i=" + i);
-                continue;
-            }
-            listOfEntries.add(dataElement.getCityName());
-            dbHelper.insertOrUpdateCityBaseDataRow(dataElement);
-        }
-
-        Log.d("DataSvc", "The basedata of all german cities was stored in the SQLite database.");
-    }
-
     public void fillActvCity(AutoCompleteTextView actv_city, Context activityContext, ActvSetupResponseListener responseListener)
     {
         getAllBaseData(new BaseDataListResponseListener()

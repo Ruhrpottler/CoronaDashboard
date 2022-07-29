@@ -2,6 +2,10 @@ package Tools;
 
 public class Constants
 {
+    //Before changing any constant, please watchout for the usage.
+    //Could be used as column or table identifier for databases.
+    //A change can cause crashes.
+
     //BaseData fields
     public static final String STR_OBJECT_ID = "OBJECTID";
     public static final String STR_BL_ID = "BL_ID";
