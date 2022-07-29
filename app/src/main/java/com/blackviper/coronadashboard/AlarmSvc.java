@@ -68,6 +68,5 @@ public class AlarmSvc
         String description = String.format(Locale.GERMAN, "Inzidenzwert %d seit" +
                 " mind.  %d Tagen überschritten.", THRESHOLD_INZIDENZ, sinceDays);
         notificationSvc.sendNotification(title, description);
-
     }
 }

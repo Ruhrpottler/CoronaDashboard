@@ -4,6 +4,8 @@ import android.content.Context;
 import android.util.Log;
 import android.widget.AutoCompleteTextView;
 
+import androidx.annotation.NonNull;
+
 import com.android.volley.NoConnectionError;
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -211,7 +213,7 @@ public class DataSvc
      * @param objectId eindeutige ID der Kommune
      * @param responseListener Rückgabe über Listener (callback)
      */
-    public void getCityByObjectId(int objectId, CityResponseListener responseListener)
+    public void getCityByObjectIdInternal(int objectId, CityResponseListener responseListener)
     {
         String url = UrlManager.getUrlGetCityByObjectId(objectId);
 
@@ -261,38 +263,43 @@ public class DataSvc
 
     /**
      * Callback-Hell
-     * Holt das City-Objekt anhand des Namen
+     * Get City by cityName
      *
-     * @param cityName              ohne Präfix
+     * @param cityName  only GEN wihtout the prefix BEZ (e.g. "Dortmund").
      * @param apiListener Wird aufgerufen, wenn Response vom Server/der API empfangen wurde.
      * @param firebaseListener Daten mehrerer Tage aus der DB beziehen und zurückgeben.
      */
-    public void getCityDataByName(String cityName, CityResponseListener apiListener, CityResponseListener firebaseListener)
+    public void getCityDataByName(String cityName, @NonNull CityResponseListener apiListener, @NonNull CityResponseListener firebaseListener)
     {
         findAndSetObjectIdByName(cityName, new ObjectIdResponseListener()
         {
             @Override
             public void onResponse(int objectId)
             {
-                getCityByObjectId(objectId, new CityResponseListener()
-                {
-                    @Override
-                    public void onResponse(City city)
-                    {
-                        apiListener.onResponse(city);
-                        if(!isOfflineModeEnabled())
-                        {
-                            firebaseSvc.getCity(objectId, firebaseListener); //Already done when data came from the local database
-                        }
-                    }
+                getCityByObjectId(objectId, apiListener, firebaseListener);
+            }
 
-                    @Override
-                    public void onError(String message)
-                    {
-                        activity.uiUtility.showToastTextLong(message);
-                        Log.e("DataSvc", message);
-                    }
-                });
+            @Override
+            public void onError(String message)
+            {
+                activity.uiUtility.showToastTextLong(message);
+                Log.e("DataSvc", message);
+            }
+        });
+    }
+
+    private void getCityByObjectId(int objectId, @NonNull CityResponseListener apiListener, @NonNull CityResponseListener firebaseListener)
+    {
+        getCityByObjectIdInternal(objectId, new CityResponseListener()
+        {
+            @Override
+            public void onResponse(City city)
+            {
+                apiListener.onResponse(city);
+                if(!isOfflineModeEnabled())
+                {
+                    firebaseSvc.getCity(objectId, firebaseListener); //Already done when data came from the local database
+                }
             }
 
             @Override
