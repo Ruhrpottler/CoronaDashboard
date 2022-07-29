@@ -29,16 +29,19 @@ public class MainActivity extends AppCompatActivity
     private AutoCompleteTextView actv_city;
 
     final UiUtility uiUtility = new UiUtility(MainActivity.this);
+    private NotificationSvc notificationSvc;
     private final DataSvc dataSvc = new DataSvc(this, MainActivity.this);
     private final SQLiteDatabaseHelper dbHelper = new SQLiteDatabaseHelper(MainActivity.this);
     private final FirebaseSvc firebaseSvc = FirebaseSvc.getFirebaseInstance(); //TODO könnte man auch aus dem DataSvc ziehen
-    private NotificationSvc notificationSvc;
+
+    //private final AlarmSvc alarmSvc = new AlarmSvc(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        notificationSvc = new NotificationSvc(this);
+        //alarmSvc = new AlarmSvc(this);
+        notificationSvc = new NotificationSvc(this);//NotificationSvc.getInstance(this);
 
         Button btn_sendRequest = (Button) findViewById(R.id.btn_sendRequest);
         ListView lv = (ListView) findViewById(R.id.lv_responseView);
@@ -82,6 +85,7 @@ public class MainActivity extends AppCompatActivity
                     public void onResponse(City city)
                     {
                         //TODO Später einen Graphen zeigen
+
                         tvErgebnisse.setText(city.toString()); //print the newest data
                         if(!isOfflineModeEnabled())
                         {

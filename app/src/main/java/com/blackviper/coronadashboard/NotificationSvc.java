@@ -10,6 +10,8 @@ import android.util.Log;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
+import Database.FirebaseSvc;
+
 /** @apiNote API Level 26 or higher required
  *
  */
@@ -19,6 +21,16 @@ public class NotificationSvc
     private static String defaultChannelId = "defaultChannel";
     private final Context context;
     private final NotificationManager manager;
+    private static NotificationSvc instance;
+
+    public static synchronized NotificationSvc getInstance(Context context)
+    {
+        if(instance == null)
+        {
+            instance = new NotificationSvc(context);
+        }
+        return instance;
+    }
 
     public NotificationSvc(Context context)
     {

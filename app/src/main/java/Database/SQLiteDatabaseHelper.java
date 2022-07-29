@@ -31,7 +31,7 @@ public class SQLiteDatabaseHelper extends SQLiteOpenHelper
     private static final String COLUMN_CITY_NAME = Constants.STR_GEN;
     private static final String COLUMN_CITY_EWZ = Constants.STR_EWZ;
 
-    public SQLiteDatabaseHelper(@Nullable Context activityContext) //, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version
+    public SQLiteDatabaseHelper(@Nullable Context activityContext)
     {
         super(activityContext, db_name, null, 1);
     }

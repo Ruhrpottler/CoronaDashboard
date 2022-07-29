@@ -16,16 +16,14 @@ import Model.CoronaData;
  */
 public class AlarmSvc
 {
-    private final Context context;
-    private NotificationSvc notificationSvc;
+    private final NotificationSvc notificationSvc;
 
     private static final int THRESHOLD_INZIDENZ = 100; //Inzidenzwert, welcher für eine Warnung überschritten werden muss
     private static final int THRESHOLD_DAYS = 2; //Warn user if the Inzidenz-value is over the threshold more since or more than x days
 
     public AlarmSvc(Context context)
     {
-        this.context = context;
-        notificationSvc = new NotificationSvc(context);
+        notificationSvc = NotificationSvc.getInstance(context);
     }
 
     //TODO Für eine Stadt von der DB alle Tage ziehen (List<CoronaData> und sortieren lassen)

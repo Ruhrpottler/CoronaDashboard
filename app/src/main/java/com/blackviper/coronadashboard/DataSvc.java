@@ -38,7 +38,7 @@ public class DataSvc
     private final Context context;
     private final SQLiteDatabaseHelper dbHelper;
     private final FirebaseSvc firebaseSvc = FirebaseSvc.getFirebaseInstance();
-    private final AlarmSvc alarmSvc;
+    //private final AlarmSvc alarmSvc;
     private int objectId;
 
     //Konstuktoren
@@ -47,7 +47,7 @@ public class DataSvc
         this.activity = activity;
         this.context = context;
         this.dbHelper = new SQLiteDatabaseHelper(context);
-        this.alarmSvc = new AlarmSvc(context);
+        //this.alarmSvc = new AlarmSvc(activity);
     }
 
     //Methoden
@@ -291,7 +291,7 @@ public class DataSvc
                     public void onResponse(City city)
                     {
                         cityResponseListener.onResponse(city);
-                        alarmSvc.warnUser(city);
+                        //alarmSvc.warnUser(city);
                     }
 
                     @Override
