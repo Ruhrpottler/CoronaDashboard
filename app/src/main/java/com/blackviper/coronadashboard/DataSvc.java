@@ -125,11 +125,6 @@ public class DataSvc
                 activity.uiUtility.showToastTextLong(msg);
             }
         });
-//        request.setRetryPolicy(new DefaultRetryPolicy(
-//                5000,
-//                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-//                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-
         RequestSingleton.getInstance(context).addToRequestQueue(request);
     }
 
@@ -160,18 +155,10 @@ public class DataSvc
                 {
                     list = getCityListFromResponse(response);
                 }
-                catch(JSONException jsonException)
+                catch(JSONException | IndexOutOfBoundsException e)
                 {
                     String msg = "Loading city-data from all cities and extracting to list failed: "
-                            + jsonException.getMessage();
-                    activity.uiUtility.showToastTextLong(msg);
-                    responseListener.onError(msg);
-                    return;
-                }
-                catch(IndexOutOfBoundsException outOfBoundsException)
-                {
-                    String msg = "Loading city-data from all cities and extracting to list failed: "
-                            + outOfBoundsException.getMessage();
+                            + e.getMessage();
                     activity.uiUtility.showToastTextLong(msg);
                     responseListener.onError(msg);
                     return;
@@ -184,18 +171,16 @@ public class DataSvc
             @Override
             public void onErrorResponse(VolleyError error)
             {
-                //TODO
                 if(error instanceof NoConnectionError)
                 {
                     enableOfflineMode();
-                    //firebaseSvc.getCity(objectId, responseListener); //async
-                    return;
+                    responseListener.onError("Keine Verbindung zum Internet.");
                 }
                 else
                 {
                     disableOfflineMode();
+                    responseListener.onError(error.getMessage());
                 }
-
             }
         });
         RequestSingleton.getInstance(context).addToRequestQueue(request);
@@ -434,7 +419,7 @@ public class DataSvc
                     @Override
                     public void onResponse()
                     {
-                        activity.uiUtility.showToastTextShort("Daten aller Städte wurden gespeichert.");
+                        activity.uiUtility.showToastTextShort("Daten aller Städte werden gespeichert.");
                         //Hinweis: Dass sie wirklich gespeichert wurden, ist nicht klar. Es wurde nur die
                         //Liste abgearbeitet und Firebase wurden die Tasks übergeben
                     }
@@ -442,6 +427,7 @@ public class DataSvc
                     @Override
                     public void onError(String message)
                     {
+                        Log.e("DataSvc", "Saving all cities to the database failed: " + message);
                         activity.uiUtility.showToastTextShort("Fehler beim Speicher aller Städte-Daten.");
                     }
                 });
@@ -450,13 +436,14 @@ public class DataSvc
             @Override
             public void onError(String message)
             {
-                //TODO
+                Log.e("DataSvc", "Request loading all cities failed: " + message);
+                activity.uiUtility.showToastTextShort("Fehler beim Speicher aller Städte-Daten.");
             }
         });
 
     }
 
-    public interface FirebaseResponseListener //TODO rename or outsource to firebaseSvc
+    public interface FirebaseResponseListener //TODO rename
     {
         void onResponse();
 
