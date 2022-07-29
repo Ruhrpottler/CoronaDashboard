@@ -9,24 +9,34 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.blackviper.coronadashboard.ResponseListener.ActvSetupResponseListener;
 import com.blackviper.coronadashboard.ResponseListener.CityResponseListener;
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.List;
 
 import Database.FirebaseSvc;
 import Database.SQLiteDatabaseHelper;
 import Model.City;
+import Model.CoronaData;
 import Tools.UiUtility;
 
 public class MainActivity extends AppCompatActivity
 {
+    private Button btn_sendRequest;
+    private TextView tvErgebnisse;
     private AutoCompleteTextView actv_city;
+    private LineChart lineChart;
 
     final UiUtility uiUtility = new UiUtility(MainActivity.this);
     private final DataSvc dataSvc = new DataSvc(this, MainActivity.this);
@@ -41,9 +51,11 @@ public class MainActivity extends AppCompatActivity
         alarmSvc = new AlarmSvc(this);
 
         setContentView(R.layout.activity_main);
-        Button btn_sendRequest = (Button) findViewById(R.id.btn_sendRequest);
-        TextView tvErgebnisse = (TextView) findViewById(R.id.tvErgebnisse);
+        btn_sendRequest = (Button) findViewById(R.id.btn_sendRequest);
+        tvErgebnisse = (TextView) findViewById(R.id.tvErgebnisse);
         actv_city = (AutoCompleteTextView) findViewById(R.id.actv_Landkreis);
+        lineChart = (LineChart) findViewById(R.id.lineChart);
+        lineChart.setNoDataText("");
 
         setupActv_city();
         dataSvc.fillActvCity(actv_city, MainActivity.this, new ActvSetupResponseListener() {
@@ -62,6 +74,23 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
+        setupRequestBtn();
+    }
+
+    private void setupActv_city()
+    {
+        actv_city.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id)
+            {
+                pushKeyboardDown();
+            }
+        });
+    }
+
+    private void setupRequestBtn()
+    {
         btn_sendRequest.setOnClickListener(new View.OnClickListener()
         {
             @Override
@@ -106,7 +135,7 @@ public class MainActivity extends AppCompatActivity
                     public void onResponse(City city)
                     {
                         alarmSvc.warnUser(city);
-                        //TODO Später einen Graphen zeigen
+                        fillLineChart(city);
                     }
 
                     @Override
@@ -123,16 +152,47 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
-    private void setupActv_city()
+    private void fillLineChart(City city)
     {
-        actv_city.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        if(city == null || city.getBaseData() == null)
         {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id)
+            return;
+        }
+        ArrayList<Entry> entryList = createEntryList(city);
+        if(entryList.isEmpty())
+        {
+            return;
+        }
+        LineDataSet dataSet = new LineDataSet(entryList, city.getBaseData().getCityName());
+        ArrayList<ILineDataSet> dataSets = new ArrayList<>();
+        dataSets.add(dataSet);
+
+        LineData data = new LineData(dataSets);
+        lineChart.setData(data);
+        lineChart.invalidate();
+    }
+
+    private ArrayList<Entry> createEntryList(City city)
+    {
+        List<CoronaData> coronaList = city.getCoronaDataList();
+        ArrayList<Entry> result = new ArrayList<>();
+        if(coronaList != null && coronaList.size() >= 2)
+        {
+            for (CoronaData coronaData : coronaList)
             {
-                pushKeyboardDown();
+                if (coronaData == null)
+                {
+                    continue;
+                }
+                result.add(createEntry(coronaData));
             }
-        });
+        }
+        return result;
+    }
+
+    private Entry createEntry(CoronaData coronaData)
+    {
+        return new Entry(0, 10); //TODO Daten vom Objekt entnehmen
     }
 
     public void pushKeyboardDown()
