@@ -77,13 +77,13 @@ public class MainActivity extends AppCompatActivity
 
                 pushKeyboardDown();
 
-                dataSvc.getCityDataByName(userInputCityName, new CityResponseListener()
+                CityResponseListener apiListener = new CityResponseListener()
                 {
+                    //via API
                     @Override
                     public void onResponse(City city)
                     {
-                        //TODO Später einen Graphen zeigen
-                        alarmSvc.warnUser(city);
+                        //alarmSvc.warnUser(city); //TODO kann weg, falls ich nur über mehrere Tage warne
 
                         tvErgebnisse.setText(city.toString()); //print the newest data
                         if(!isOfflineModeEnabled())
@@ -95,10 +95,31 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void onError(String message)
                     {
-                        Log.e("ErrGetCityDataByName", message);
+                        Log.e("MainActivity", message);
                         uiUtility.showToastTextLong(message);
                     }
-                });
+                };
+
+                //Will be called when the city was loaded from the database
+                CityResponseListener firebaseListener = new CityResponseListener()
+                {
+                    @Override
+                    public void onResponse(City city)
+                    {
+                        alarmSvc.warnUser(city);
+                        //TODO Später einen Graphen zeigen
+                    }
+
+                    @Override
+                    public void onError(String message)
+                    {
+                        //TODO msg vmtl. anpassen
+                        Log.e("MainActivity", message);
+                        uiUtility.showToastTextLong(message);
+                    }
+                };
+
+                dataSvc.getCityDataByName(userInputCityName, apiListener, firebaseListener);
             }
         });
     }

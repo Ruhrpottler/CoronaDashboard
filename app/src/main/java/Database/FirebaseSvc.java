@@ -161,8 +161,6 @@ public class FirebaseSvc
         Task<DataSnapshot> taskCoronaData = cityDataRef
                 .child(objectIdStr)
                 .child("CoronaData")
-                .orderByKey()
-                .limitToFirst(1)
                 .get();
 
         Task<Void> syncedTasks = Tasks.whenAll(taskBaseData, taskCoronaData)
@@ -208,6 +206,7 @@ public class FirebaseSvc
                 && taskCoronaData.getResult() != null && taskCoronaData.getResult().exists())
         {
             DataSnapshot dataSnapshot = taskCoronaData.getResult();
+
             GenericTypeIndicator<HashMap<String, CoronaData>> genericTypeIndicator =
                     new GenericTypeIndicator<HashMap<String, CoronaData>>() {};
             HashMap<String, CoronaData> map = dataSnapshot.getValue(genericTypeIndicator);

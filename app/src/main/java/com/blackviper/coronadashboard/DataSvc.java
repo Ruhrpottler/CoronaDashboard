@@ -185,13 +185,14 @@ public class DataSvc
                     JSONArray features = JsonSvc.getJSONFeaturesFromResponse(response);
                     JSONObject attributes = JsonSvc.getJSONAttributesFromFeatures(features, 0);
                     City city = JsonSvc.createAndFillCity(attributes);
+                    firebaseSvc.saveCityData(city);
                     responseListener.onResponse(city);
                 }
-                catch (JSONException jsonException)
+                catch (JSONException | IndexOutOfBoundsException exception)
                 {
                     String msg = "Error processing JSON-response.";
                     responseListener.onError(msg);
-                    Log.e("DataSvc", msg + "\n" + jsonException.getMessage());
+                    Log.e("DataSvc", msg + "\n" + exception.getMessage());
                 }
             }
         }, new Response.ErrorListener()
@@ -274,9 +275,10 @@ public class DataSvc
      * Holt das City-Objekt anhand des Namen
      *
      * @param cityName              ohne Präfix
-     * @param cityResponseListener Wird aufgerufen, wenn Response vom Server da ist
+     * @param apiListener Wird aufgerufen, wenn Response vom Server/der API empfangen wurde.
+     * @param firebaseListener Daten mehrerer Tage aus der DB beziehen und zurückgeben.
      */
-    public void getCityDataByName(String cityName, CityResponseListener cityResponseListener)
+    public void getCityDataByName(String cityName, CityResponseListener apiListener, CityResponseListener firebaseListener)
     {
         findAndSetObjectIdByName(cityName, new ObjectIdResponseListener()
         {
@@ -288,8 +290,8 @@ public class DataSvc
                     @Override
                     public void onResponse(City city)
                     {
-                        cityResponseListener.onResponse(city);
-                        //alarmSvc.warnUser(city);
+                        apiListener.onResponse(city);
+                        firebaseSvc.getCity(objectId, firebaseListener);
                     }
 
                     @Override
