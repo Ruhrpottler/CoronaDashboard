@@ -1,10 +1,9 @@
 package Model;
 
-import com.blackviper.coronadashboard.R;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import Tools.Constants;
 import Tools.FormatTool;
 
 public class CoronaData implements Data

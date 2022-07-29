@@ -1,4 +1,4 @@
-package Model;
+package Tools;
 
 public class Constants
 {

@@ -2,14 +2,10 @@ package Tools;
 
 import android.content.Context;
 
-import com.blackviper.coronadashboard.R;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.Locale;
-
-import Model.Constants;
 
 public class FormatTool {
 

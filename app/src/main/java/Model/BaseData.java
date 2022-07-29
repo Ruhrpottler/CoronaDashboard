@@ -5,7 +5,7 @@ import androidx.annotation.NonNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.List;
+import Tools.Constants;
 
 public class BaseData implements Data
 {
