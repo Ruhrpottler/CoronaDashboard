@@ -22,7 +22,6 @@ import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -39,7 +38,7 @@ public class FirebaseSvc
 {
     private static final String LOG_TAG = FirebaseSvc.class.getName();
 
-    private static final String PATH_CITY_DATA = "CoronaDataMitDatum"; //Name des Pfades //TODO rename
+    private static final String PATH_CITY_DATA = "CoronaDataMitDatum";
     private static final String PATH_BASE_DATA = "BaseData"; //Key/Path on first level
     private static final String SUB_PATH_BASE_DATA = "BaseData"; //name of PATH_CITY_DATA -> cityId -> key for baseData-Path
 
@@ -74,7 +73,6 @@ public class FirebaseSvc
     /**
      * Find objectId with the database.
      * @param cityName BEZ + GEN, z.B. "Kreis Recklinghausen"
-     * @param responseListener
      */
     public void getObjectIdByName(String cityName, @NonNull ObjectIdResponseListener responseListener)
     {
@@ -328,7 +326,6 @@ public class FirebaseSvc
 
     /**
      * Adds the element to the firebase database. It will not overwrite other elements from another day.
-     * @param coronaData
      */
     public void saveCoronaData(CoronaData coronaData)
     {
