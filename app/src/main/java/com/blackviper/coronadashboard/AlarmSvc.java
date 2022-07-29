@@ -3,10 +3,9 @@ package com.blackviper.coronadashboard;
 import android.content.Context;
 import android.util.Log;
 
-import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
-import Comparator.LastUpdateComparator;
 import Model.BaseData;
 import Model.City;
 import Model.CoronaData;
@@ -26,8 +25,6 @@ public class AlarmSvc
         notificationSvc = NotificationSvc.getInstance(context);
     }
 
-    //TODO Für eine Stadt von der DB alle Tage ziehen (List<CoronaData> und sortieren lassen)
-    //TODO Dann die letzten Tage durchgehen und warnen
     public void warnUser(City city)
     {
         if(city == null || city.getBaseData() == null)
@@ -67,10 +64,10 @@ public class AlarmSvc
             return;
         }
         Log.d("AlarmSvc", "Send notification for city '" + baseData.getCityName() + "'.");
-        String description = String.format("Der Inzidenzwert %d wird bereits seit" +
-                " mind.  %d Tagen von %s überschritten.", THRESHOLD_INZIDENZ, sinceDays, baseData.getCityName());
-        notificationSvc.sendNotification("Inzidenzwert überschritten",
-                description); //TODO Resoruces nutzen
+        String title = baseData.getCityName();
+        String description = String.format(Locale.GERMAN, "Inzidenzwert %d seit" +
+                " mind.  %d Tagen überschritten.", THRESHOLD_INZIDENZ, sinceDays);
+        notificationSvc.sendNotification(title, description);
 
     }
 }
