@@ -79,21 +79,21 @@ public class MainActivity extends AppCompatActivity
                 dataSvc.getCityDataByName(userInputCityName, new CityResponseListener()
                 {
                     @Override
-                    public void onError(String message)
-                    {
-                        Log.e("ErrGetCityDataByName", message);
-                        uiUtility.showToastTextLong(message);
-                    }
-
-                    @Override
                     public void onResponse(City city)
                     {
-                        tvErgebnisse.setText(city.toString());
+                        //TODO Später einen Graphen zeigen
+                        tvErgebnisse.setText(city.toString()); //print the newest data
                         if(!isOfflineModeEnabled())
                         {
                             firebaseSvc.saveCityData(city);
                         }
+                    }
 
+                    @Override
+                    public void onError(String message)
+                    {
+                        Log.e("ErrGetCityDataByName", message);
+                        uiUtility.showToastTextLong(message);
                     }
                 });
             }

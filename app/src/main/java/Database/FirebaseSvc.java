@@ -168,7 +168,7 @@ public class FirebaseSvc
     private City getCityFromTasks(Task<DataSnapshot> taskBaseData, Task<DataSnapshot> taskCoronaData)
     {
         BaseData baseData = null;
-        CoronaData coronaData = null;
+        List<CoronaData> coronaDataList = null;
         if (taskBaseData != null && taskBaseData.isSuccessful()
                 && taskBaseData.getResult() != null && taskBaseData.getResult().exists())
         {
@@ -184,13 +184,13 @@ public class FirebaseSvc
                     new GenericTypeIndicator<HashMap<String, CoronaData>>() {};
             HashMap<String, CoronaData> map = dataSnapshot.getValue(genericTypeIndicator);
             Comparator<CoronaData> cmp = new LastUpdateComparator().reversed();
-            coronaData = getFirstCoronaDataFromMap(map, cmp);
+            coronaDataList = getCoronaDataListFromMap(map, cmp);
         }
 
         City city;
-        if(baseData != null && coronaData != null)
+        if(baseData != null && coronaDataList != null)
         {
-            city = new City(baseData, coronaData);
+            city = new City(baseData, coronaDataList);
             decodeCity(city);
         }
         else
@@ -200,15 +200,15 @@ public class FirebaseSvc
         return city;
     }
 
-    private CoronaData getFirstCoronaDataFromMap(Map<String, CoronaData> map, Comparator<CoronaData> cmp)
-    {
-        List<CoronaData> list = getCoronaDataListFromMap(map, cmp);
-        if(list == null || list.isEmpty())
-        {
-            return null;
-        }
-        return list.get(0);
-    }
+//    private CoronaData getFirstCoronaDataFromMap(Map<String, CoronaData> map, Comparator<CoronaData> cmp)
+//    {
+//        List<CoronaData> list = getCoronaDataListFromMap(map, cmp);
+//        if(list == null || list.isEmpty())
+//        {
+//            return null;
+//        }
+//        return list.get(0);
+//    }
 
     private List<CoronaData> getCoronaDataListFromMap(Map<String, CoronaData> map, Comparator<CoronaData> cmp)
     {
@@ -273,11 +273,37 @@ public class FirebaseSvc
             Log.i(LOG_TAG, "city is null, abord saving");
             return;
         }
-
         saveBaseData(city.getBaseData()); //TODO eig. nicht mehr notwendig
-        saveCoronaData(city.getCoronaData());
+
+        List<CoronaData> coronaDataList = city.getCoronaDataList();
+        if(coronaDataList != null && !coronaDataList.isEmpty())
+        {
+            //saveCoronaData(city.getCoronaDataList()); //Es wird vorerst nicht notwendig sein, mehrere zu speichern, weil ich diese
+            //immer nur von der DB selbst und nicht der API beziehen kann.
+            saveCoronaData(city.getNewestCoronaData());
+        }
+
     }
 
+    /**
+     * Iterates over the list and saves each element with a own task.
+     */
+    public void saveCoronaData(List<CoronaData> list)
+    {
+        if(list == null)
+        {
+            return;
+        }
+        for(CoronaData data : list)
+        {
+            saveCoronaData(data);
+        }
+    }
+
+    /**
+     * Adds the element to the firebase database. It will not overwrite other elements from another day.
+     * @param coronaData
+     */
     public void saveCoronaData(CoronaData coronaData)
     {
         if(coronaData == null)
@@ -381,19 +407,22 @@ public class FirebaseSvc
     // Encode / Decode special character
 
     /** Encode data which will be stored to the firebase database.
-     * @param cityData Changes will be done by reference => no return nedded
+     * @param city Changes will be done by reference => no return nedded
      */
-    private static void encodeCity(@NonNull City cityData)
+    private static void encodeCity(City city)
     {
-        encodeBaseData(cityData.getBaseData());
+        if(city != null && city.getBaseData() != null)
+        {
+            encodeBaseData(city.getBaseData());
+        }
     }
 
     /** Encode data which will be stored to the firebase database.
      * @param baseData Changes will be done by reference => no return nedded
      */
-    private static void encodeBaseData(@NonNull BaseData baseData)
+    private static void encodeBaseData(BaseData baseData)
     {
-        if(baseData.getGen().contains("_") || baseData.getGen().contains("."))
+        if(baseData != null && (baseData.getGen().contains("_") || baseData.getGen().contains(".")))
         {
             baseData.setGen(encodeString(baseData.getGen()));
         }
@@ -408,26 +437,28 @@ public class FirebaseSvc
     }
 
     /** Decode Data which was loaded from the database
-     * @param cityData Changes will be done by reference => no return nedded
+     * @param city Changes will be done by reference => no return nedded
      */
-    private static void decodeCity(@NonNull City cityData)
+    private static void decodeCity(City city)
     {
-        decodeBaseData(cityData.getBaseData());
+        if(city != null && city.getBaseData() != null)
+        {
+            decodeBaseData(city.getBaseData());
+        }
     }
 
     /** Decode Data which was loaded from the database
      * @param baseData Es wird auf der Referenz gearbeitet => Kein return notwendig
      */
-    private static void decodeBaseData(@NonNull BaseData baseData)
+    private static void decodeBaseData(BaseData baseData)
     {
-        if(baseData.getGen().contains("__") || baseData.getGen().contains("_P"))
+        if(baseData != null && (baseData.getGen().contains("__") || baseData.getGen().contains("_P")))
         {
             baseData.setGen(decodeString(baseData.getGen()));
         }
     }
 
-    @NonNull
-    private static String decodeString(@NonNull String str)
+    private static String decodeString(String str)
     {
         return str
                 .replace("_P", ".")

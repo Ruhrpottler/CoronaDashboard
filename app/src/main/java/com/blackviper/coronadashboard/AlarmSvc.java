@@ -8,6 +8,7 @@ import java.util.List;
 
 import Comparator.LastUpdateComparator;
 import Model.BaseData;
+import Model.City;
 import Model.CoronaData;
 
 /**
@@ -29,12 +30,18 @@ public class AlarmSvc
 
     //TODO Für eine Stadt von der DB alle Tage ziehen (List<CoronaData> und sortieren lassen)
     //TODO Dann die letzten Tage durchgehen und warnen
-    public void warnUser(List<CoronaData> list, BaseData baseData)
+    public void warnUser(City city)
     {
+        if(city == null || city.getBaseData() == null)
+        {
+            return;
+        }
+        List<CoronaData> list = city.getCoronaDataList();
         if(list == null || list.isEmpty())
         {
             return;
         }
+
         Comparator<CoronaData> cmp = new LastUpdateComparator().reversed();
         int counter = 0;
         for(CoronaData data : list)
@@ -47,7 +54,7 @@ public class AlarmSvc
         }
         if(counter > THRESHOLD_DAYS) //Wert seit x Tagen überschritten
         {
-            sendWarningThresholdExceeded(counter, baseData);
+            sendWarningThresholdExceeded(counter, city.getBaseData());
         }
         else
         {

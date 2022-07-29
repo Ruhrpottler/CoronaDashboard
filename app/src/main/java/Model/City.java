@@ -2,28 +2,41 @@ package Model;
 
 import androidx.annotation.NonNull;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+
+import Comparator.LastUpdateComparator;
+
 import Tools.FormatTool;
 
 public class City {
 
     private int objectId; //TODO Wirklich in allen 3 Model-Klassen notwendig?
     private BaseData baseData;
-    private CoronaData coronaData;
+    private List<CoronaData> coronaData;
 
     public City() { }
 
-    public City(BaseData baseData, CoronaData coronaData)
+    public City(BaseData baseData, List<CoronaData> coronaData)
     {
         this.baseData = baseData;
         this.objectId = baseData.getObjectId();
-        this.coronaData = coronaData;
+        setCoronaDataList(coronaData);
     }
 
     @NonNull
     @Override
     public String toString()
     {
-        return String.format("Daten für %s,\n" +
+        CoronaData newestData = getNewestCoronaData();
+        if(newestData == null)
+        {
+            return "Data empty.";
+        }
+        return String.format(Locale.GERMAN,
+                "Daten für %s,\n" +
                         "Stand %s:\n" +
                         "Bundesland: %s\n" +
                         "7-Tage-Inzidenz: %s\n" +
@@ -33,10 +46,10 @@ public class City {
                         "Betroffenenrate: %.2f%%\n" +
                         "Todesfälle: %s\n" +
                         "Sterberate: %.2f%%",
-                getBaseData().getCityName(), getCoronaData().getLast_update(), getBaseData().getBl(), getCoronaData().getCases7_per_100k_txt(),
-                FormatTool.intToString(getBaseData().getEwz()), FormatTool.intToString(getCoronaData().getCases()),
-                FormatTool.doubleToString(FormatTool.roundDouble(getCoronaData().getCases_per_100k(), 2), 2),
-                getCoronaData().getCases_per_population() , FormatTool.intToString(getCoronaData().getDeaths()), getCoronaData().getDeath_rate()
+                getBaseData().getCityName(), newestData.getLast_update(), getBaseData().getBl(), newestData.getCases7_per_100k_txt(),
+                FormatTool.intToString(getBaseData().getEwz()), FormatTool.intToString(newestData.getCases()),
+                FormatTool.doubleToString(FormatTool.roundDouble(newestData.getCases_per_100k(), 2), 2),
+                newestData.getCases_per_population() , FormatTool.intToString(newestData.getDeaths()), newestData.getDeath_rate()
         );
     }
 
@@ -60,14 +73,37 @@ public class City {
         this.baseData = baseData;
     }
 
-    public CoronaData getCoronaData()
+    public List<CoronaData> getCoronaDataList()
     {
+        if(coronaData == null)
+        {
+            return new ArrayList<CoronaData>();
+        }
         return coronaData;
     }
 
-    public void setCoronaData(CoronaData coronaData)
+    /**
+     * List will be sorted. Newest will be the first element.
+     * @param coronaList
+     */
+    public void setCoronaDataList(List<CoronaData> coronaList)
     {
-        this.coronaData = coronaData;
+        if(coronaList == null || coronaList.isEmpty())
+        {
+            return;
+        }
+        Comparator<CoronaData> cmp = new LastUpdateComparator().reversed();
+        coronaList.sort(cmp);
+        this.coronaData = coronaList;
     }
 
+    public CoronaData getNewestCoronaData()
+    {
+        List<CoronaData> list = getCoronaDataList();
+        if(list == null)
+        {
+            return null;
+        }
+        return list.get(0);
+    }
 }
