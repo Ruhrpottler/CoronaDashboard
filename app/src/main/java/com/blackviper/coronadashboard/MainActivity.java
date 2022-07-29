@@ -42,7 +42,6 @@ public class MainActivity extends AppCompatActivity
 
         setContentView(R.layout.activity_main);
         Button btn_sendRequest = (Button) findViewById(R.id.btn_sendRequest);
-        ListView lv = (ListView) findViewById(R.id.lv_responseView);
         TextView tvErgebnisse = (TextView) findViewById(R.id.tvErgebnisse);
         actv_city = (AutoCompleteTextView) findViewById(R.id.actv_Landkreis);
 
