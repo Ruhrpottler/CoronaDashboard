@@ -29,8 +29,7 @@ import Model.BaseData;
 import Model.City;
 
 /**
- * Diese Klasse stellt asynchrone Methoden (Callbacks) zur Verfügung, welche den Traffic mit den Anfragen an die API
- * verwaltet und z.B. die ID für eine Stadt, ein Bundesland oder die Strings zurück gibt.
+ * This class handles the requests and responses to the ArcGis/RKI API (COVID-19-Datenhub).
  */
 public class DataSvc
 {
