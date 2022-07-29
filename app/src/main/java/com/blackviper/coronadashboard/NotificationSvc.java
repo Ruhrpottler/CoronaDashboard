@@ -5,13 +5,10 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.BitmapFactory;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
-
-import Database.FirebaseSvc;
 
 /** @apiNote API Level 26 or higher required
  *
@@ -88,7 +85,8 @@ public class NotificationSvc
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, this.defaultChannelId)
                 .setSmallIcon(R.drawable.appicon_drawable)
                 .setContentTitle(title)
-                .setContentText(description)
+                //.setContentText(description)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(description))
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
                 .setPriority(priority)
