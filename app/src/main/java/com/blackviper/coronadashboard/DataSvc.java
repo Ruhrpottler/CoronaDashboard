@@ -154,7 +154,7 @@ public class DataSvc
                 if(error instanceof NoConnectionError)
                 {
                     enableOfflineMode();
-                    responseListener.onError("Keine Verbindung zum Internet.");
+                    responseListener.onError("Verbindung zum Host gescheitert.");
                 }
                 else
                 {
@@ -190,10 +190,10 @@ public class DataSvc
                 }
                 catch (JSONException jsonException)
                 {
-                    responseListener.onError(jsonException.getMessage());
-                    Log.e("DataSvc", jsonException.toString());
+                    String msg = "Error processing JSON-response.";
+                    responseListener.onError(msg);
+                    Log.e("DataSvc", msg + "\n" + jsonException.getMessage());
                 }
-
             }
         }, new Response.ErrorListener()
         {
@@ -210,10 +210,8 @@ public class DataSvc
                 {
                     disableOfflineMode();
                 }
-
-                //TODO Exception Handling verbessern: Nicht zu viele Details geben. Nur sowas wie "Host unavailable".
-                String msg = "Fehler bei der Verarbeitung der Server-Antwort: " + error.toString();
-                Log.d("onErrorResponse", msg);
+                String msg = "Fehler bei der Verarbeitung der Server-Antwort. Host nicht erreichbar.";
+                Log.d("DataSvc", msg + "\n" + error.toString());
                 responseListener.onError(msg);
             }
         });
