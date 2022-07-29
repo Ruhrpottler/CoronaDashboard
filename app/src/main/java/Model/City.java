@@ -2,6 +2,8 @@ package Model;
 
 import androidx.annotation.NonNull;
 
+import java.util.Locale;
+
 import Tools.FormatTool;
 
 public class City {
@@ -23,7 +25,8 @@ public class City {
     @Override
     public String toString()
     {
-        return String.format("Daten für %s,\n" +
+        return String.format(Locale.GERMAN,
+                "Daten für %s,\n" +
                         "Stand %s:\n" +
                         "Bundesland: %s\n" +
                         "7-Tage-Inzidenz: %s\n" +
