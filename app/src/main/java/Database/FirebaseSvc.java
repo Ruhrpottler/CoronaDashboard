@@ -215,21 +215,11 @@ public class FirebaseSvc
         City city = null;
         if(baseData != null && coronaDataList != null)
         {
+            decodeBaseData(baseData);
             city = new City(baseData, coronaDataList);
-            decodeCity(city);
         }
         return city;
     }
-
-//    private CoronaData getFirstCoronaDataFromMap(Map<String, CoronaData> map, Comparator<CoronaData> cmp)
-//    {
-//        List<CoronaData> list = getCoronaDataListFromMap(map, cmp);
-//        if(list == null || list.isEmpty())
-//        {
-//            return null;
-//        }
-//        return list.get(0);
-//    }
 
     private List<CoronaData> getCoronaDataListFromMap(Map<String, CoronaData> map, Comparator<CoronaData> cmp)
     {

@@ -119,7 +119,7 @@ public class MainActivity extends AppCompatActivity
                     }
                 };
 
-                dataSvc.getCityDataByName(userInputCityName, apiListener, firebaseListener);
+                dataSvc.getCityByName(userInputCityName, apiListener, firebaseListener);
             }
         });
     }
