@@ -4,7 +4,10 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.blackviper.coronadashboard.DataSvc;
+import com.blackviper.coronadashboard.ResponseListener.BaseDataListResponseListener;
+import com.blackviper.coronadashboard.ResponseListener.CityResponseListener;
+import com.blackviper.coronadashboard.ResponseListener.FirebaseResponseListener;
+import com.blackviper.coronadashboard.ResponseListener.ObjectIdResponseListener;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -74,7 +77,7 @@ public class FirebaseSvc
      * @param cityName BEZ + GEN, z.B. "Kreis Recklinghausen"
      * @param responseListener
      */
-    public void getObjectIdByName(String cityName, @NonNull DataSvc.ObjectIdResponseListener responseListener)
+    public void getObjectIdByName(String cityName, @NonNull ObjectIdResponseListener responseListener)
     {
         String cityNameEncoded = encodeString(cityName);
         Query query = baseDataRef.orderByChild("cityName").equalTo(cityNameEncoded).limitToFirst(1); //TODO Pfad umstellen?!
@@ -121,7 +124,7 @@ public class FirebaseSvc
         });
     }
 
-    public void getCity(int objectId, @NonNull DataSvc.CityResponseListener responseListener)
+    public void getCity(int objectId, @NonNull CityResponseListener responseListener)
     {
         String objectIdStr = Integer.toString(objectId);
         Task<DataSnapshot> taskBaseData = cityDataRef
@@ -222,7 +225,7 @@ public class FirebaseSvc
         return list;
     }
 
-    public void getAllBaseData(@NonNull DataSvc.BaseDataListResponseListener responseListener)
+    public void getAllBaseData(@NonNull BaseDataListResponseListener responseListener)
     {
         baseDataRef.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>()
         {
@@ -305,7 +308,7 @@ public class FirebaseSvc
         });
     }
 
-    public void saveCityList(List<City> cities, DataSvc.FirebaseResponseListener responseListener)
+    public void saveCityList(List<City> cities, FirebaseResponseListener responseListener)
     {
         if(cities == null || cities.isEmpty())
         {

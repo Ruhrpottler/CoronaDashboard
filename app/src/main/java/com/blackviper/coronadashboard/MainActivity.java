@@ -14,6 +14,9 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.blackviper.coronadashboard.ResponseListener.ActvSetupResponseListener;
+import com.blackviper.coronadashboard.ResponseListener.CityResponseListener;
+
 import java.util.List;
 
 import Database.FirebaseSvc;
@@ -43,7 +46,7 @@ public class MainActivity extends AppCompatActivity
         actv_city = (AutoCompleteTextView) findViewById(R.id.actv_Landkreis);
 
         setupActv_city();
-        dataSvc.fillActvCity(actv_city, MainActivity.this, new DataSvc.ActvSetupResponseListener() {
+        dataSvc.fillActvCity(actv_city, MainActivity.this, new ActvSetupResponseListener() {
             @Override
             public void onError(String message) {
                 message = "Fehler beim Initialisieren der Städte-Listeneinträge. " + message;
@@ -73,7 +76,7 @@ public class MainActivity extends AppCompatActivity
 
                 pushKeyboardDown();
 
-                dataSvc.getCityDataByName(userInputCityName, new DataSvc.CityResponseListener()
+                dataSvc.getCityDataByName(userInputCityName, new CityResponseListener()
                 {
                     @Override
                     public void onError(String message)

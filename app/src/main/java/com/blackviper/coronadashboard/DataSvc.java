@@ -9,6 +9,12 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.blackviper.coronadashboard.ResponseListener.ActvSetupResponseListener;
+import com.blackviper.coronadashboard.ResponseListener.BaseDataListResponseListener;
+import com.blackviper.coronadashboard.ResponseListener.CityListResponseListener;
+import com.blackviper.coronadashboard.ResponseListener.CityResponseListener;
+import com.blackviper.coronadashboard.ResponseListener.FirebaseResponseListener;
+import com.blackviper.coronadashboard.ResponseListener.ObjectIdResponseListener;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -21,8 +27,6 @@ import Database.FirebaseSvc;
 import Database.SQLiteDatabaseHelper;
 import Model.BaseData;
 import Model.City;
-import Model.CoronaData;
-import Model.Data;
 
 /**
  * Diese Klasse stellt asynchrone Methoden (Callbacks) zur Verfügung, welche den Traffic mit den Anfragen an die API
@@ -43,16 +47,6 @@ public class DataSvc
         this.activity = activity;
         this.context = context;
         this.dbHelper = new SQLiteDatabaseHelper(context);
-    }
-
-    /**
-     * Callback-Methoden, welche in der Activity implementiert werden müssen
-     */
-    public interface ObjectIdResponseListener
-    {
-        void onError(String message);
-
-        void onResponse(int objectId);
     }
 
     //Methoden
@@ -128,20 +122,6 @@ public class DataSvc
         RequestSingleton.getInstance(context).addToRequestQueue(request);
     }
 
-    public interface CityResponseListener
-    {
-        void onResponse(City city);
-
-        void onError(String message);
-    }
-
-    public interface CityListResponseListener
-    {
-        void onResponse(List<City> cities);
-
-        void onError(String message);
-    }
-
     public void getAllCityData(CityListResponseListener responseListener)
     {
         String url = UrlManager.getUrlGetAllCityData();
@@ -153,7 +133,7 @@ public class DataSvc
                 List<City> list = new ArrayList<>();
                 try
                 {
-                    list = getCityListFromResponse(response);
+                    list = JsonSvc.getCityListFromResponse(response);
                 }
                 catch(JSONException | IndexOutOfBoundsException e)
                 {
@@ -203,9 +183,9 @@ public class DataSvc
                 disableOfflineMode();
                 try
                 {
-                    JSONArray features = getJSONFeaturesFromResponse(response);
-                    JSONObject attributes = getJSONAttributesFromFeatures(features, 0);
-                    City city = createAndFillCity(attributes);
+                    JSONArray features = JsonSvc.getJSONFeaturesFromResponse(response);
+                    JSONObject attributes = JsonSvc.getJSONAttributesFromFeatures(features, 0);
+                    City city = JsonSvc.createAndFillCity(attributes);
                     responseListener.onResponse(city);
                 }
                 catch (JSONException jsonException)
@@ -281,81 +261,6 @@ public class DataSvc
         });
     }
 
-    public interface BaseDataResponseListener //Kann man evtl. weglassen und stattdessen den list-Listener nutzen
-    {
-        void onError(String message);
-
-        void onResponse(BaseData baseData);
-    }
-
-    public interface BaseDataListResponseListener
-    {
-        void onError(String message);
-
-        void onResponse(List<BaseData> list);
-    }
-
-    private JSONArray getJSONFeaturesFromResponse(JSONObject response) throws JSONException
-    {
-        return response.getJSONArray("features");
-    }
-
-    private JSONObject getJSONAttributesFromFeatures(JSONArray features, int index) throws JSONException
-    {
-        return features.getJSONObject(index).getJSONObject("attributes");
-    }
-
-    private List<City> getCityListFromResponse(JSONObject response) throws JSONException
-    {
-        List<City> list = new ArrayList<>();
-
-        JSONArray features = getJSONFeaturesFromResponse(response);
-        JSONObject attributes;
-        City city;
-        for(int i = 0; i < features.length(); i++)
-        {
-            attributes = getJSONAttributesFromFeatures(features, i);
-            city = createAndFillCity(attributes);
-            if(city != null)
-            {
-                list.add(city);
-            }
-        }
-        return list;
-    }
-
-    private City createAndFillCity(JSONObject attributes) throws JSONException
-    {
-        BaseData baseData = BaseData.createDataFromJSONAttributes(attributes);
-        CoronaData coronaData = CoronaData.createDataFromJSONAttributes(attributes);
-        return new City(baseData, coronaData);
-    }
-
-    private List<BaseData> getBaseDataListFromResponse(JSONObject response) throws JSONException
-    {
-        return getListFromResponse(response, new BaseData());
-    }
-
-    private List<CoronaData> getCoronaDataListFromResponse(JSONObject response) throws JSONException
-    {
-        return getListFromResponse(response, new CoronaData());
-    }
-
-    private <T extends Data> List<T> getListFromResponse(JSONObject response, T t) throws JSONException
-    {
-        JSONArray features = getJSONFeaturesFromResponse(response);
-        JSONObject attributes;
-        List<T> list = new ArrayList<>();
-
-        for (int i = 0; i < features.length(); i++)
-        {
-            attributes = getJSONAttributesFromFeatures(features, i);
-            list.add((T) t.createDataFromJSONAttributesGeneric(attributes));
-        }
-
-        return list;
-    }
-
     /**
      * Get list with all Cities in Germany
      */
@@ -371,7 +276,7 @@ public class DataSvc
                 disableOfflineMode();
                 try
                 {
-                    List<BaseData> list = getBaseDataListFromResponse(response);
+                    List<BaseData> list = JsonSvc.getBaseDataListFromResponse(response);
                     responseListener.onResponse(list);
                 } catch (JSONException jsonExceptione)
                 {
@@ -441,20 +346,6 @@ public class DataSvc
             }
         });
 
-    }
-
-    public interface FirebaseResponseListener //TODO rename
-    {
-        void onResponse();
-
-        void onError(String message);
-    }
-
-    public interface ActvSetupResponseListener
-    {
-        void onResponse(List<String> listOfEntries);
-
-        void onError(String message);
     }
 
     private List<String> fillCityNameList(List<BaseData> baseDataList)
