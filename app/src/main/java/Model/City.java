@@ -19,10 +19,22 @@ public class City {
 
     public City() { }
 
+    public City(BaseData baseData, CoronaData coronaData)
+    {
+        setBaseData(baseData);
+        setObjectId(baseData.getObjectId());
+        List<CoronaData> list = new ArrayList<>();
+        if(coronaData != null)
+        {
+            list.add(coronaData);
+        }
+        setCoronaDataList(list);
+    }
+
     public City(BaseData baseData, List<CoronaData> coronaData)
     {
-        this.baseData = baseData;
-        this.objectId = baseData.getObjectId();
+        setBaseData(baseData);
+        setObjectId(baseData.getObjectId());
         setCoronaDataList(coronaData);
     }
 

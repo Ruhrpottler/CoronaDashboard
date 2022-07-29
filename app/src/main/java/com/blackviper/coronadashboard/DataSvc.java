@@ -204,7 +204,7 @@ public class DataSvc
                 if(error instanceof NoConnectionError) //Wenn kein Internet, auf die Firebase DB zugreifen.
                 {
                     enableOfflineMode();
-                    firebaseSvc.getCity(objectId, responseListener); //async
+                    firebaseSvc.getCity(objectId, responseListener);
                     return;
                 }
                 else

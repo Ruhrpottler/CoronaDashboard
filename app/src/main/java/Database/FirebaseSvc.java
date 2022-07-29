@@ -67,8 +67,6 @@ public class FirebaseSvc
         baseDataRef = dbInstance.getReference(PATH_BASE_DATA);
     }
 
-    //TODO Alle Listener aus den Methoden auslagern (mehrere machen)
-
     //Read data
 
     /**
@@ -187,15 +185,11 @@ public class FirebaseSvc
             coronaDataList = getCoronaDataListFromMap(map, cmp);
         }
 
-        City city;
+        City city = null;
         if(baseData != null && coronaDataList != null)
         {
             city = new City(baseData, coronaDataList);
             decodeCity(city);
-        }
-        else
-        {
-            city = null;
         }
         return city;
     }
@@ -219,7 +213,7 @@ public class FirebaseSvc
         }
 
         list.addAll(map.values());
-        list.sort(cmp);
+        list.sort(cmp); //TODO wird beim Speichern schon immer gemacht, Sortierung kann theoretisch komplett hier raus.
         return list;
     }
 
@@ -343,7 +337,10 @@ public class FirebaseSvc
         {
             saveCityData(city);
         }
-        responseListener.onResponse();
+        if(responseListener != null)
+        {
+            responseListener.onResponse();
+        }
     }
 
     public void saveBaseData(BaseData baseData)
