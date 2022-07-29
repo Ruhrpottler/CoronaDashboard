@@ -5,6 +5,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
@@ -85,7 +86,8 @@ public class NotificationSvc
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, this.defaultChannelId)
-                .setSmallIcon(R.mipmap.appicon) //TODO Von Manifest abhängig machen
+                .setSmallIcon(R.drawable.appicon_drawable)
+                .setLargeIcon(BitmapFactory.decodeResource(context.getResources(), R.drawable.appicon_drawable))
                 .setContentTitle(title)
                 .setContentText(description)
                 .setContentIntent(pendingIntent)
@@ -116,8 +118,6 @@ public class NotificationSvc
 
     private int getNotificationId()
     {
-        return this.notificationId++; //TODO Prüfen ob er wirklich erst erhöht und dann returned.
+        return this.notificationId++;
     }
-
-
 }
