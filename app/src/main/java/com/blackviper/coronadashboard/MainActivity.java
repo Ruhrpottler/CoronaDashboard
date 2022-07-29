@@ -29,20 +29,18 @@ public class MainActivity extends AppCompatActivity
     private AutoCompleteTextView actv_city;
 
     final UiUtility uiUtility = new UiUtility(MainActivity.this);
-    private NotificationSvc notificationSvc;
     private final DataSvc dataSvc = new DataSvc(this, MainActivity.this);
     private final SQLiteDatabaseHelper dbHelper = new SQLiteDatabaseHelper(MainActivity.this);
     private final FirebaseSvc firebaseSvc = FirebaseSvc.getFirebaseInstance(); //TODO könnte man auch aus dem DataSvc ziehen
 
-    //private final AlarmSvc alarmSvc = new AlarmSvc(this);
+    private AlarmSvc alarmSvc;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        //alarmSvc = new AlarmSvc(this);
-        notificationSvc = new NotificationSvc(this);//NotificationSvc.getInstance(this);
+        alarmSvc = new AlarmSvc(this);
 
+        setContentView(R.layout.activity_main);
         Button btn_sendRequest = (Button) findViewById(R.id.btn_sendRequest);
         ListView lv = (ListView) findViewById(R.id.lv_responseView);
         TextView tvErgebnisse = (TextView) findViewById(R.id.tvErgebnisse);
@@ -85,6 +83,7 @@ public class MainActivity extends AppCompatActivity
                     public void onResponse(City city)
                     {
                         //TODO Später einen Graphen zeigen
+                        alarmSvc.warnUser(city);
 
                         tvErgebnisse.setText(city.toString()); //print the newest data
                         if(!isOfflineModeEnabled())
@@ -147,7 +146,7 @@ public class MainActivity extends AppCompatActivity
         findViewById(R.id.ic_offline).setVisibility(visibility);
     }
 
-    private boolean isOfflineModeEnabled() //TODO notification when switch
+    protected boolean isOfflineModeEnabled() //TODO notification when switch
     {
         return (findViewById(R.id.ic_offline).getVisibility() == View.VISIBLE);
     }

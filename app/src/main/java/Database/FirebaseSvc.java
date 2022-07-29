@@ -22,6 +22,7 @@ import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -39,7 +40,8 @@ public class FirebaseSvc
     private static final String LOG_TAG = FirebaseSvc.class.getName();
 
     private static final String PATH_CITY_DATA = "CoronaDataMitDatum"; //Name des Pfades //TODO rename
-    private static final String PATH_BASE_DATA = "BaseData";
+    private static final String PATH_BASE_DATA = "BaseData"; //Key/Path on first level
+    private static final String SUB_PATH_BASE_DATA = "BaseData"; //name of PATH_CITY_DATA -> cityId -> key for baseData-Path
 
     private static FirebaseSvc firebaseInstance;
     private final DatabaseReference db; //root
@@ -84,10 +86,10 @@ public class FirebaseSvc
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot)
             {
-                GenericTypeIndicator<HashMap<String, BaseData>> indicator =
-                        new GenericTypeIndicator<HashMap<String, BaseData>>() {};
                 try
                 {
+                    GenericTypeIndicator<HashMap<String, BaseData>> indicator =
+                            new GenericTypeIndicator<HashMap<String, BaseData>>() {};
                     HashMap<String, BaseData> map = snapshot.getValue(indicator);
                     if (map != null && map.keySet().size() == 1) //Obsolet, weil limitToFirst?
                     {
@@ -107,8 +109,36 @@ public class FirebaseSvc
                 }
                 catch(DatabaseException e)
                 {
-                    onCancelled(DatabaseError.fromException(e));
-                    return;
+                    GenericTypeIndicator<ArrayList<BaseData>> indicator =
+                            new GenericTypeIndicator<ArrayList<BaseData>>() {};
+                    try
+                    {
+                        List<BaseData> list = snapshot.getValue(indicator);
+                        int objectId = -1;
+                        if(list != null && !list.isEmpty())
+                        {
+                            for(BaseData data : list)
+                            {
+                                if(data == null)
+                                {
+                                    continue;
+                                }
+                                objectId = data.getObjectId();
+                                break;
+                            }
+                            if(objectId != -1)
+                            {
+                                responseListener.onResponse(objectId);
+                                return;
+                            }
+                        }
+                    }
+                    catch (DatabaseException secondException)
+                    {
+                        onCancelled(DatabaseError.fromException(e));
+                        return;
+                    }
+
                 }
                 responseListener.onError(buildMsgGetId(cityNameEncoded));
             }
@@ -126,7 +156,7 @@ public class FirebaseSvc
         String objectIdStr = Integer.toString(objectId);
         Task<DataSnapshot> taskBaseData = cityDataRef
                 .child(objectIdStr)
-                .child(PATH_BASE_DATA)
+                .child(SUB_PATH_BASE_DATA)
                 .get();
         Task<DataSnapshot> taskCoronaData = cityDataRef
                 .child(objectIdStr)
@@ -290,7 +320,10 @@ public class FirebaseSvc
         }
         for(CoronaData data : list)
         {
-            saveCoronaData(data);
+            if(data != null)
+            {
+                saveCoronaData(data);
+            }
         }
     }
 
@@ -365,7 +398,6 @@ public class FirebaseSvc
 
     /**
      * Overwrites the existing data in the path!
-     * @param list
      */
     public void saveBaseDataList(List<BaseData> list)
     {

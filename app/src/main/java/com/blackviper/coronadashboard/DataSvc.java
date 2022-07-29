@@ -38,7 +38,6 @@ public class DataSvc
     private final Context context;
     private final SQLiteDatabaseHelper dbHelper;
     private final FirebaseSvc firebaseSvc = FirebaseSvc.getFirebaseInstance();
-    //private final AlarmSvc alarmSvc;
     private int objectId;
 
     //Konstuktoren
@@ -47,7 +46,6 @@ public class DataSvc
         this.activity = activity;
         this.context = context;
         this.dbHelper = new SQLiteDatabaseHelper(context);
-        //this.alarmSvc = new AlarmSvc(activity);
     }
 
     //Methoden
@@ -428,10 +426,18 @@ public class DataSvc
             public void onResponse(List<BaseData> list)
             {
                 List<String> cityNameList = fillCityNameList(list);
-                firebaseSvc.saveBaseDataList(list);
+                if(!isOfflineModeEnabled())
+                {
+                    firebaseSvc.saveBaseDataList(list);
+                }
                 responseListener.onResponse(cityNameList);
             }
         });
+    }
+
+    private boolean isOfflineModeEnabled()
+    {
+        return activity.isOfflineModeEnabled();
     }
 
     private void enableOfflineMode()

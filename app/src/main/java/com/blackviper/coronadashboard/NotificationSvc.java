@@ -32,7 +32,7 @@ public class NotificationSvc
         return instance;
     }
 
-    public NotificationSvc(Context context)
+    private NotificationSvc(Context context)
     {
         this.context = context;
         this.manager = context.getSystemService(NotificationManager.class);

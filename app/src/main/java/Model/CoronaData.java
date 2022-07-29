@@ -98,7 +98,7 @@ public class CoronaData implements Data
         return objectId;
     }
 
-    public void setObjectId(int objectId)
+    public final void setObjectId(int objectId)
     {
         this.objectId = objectId;
     }

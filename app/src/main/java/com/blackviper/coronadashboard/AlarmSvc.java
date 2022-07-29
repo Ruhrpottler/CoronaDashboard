@@ -40,7 +40,7 @@ public class AlarmSvc
             return;
         }
 
-        Comparator<CoronaData> cmp = new LastUpdateComparator().reversed();
+//        Comparator<CoronaData> cmp = new LastUpdateComparator().reversed();
         int counter = 0;
         for(CoronaData data : list)
         {
@@ -67,8 +67,8 @@ public class AlarmSvc
             return;
         }
         Log.d("AlarmSvc", "Send notification for city '" + baseData.getCityName() + "'.");
-        String description = String.format("Der Inzidenzwert von %s %d wird bereits seit" +
-                " mind.  %d Tagen überschritten.", THRESHOLD_INZIDENZ, baseData.getCityName(), sinceDays);
+        String description = String.format("Der Inzidenzwert %d wird bereits seit" +
+                " mind.  %d Tagen von %s überschritten.", THRESHOLD_INZIDENZ, sinceDays, baseData.getCityName());
         notificationSvc.sendNotification("Inzidenzwert überschritten",
                 description); //TODO Resoruces nutzen
 
