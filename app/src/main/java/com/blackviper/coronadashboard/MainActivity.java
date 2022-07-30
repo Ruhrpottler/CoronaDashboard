@@ -9,7 +9,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,7 +25,9 @@ import Tools.UiUtility;
 
 public class MainActivity extends AppCompatActivity
 {
-    private AutoCompleteTextView actv_city;
+    private final int ID_BTN_RELOAD = R.id.btn_reload;
+    private final int ID_IC_OFFLINE = R.id.ic_offline;
+    private AutoCompleteTextView actv;
 
     final UiUtility uiUtility = new UiUtility(MainActivity.this);
     private final DataSvc dataSvc = new DataSvc(this, MainActivity.this);
@@ -43,10 +44,29 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Button btn_sendRequest = (Button) findViewById(R.id.btn_sendRequest);
         TextView tvErgebnisse = (TextView) findViewById(R.id.tvErgebnisse);
-        actv_city = (AutoCompleteTextView) findViewById(R.id.actv_Landkreis);
+        actv = (AutoCompleteTextView) findViewById(R.id.actv_Landkreis);
 
-        setupActv_city();
-        dataSvc.fillActvCity(actv_city, MainActivity.this, new ActvSetupResponseListener() {
+        setupActv();
+        fillActv();
+        setupBtnSendRequest();
+        setupBtnReload();
+    }
+
+    private void setupActv()
+    {
+        actv.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id)
+            {
+                pushKeyboardDown();
+            }
+        });
+    }
+
+    private void fillActv()
+    {
+        dataSvc.fillActvCity(actv, MainActivity.this, new ActvSetupResponseListener() {
             @Override
             public void onError(String message) {
                 message = "Fehler beim Initialisieren der Städte-Listeneinträge. " + message;
@@ -57,12 +77,16 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onResponse(List<String> listOfEntries) {
                 //fill ACTV
-                actv_city.setAdapter(new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_list_item_1, listOfEntries));
+                actv.setAdapter(new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_list_item_1, listOfEntries));
                 uiUtility.showToastTextShort("AutoComplete done.");
             }
         });
+    }
 
-        btn_sendRequest.setOnClickListener(new View.OnClickListener()
+    private void setupBtnSendRequest()
+    {
+        Button button = (Button) findViewById(R.id.btn_sendRequest);
+        button.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View v)
@@ -83,7 +107,7 @@ public class MainActivity extends AppCompatActivity
                     public void onResponse(City city)
                     {
                         //alarmSvc.warnUser(city); //TODO kann weg, falls ich nur über mehrere Tage warne
-
+                        TextView tvErgebnisse = (TextView) findViewById(R.id.tvErgebnisse);
                         tvErgebnisse.setText(city.toString()); //print the newest data
                         if(!isOfflineModeEnabled())
                         {
@@ -123,14 +147,18 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
-    private void setupActv_city()
+    private void setupBtnReload()
     {
-        actv_city.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        Button btn_reload = (Button) findViewById(ID_BTN_RELOAD);
+        btn_reload.setOnClickListener(new View.OnClickListener()
         {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id)
+            public void onClick(View v)
             {
-                pushKeyboardDown();
+                if(isOfflineModeEnabled())
+                {
+                    fillActv();
+                }
             }
         });
     }
@@ -148,7 +176,7 @@ public class MainActivity extends AppCompatActivity
 
     private String getCityInput()
     {
-        return actv_city.getText().toString().trim();
+        return actv.getText().toString().trim();
     }
 
     public void enableOfflineMode()
@@ -163,12 +191,13 @@ public class MainActivity extends AppCompatActivity
 
     private void setOfflineMode(int visibility)
     {
-        findViewById(R.id.ic_offline).setVisibility(visibility);
+        findViewById(ID_IC_OFFLINE).setVisibility(visibility);
+        findViewById(ID_BTN_RELOAD).setVisibility(visibility);
     }
 
-    protected boolean isOfflineModeEnabled() //TODO notification when switch
+    protected boolean isOfflineModeEnabled()
     {
-        return (findViewById(R.id.ic_offline).getVisibility() == View.VISIBLE);
+        return (findViewById(ID_IC_OFFLINE).getVisibility() == View.VISIBLE);
     }
 
 }
