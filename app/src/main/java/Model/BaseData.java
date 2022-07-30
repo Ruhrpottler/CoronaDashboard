@@ -58,7 +58,7 @@ public class BaseData implements Data
         return objectId;
     }
 
-    public void setObjectId(int objectId)
+    public final void setObjectId(int objectId)
     {
         this.objectId = objectId;
     }
@@ -68,7 +68,7 @@ public class BaseData implements Data
         return bl_id;
     }
 
-    public void setBl_id(int bl_id)
+    public final void setBl_id(int bl_id)
     {
         this.bl_id = bl_id;
     }
@@ -77,7 +77,7 @@ public class BaseData implements Data
         return bl;
     }
 
-    public void setBl(String bl) {
+    public final void setBl(String bl) {
         this.bl = bl;
     }
 
@@ -86,7 +86,7 @@ public class BaseData implements Data
         return bez;
     }
 
-    public void setBez(String bez)
+    public final void setBez(String bez)
     {
         this.bez = bez;
     }
@@ -96,7 +96,7 @@ public class BaseData implements Data
         return gen;
     }
 
-    public void setGen(String gen)
+    public final void setGen(String gen)
     {
         this.gen = gen;
     }
@@ -106,7 +106,7 @@ public class BaseData implements Data
         return ewz;
     }
 
-    public void setEwz(int ewz)
+    public final void setEwz(int ewz)
     {
         this.ewz = ewz;
     }
