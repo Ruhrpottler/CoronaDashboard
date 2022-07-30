@@ -12,13 +12,13 @@ public class BaseData implements Data
     private int objectId;
     private int bl_id;
     private String bl;
-    private String bez; //TODO Könnte man theoretisch auch als Ids übersetzen und speichern, damit es schneller geht
+    private String bez;
     private String gen;
     private int ewz;
 
     private static final String STR_KREIS = "kreis";
 
-    public BaseData() { } //TODO nicht unbedingt notwendig, aber vmtl. will Firebase den auch hier haben
+    public BaseData() { }
 
     public BaseData(int objectId, int bl_id, String bl, String bez, String gen, int ewz)
     {
