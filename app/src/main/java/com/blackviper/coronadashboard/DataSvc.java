@@ -38,7 +38,7 @@ public class DataSvc
     //Klassenattribute
     private final MainActivity activity;
     private final Context context;
-    private final SQLiteDatabaseHelper dbHelper;
+    //private final SQLiteDatabaseHelper dbHelper;
     private final FirebaseSvc firebaseSvc = FirebaseSvc.getFirebaseInstance();
     private int objectId;
 
@@ -47,7 +47,7 @@ public class DataSvc
     {
         this.activity = activity;
         this.context = context;
-        this.dbHelper = new SQLiteDatabaseHelper(context);
+        //this.dbHelper = new SQLiteDatabaseHelper(context);
     }
 
     //Methoden

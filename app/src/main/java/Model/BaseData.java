@@ -16,8 +16,6 @@ public class BaseData implements Data
     private String gen;
     private int ewz;
 
-    private static final String STR_KREIS = "kreis";
-
     public BaseData() { }
 
     public BaseData(int objectId, int bl_id, String bl, String bez, String gen, int ewz)
@@ -47,7 +45,8 @@ public class BaseData implements Data
      */
     public String getCityName()
     {
-        if(getGen().toLowerCase().contains(STR_KREIS)) {
+        if(getGen().toLowerCase().contains(Constants.STR_KREIS))
+        {
             return getGen();
         }
         return getBez() + " " + getGen();
@@ -112,10 +111,9 @@ public class BaseData implements Data
     }
 
     @Override
-    public Data createDataFromJSONAttributesGeneric(JSONObject attributes) throws JSONException
+    public <T extends Data> Data createDataFromJSONAttributesGeneric(JSONObject attributes) throws JSONException
     {
         return createDataFromJSONAttributes(attributes);
-
     }
 
     public static BaseData createDataFromJSONAttributes(JSONObject attributes) throws JSONException
