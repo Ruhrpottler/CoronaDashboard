@@ -188,16 +188,21 @@ public class DataSvc
                 responseListener.onResponse(list);
             }
 
-        }, error -> { //TODO
-            if(error instanceof NoConnectionError)
+        }, new Response.ErrorListener()
+        {
+            @Override
+            public void onErrorResponse(VolleyError error)
             {
-                enableOfflineMode();
-                responseListener.onError("Verbindung zum Host gescheitert.");
-            }
-            else
-            {
-                disableOfflineMode();
-                responseListener.onError(error.getMessage());
+                if(error instanceof NoConnectionError)
+                {
+                    enableOfflineMode();
+                    responseListener.onError("Verbindung zum Host gescheitert.");
+                }
+                else
+                {
+                    disableOfflineMode();
+                    responseListener.onError(error.getMessage());
+                }
             }
         });
         RequestSingleton.getInstance(context).addToRequestQueue(request);
