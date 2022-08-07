@@ -188,7 +188,7 @@ public class DataSvc
                 responseListener.onResponse(list);
             }
 
-        }, error -> {
+        }, error -> { //TODO
             if(error instanceof NoConnectionError)
             {
                 enableOfflineMode();

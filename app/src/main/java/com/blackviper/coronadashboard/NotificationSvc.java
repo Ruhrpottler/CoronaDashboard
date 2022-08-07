@@ -87,8 +87,8 @@ public class NotificationSvc
                 .setContentTitle(title)
                 //.setContentText(description)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(description))
-                .setContentIntent(pendingIntent)
-                .setAutoCancel(true)
+                .setContentIntent(pendingIntent) //Open app if the user clicks on the notification
+                .setAutoCancel(true) //Remove notification if the user clicks on the notification
                 .setPriority(priority)
                 .setCategory(NotificationCompat.CATEGORY_EVENT)
                 .setVisibility(NotificationCompat.VISIBILITY_PRIVATE); //private zeigt nur gurndlegende Informationen auf dem Sperrbildschirm

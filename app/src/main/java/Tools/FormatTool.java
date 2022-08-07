@@ -16,7 +16,7 @@ public class FormatTool {
         this.context = context;
     }
 
-    public static String intToString(int value) //TODO rename. Keine Aussagekraft //TODO "use Locale" Meldung im CityDataModel
+    public static String intToString(int value) //TODO rename. Keine Aussagekraft
     {
         return NumberFormat.getNumberInstance(Locale.GERMANY).format(value);
     }

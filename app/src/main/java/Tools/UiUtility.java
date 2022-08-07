@@ -27,7 +27,6 @@ public class UiUtility
 
     private void showToastText(String str, int length)
     {
-        //TODO eig. macht das Ex-Handling Android doch schon selbst, isnt it?
         if(length != Toast.LENGTH_SHORT && length != Toast.LENGTH_LONG)
         {
             length = Toast.LENGTH_LONG;
